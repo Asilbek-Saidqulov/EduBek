@@ -1,0 +1,21 @@
+/** GET /api/platform/hooks — List hooks; POST /api/platform/hooks/execute — Execute hooks for an event */
+import { NextResponse } from "next/server";
+import { withErrorHandler } from "@/lib/errors";
+import { getAuthContext } from "@/features/auth";
+import { listHooks, executeHooks } from "@/features/platform-sdk";
+import { z } from "zod";
+
+const executeSchema = z.object({ event: z.string().min(1), payload: z.record(z.string(), z.unknown()).default({}) });
+
+export const GET = withErrorHandler(async (req) => {
+  const ctx = await getAuthContext();
+  if (!ctx.userId) return NextResponse.json({ error: { code: "UNAUTHORIZED", message: "Authentication required" } }, { status: 401 });
+  const url = new URL(req.url);
+  const hooks = await listHooks({
+    extensionInstallId: url.searchParams.get("extensionInstallId") ?? undefined,
+    event: url.searchParams.get("event") ?? undefined,
+    enabled: url.searchParams.get("enabled") === "true" ? true : undefined,
+    limit: Number(url.searchParams.get("limit") ?? 500),
+  });
+  return NextResponse.json({ hooks, total: hooks.length });
+});

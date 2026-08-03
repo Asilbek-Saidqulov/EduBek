@@ -1,0 +1,2 @@
+export interface SharedResourceDto { id: string; resourceId: string; token: string; readOnly: boolean; expiresAt: string | null; revokedAt: string | null; viewCount: number; createdAt: string }
+export interface SharedResourceViewDto { resourceType: string; title: string; description: string | null; contentJson: string; subject: string | null; grade: string | null; language: string; ownerName: string | null }
