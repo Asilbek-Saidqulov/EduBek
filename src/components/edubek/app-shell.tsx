@@ -1,382 +1,404 @@
-/**
- * AppShell — the authenticated layout (Notion/Linear-style).
- *
- * Design: Simple, calm, educational, warm.
- * - Left sidebar: brand + nav groups + user card at bottom
- * - Top bar: search bar + notifications + theme + avatar
- * - Mobile: bottom tab bar (5 items)
- *
- * The sidebar uses soft warm cream tones with subtle active states.
- * No gradients, no neon — just clean typography and gentle shadows.
- */
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import {
-  Bell,
+  LayoutDashboard,
   Compass,
-  GraduationCap,
-  Home,
-  type LucideIcon,
-  Megaphone,
-  Search,
-  Settings,
-  ShieldCheck,
-  Sparkles,
   Store,
+  FolderOpen,
+  Sparkles,
+  Gamepad2,
   Users,
   Wallet,
+  Bell,
+  Settings,
+  Shield,
   LogOut,
   Menu,
-  Rocket,
+  X,
+  GraduationCap,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  Coins,
 } from "lucide-react";
-
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { ThemeToggle } from "@/components/edubek/theme-toggle";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
-import { useCurrentUser, type CurrentUser } from "@/hooks/use-current-user";
-import { Mascot } from "@/components/edubek/mascots";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { GlobalSearchDialog } from "@/components/edubek/global-search-dialog";
 
-interface NavItem {
-  href: string;
-  labelKey: string;
-  icon: LucideIcon;
-  roles: string[];
-  hideOnMobile?: boolean;
+interface AppShellProps {
+  user?: any;
+  t?: any;
+  children: React.ReactNode;
 }
 
-const PRIMARY_NAV: NavItem[] = [
-  { href: "/dashboard", labelKey: "nav.dashboard", icon: Home, roles: [] },
-  { href: "/discover", labelKey: "nav.discover", icon: Compass, roles: [] },
-  { href: "/live-quiz", labelKey: "nav.liveQuiz", icon: Rocket, roles: [] },
-  { href: "/marketplace", labelKey: "nav.marketplace", icon: Store, roles: [] },
-];
+export function AppShell({ user: initialUser, t, children }: AppShellProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user: fetchedUser } = useCurrentUser();
+  const user = fetchedUser || initialUser;
+  const [mobileOpen, setMobileOpen] = React.useState(false);
+  const [collapsed, setCollapsed] = React.useState(false);
+  const [searchOpen, setSearchOpen] = React.useState(false);
 
-const SECONDARY_NAV: NavItem[] = [
-  { href: "/library", labelKey: "nav.library", icon: GraduationCap, roles: [] },
-  { href: "/ai-workspace", labelKey: "nav.aiWorkspace", icon: Sparkles, roles: [] },
-  { href: "/wallet", labelKey: "nav.wallet", icon: Wallet, roles: [] },
-  { href: "/notifications", labelKey: "nav.notifications", icon: Bell, roles: [] },
-  { href: "/classrooms", labelKey: "nav.classrooms", icon: Users, roles: ["teacher", "ta", "school_admin", "admin", "owner"] },
-  { href: "/admin", labelKey: "nav.admin", icon: ShieldCheck, roles: ["admin", "superadmin"] },
-];
+  // Global keyboard shortcut '/' or 'Cmd+K' to open search
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.key === "/" || (e.key === "k" && (e.metaKey || e.ctrlKey))) && !["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        setSearchOpen(true);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
-const MOBILE_TABS: NavItem[] = [
-  { href: "/dashboard", labelKey: "nav.dashboard", icon: Home, roles: [] },
-  { href: "/discover", labelKey: "nav.discover", icon: Compass, roles: [] },
-  { href: "/live-quiz", labelKey: "nav.liveQuiz", icon: Rocket, roles: [] },
-  { href: "/marketplace", labelKey: "nav.marketplace", icon: Store, roles: [] },
-  { href: "/profile", labelKey: "nav.profile", icon: Megaphone, roles: [] },
-];
+  const primaryNavItems = [
+    { href: "/dashboard", label: t?.("nav.dashboard") || "Launchpad", icon: LayoutDashboard, tag: "Home" },
+    { href: "/discover", label: t?.("nav.discover") || "Discover", icon: Compass, tag: "Nexus" },
+    { href: "/library", label: t?.("nav.library") || "Workspace", icon: FolderOpen },
+    { href: "/marketplace", label: t?.("nav.marketplace") || "Marketplace", icon: Store },
+    { href: "/live-quiz", label: t?.("nav.liveQuiz") || "Quiz Hub", icon: Gamepad2 },
+    { href: "/ai-workspace", label: t?.("nav.aiWorkspace") || "AI Assistant", icon: Sparkles },
+    { href: "/classrooms", label: t?.("nav.classrooms") || "Classrooms", icon: Users },
+  ];
 
-function itemIsVisible(item: NavItem, roles: string[]): boolean {
-  if (item.roles.length === 0) return true;
-  return item.roles.some((r) => roles.includes(r));
-}
+  const secondaryNavItems = [
+    { href: "/wallet", label: t?.("nav.wallet") || "EduTokens", icon: Wallet },
+    { href: "/notifications", label: t?.("nav.notifications") || "Notifications", icon: Bell },
+    { href: "/settings", label: t?.("nav.settings") || "Settings", icon: Settings },
+  ];
 
-function isActive(pathname: string, href: string): boolean {
-  if (href === "/dashboard") return pathname === href || pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-// ---------------------------------------------------------------------------
-// Brand — minimal, warm
-// ---------------------------------------------------------------------------
-
-function BrandMark() {
-  return (
-    <Link href="/dashboard" className="flex items-center gap-2.5" aria-label="EduBek home">
-      <span className="inline-flex size-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-        E
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="text-sm font-semibold tracking-tight">EduBek</span>
-        <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
-          Learn · Create · Earn
-        </span>
-      </span>
-    </Link>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Sidebar nav
-// ---------------------------------------------------------------------------
-
-function SidebarNav({ pathname, user }: { pathname: string; user: { platformRoles: string[] } | null }) {
-  const t = useTranslations("nav");
-  const roles = user?.platformRoles ?? [];
-
-  return (
-    <nav className="flex flex-col gap-5 px-3 py-4" aria-label="Primary">
-      <NavGroup title={t("sections.main")} items={PRIMARY_NAV} pathname={pathname} roles={roles} t={t} />
-      <NavGroup title={t("sections.tools")} items={SECONDARY_NAV} pathname={pathname} roles={roles} t={t} />
-    </nav>
-  );
-}
-
-function NavGroup({
-  title,
-  items,
-  pathname,
-  roles,
-  t,
-}: {
-  title: string;
-  items: NavItem[];
-  pathname: string;
-  roles: string[];
-  t: ReturnType<typeof useTranslations<"nav">>;
-}) {
-  const visible = items.filter((i) => itemIsVisible(i, roles));
-  if (visible.length === 0) return null;
-  return (
-    <div className="flex flex-col gap-0.5">
-      <p className="px-3 pb-1.5 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/70">
-        {title}
-      </p>
-      {visible.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(pathname, item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm font-medium transition-all",
-              active
-                ? "bg-secondary text-secondary-foreground shadow-sm"
-                : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
-            )}
-          >
-            <Icon className={cn("size-4 shrink-0", active ? "text-primary" : "")} aria-hidden />
-            {t.raw(item.labelKey) as string}
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// User card — warm, minimal
-// ---------------------------------------------------------------------------
-
-function UserCard({ user }: { user: CurrentUser | null }) {
-  const t = useTranslations("nav");
-  if (!user) {
-    return (
-      <div className="flex flex-col gap-2 p-3">
-        <Button asChild variant="outline" size="sm">
-          <Link href="/login">{t("login")}</Link>
-        </Button>
-        <Button asChild size="sm">
-          <Link href="/register">{t("register")}</Link>
-        </Button>
-      </div>
-    );
+  if (user?.platformRoles?.includes("ADMIN") || user?.platformRoles?.includes("SUPERADMIN") || user?.platformRoles?.includes("admin") || user?.platformRoles?.includes("superadmin")) {
+    secondaryNavItems.push({ href: "/admin", label: t?.("nav.admin") || "Admin Console", icon: Shield });
   }
-  const initials = (user.name ?? user.email ?? "?").slice(0, 2).toUpperCase();
-  const primaryRole = user.platformRoles[0] ?? "user";
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      window.location.href = "/";
+    } catch {
+      window.location.href = "/";
+    }
+  };
+
+  const getInitials = (name?: string) => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const isNavActive = (href: string) => {
+    if (href === "/dashboard") return pathname === "/dashboard";
+    return pathname.startsWith(href);
+  };
+
   return (
-    <Link href="/profile" className="flex items-center gap-2.5 rounded-lg border border-border/50 bg-card/50 p-2.5 transition-colors hover:bg-card">
-      <Avatar className="size-9 ring-1 ring-border/30">
-        <AvatarFallback className="bg-secondary text-xs font-semibold text-secondary-foreground">
-          {initials}
-        </AvatarFallback>
-      </Avatar>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-sm font-medium">{user.name ?? user.email}</span>
-        <Badge variant="secondary" className="mt-0.5 w-fit text-[10px] capitalize">
-          {primaryRole}
-        </Badge>
-      </div>
-    </Link>
-  );
-}
+    <div className="flex min-h-screen bg-background antialiased">
+      {/* Global Search Dialog */}
+      <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
 
-// ---------------------------------------------------------------------------
-// Search bar — in the top bar
-// ---------------------------------------------------------------------------
-
-function SearchBar() {
-  return (
-    <div className="relative flex-1 max-w-md">
-      <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-      <Input
-        type="search"
-        placeholder="Search quizzes, resources, people..."
-        className="h-9 pl-9 text-sm bg-muted/50 border-0 focus-visible:bg-background focus-visible:border-border"
-      />
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Top bar — search + notifications + theme + avatar
-// ---------------------------------------------------------------------------
-
-function TopBar({ onOpenSidebar, user }: { onOpenSidebar: () => void; user: CurrentUser | null }) {
-  return (
-    <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/40 bg-background/80 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <Button
-        variant="ghost"
-        size="icon"
-        className="lg:hidden"
-        onClick={onOpenSidebar}
-        aria-label="Open navigation"
+      {/* Desktop Left Sidebar */}
+      <aside
+        className={`hidden lg:flex flex-col border-r bg-card/70 backdrop-blur-md transition-all duration-300 ${
+          collapsed ? "w-20" : "w-64"
+        }`}
       >
-        <Menu className="size-5" aria-hidden />
-      </Button>
-
-      <SearchBar />
-
-      <div className="flex items-center gap-1">
-        {user && (
-          <Button asChild variant="ghost" size="icon" className="relative" aria-label="Notifications">
-            <Link href="/notifications">
-              <Bell className="size-5 text-muted-foreground" />
-              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-accent" />
-            </Link>
-          </Button>
-        )}
-        <ThemeToggle />
-        <LanguageSwitcher />
-        {user && (
-          <Button asChild variant="ghost" size="icon" aria-label="Profile">
-            <Link href="/profile">
-              <Avatar className="size-8 ring-1 ring-border/30">
-                <AvatarFallback className="bg-secondary text-xs font-semibold text-secondary-foreground">
-                  {(user.name ?? user.email ?? "?").slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-            </Link>
-          </Button>
-        )}
-      </div>
-    </header>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// Mobile tab bar
-// ---------------------------------------------------------------------------
-
-function MobileTabBar({ pathname, user }: { pathname: string; user: { platformRoles: string[] } | null }) {
-  const t = useTranslations("nav");
-  const roles = user?.platformRoles ?? [];
-  const visible = MOBILE_TABS.filter((i) => itemIsVisible(i, roles));
-
-  return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-30 grid border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/85 lg:hidden"
-      aria-label="Mobile primary"
-      style={{ gridTemplateColumns: `repeat(${visible.length}, minmax(0, 1fr))` }}
-    >
-      {visible.map((item) => {
-        const Icon = item.icon;
-        const active = isActive(pathname, item.href);
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            aria-current={active ? "page" : undefined}
-            className={cn(
-              "flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium transition-colors",
-              active ? "text-primary" : "text-muted-foreground",
+        {/* Brand Header */}
+        <div className="flex h-16 items-center justify-between border-b px-4">
+          <Link href="/dashboard" className="flex items-center gap-2.5 font-bold tracking-tight">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shrink-0">
+              <GraduationCap className="h-5 w-5" />
+            </div>
+            {!collapsed && (
+              <div className="flex flex-col">
+                <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
+                  EduBek
+                </span>
+                <span className="text-[10px] font-medium text-muted-foreground -mt-1 tracking-wider uppercase">
+                  Learning OS
+                </span>
+              </div>
             )}
-          >
-            <Icon className="size-5" aria-hidden />
-            {(t.raw(item.labelKey) as string).slice(0, 10)}
           </Link>
-        );
-      })}
-    </nav>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// AppShell
-// ---------------------------------------------------------------------------
-
-export function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname() ?? "/";
-  const { user } = useCurrentUser();
-  const [sidebarOpen, setSidebarOpen] = React.useState(false);
-
-  return (
-    <div className="flex min-h-screen bg-background">
-      {/* Desktop sidebar */}
-      <aside className="hidden w-60 shrink-0 border-r border-border/40 bg-sidebar lg:flex lg:flex-col">
-        <div className="flex h-14 items-center border-b border-border/40 px-4">
-          <BrandMark />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCollapsed(!collapsed)}
+            className="h-7 w-7 text-muted-foreground hover:text-foreground hidden lg:flex"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </Button>
         </div>
-        <ScrollArea className="flex-1">
-          <SidebarNav pathname={pathname} user={user} />
-        </ScrollArea>
-        <div className="border-t border-border/40 p-2">
-          <UserCard user={user} />
-          <LogoutButton />
+
+        {/* Search Quick Action */}
+        <div className="px-3 pt-4 pb-2">
+          <button
+            onClick={() => setSearchOpen(true)}
+            className={`w-full flex items-center gap-2.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors ${
+              collapsed ? "justify-center px-2" : "justify-between"
+            }`}
+            title="Search EduBek (Press /)"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="h-4 w-4 shrink-0" />
+              {!collapsed && <span>Search EduBek...</span>}
+            </div>
+            {!collapsed && (
+              <kbd className="rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+                /
+              </kbd>
+            )}
+          </button>
+        </div>
+
+        {/* Nav list */}
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-6">
+          {/* Main learning sections */}
+          <div>
+            {!collapsed && (
+              <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                Ecosystem
+              </p>
+            )}
+            <div className="space-y-1">
+              {primaryNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all ${
+                      active
+                        ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    } ${collapsed ? "justify-center px-2" : ""}`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"}`} />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Tools & Account */}
+          <div>
+            {!collapsed && (
+              <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                Workspace & Tools
+              </p>
+            )}
+            <div className="space-y-1">
+              {secondaryNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                      active
+                        ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    } ${collapsed ? "justify-center px-2" : ""}`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"}`} />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* User Card & Balance */}
+        <div className="border-t p-3 bg-card/40">
+          {!collapsed ? (
+            <div className="flex items-center justify-between rounded-xl p-2 hover:bg-muted/60 transition-colors">
+              <Link href="/profile" className="flex items-center gap-2.5 overflow-hidden">
+                <Avatar className="h-8 w-8 border">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                    {getInitials(user?.name || user?.username)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="truncate text-xs">
+                  <div className="font-semibold text-foreground truncate">
+                    {user?.name || user?.username || "Student"}
+                  </div>
+                  <div className="flex items-center gap-1 text-muted-foreground font-mono text-[11px]">
+                    <Coins className="h-3 w-3 text-amber-500" />
+                    <span>{user?.balanceEduTokens ?? 1250} EDU</span>
+                  </div>
+                </div>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleLogout}
+                title="Log out"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <Link href="/profile" title={user?.name || "Profile"}>
+                <Avatar className="h-8 w-8 border">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
+                    {getInitials(user?.name || user?.username)}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                onClick={handleLogout}
+                title="Log out"
+              >
+                <LogOut className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          )}
         </div>
       </aside>
 
-      {/* Mobile sidebar */}
-      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
-        <SheetTrigger asChild>
-          <button className="sr-only" aria-label="Open navigation" />
-        </SheetTrigger>
-        <SheetContent side="left" className="w-72 p-0">
-          <div className="flex h-14 items-center border-b border-border/40 px-4">
-            <BrandMark />
-          </div>
-          <ScrollArea className="h-[calc(100vh-3.5rem-1px)]">
-            <SidebarNav pathname={pathname} user={user} />
-            <div className="border-t border-border/40 p-2">
-              <UserCard user={user} />
-              <LogoutButton />
-            </div>
-          </ScrollArea>
-        </SheetContent>
-      </Sheet>
+      {/* Main Content Viewport */}
+      <div className="flex flex-1 flex-col overflow-hidden min-w-0">
+        {/* Top Navbar */}
+        <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b bg-background/80 px-4 sm:px-6 backdrop-blur-md">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden h-9 w-9"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </Button>
 
-      {/* Main column */}
-      <div className="flex min-w-0 flex-1 flex-col">
-        <TopBar onOpenSidebar={() => setSidebarOpen(true)} user={user} />
-        <main className="flex-1 overflow-x-hidden px-4 pb-24 pt-4 sm:px-6 lg:pb-8 lg:pt-6">
+            {/* Breadcrumb Context */}
+            <div className="hidden sm:flex items-center gap-2 text-xs text-muted-foreground">
+              <Link href="/dashboard" className="font-medium hover:text-foreground transition-colors">
+                EduBek
+              </Link>
+              <span className="text-muted-foreground/40">/</span>
+              <span className="font-semibold text-foreground capitalize">
+                {pathname.replace("/", "") || "Launchpad"}
+              </span>
+            </div>
+          </div>
+
+          {/* Search bar & Top actions */}
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={() => setSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            >
+              <Search className="h-3.5 w-3.5" />
+              <span>Search platform...</span>
+              <kbd className="rounded border bg-background px-1 font-mono text-[10px]">
+                /
+              </kbd>
+            </button>
+
+            {/* EduToken Balance Chip */}
+            <Link
+              href="/wallet"
+              className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+              title="EduTokens Balance"
+            >
+              <Coins className="h-3.5 w-3.5" />
+              <span>{user?.balanceEduTokens ?? 1250}</span>
+              <span className="text-[10px] text-amber-600/70 font-normal">EDU</span>
+            </Link>
+
+            {/* Notification Bell */}
+            <Button variant="ghost" size="icon" asChild className="relative h-9 w-9 text-muted-foreground">
+              <Link href="/notifications">
+                <Bell className="h-4 w-4" />
+                <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+              </Link>
+            </Button>
+
+            <LanguageSwitcher />
+            <ThemeToggle />
+          </div>
+        </header>
+
+        {/* Mobile Navigation Drawer */}
+        {mobileOpen && (
+          <div className="fixed inset-0 z-50 lg:hidden flex">
+            <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={() => setMobileOpen(false)} />
+            <div className="relative flex w-72 flex-col bg-card p-4 shadow-2xl z-50">
+              <div className="flex items-center justify-between border-b pb-3 mb-3">
+                <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 font-bold">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                    <GraduationCap className="h-4 w-4" />
+                  </div>
+                  <span>EduBek</span>
+                </Link>
+                <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-1">
+                {[...primaryNavItems, ...secondaryNavItems].map((item) => {
+                  const Icon = item.icon;
+                  const active = isNavActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium ${
+                        active
+                          ? "bg-primary text-primary-foreground font-semibold"
+                          : "text-muted-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <div className="border-t pt-3 mt-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2 text-destructive hover:bg-destructive/10"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Log out</span>
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Main Body */}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
           {children}
         </main>
-        <MobileTabBar pathname={pathname} user={user} />
       </div>
     </div>
   );
 }
-
-function LogoutButton() {
-  const t = useTranslations("nav");
-  return (
-    <form action="/api/auth/logout" method="POST" className="px-1 pt-2">
-      <Button
-        type="submit"
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-muted-foreground hover:text-destructive"
-      >
-        <LogOut className="size-4" aria-hidden />
-        {t("logout")}
-      </Button>
-    </form>
-  );
-}
-
-export { Settings, Separator };

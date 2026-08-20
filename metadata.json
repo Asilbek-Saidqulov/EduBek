@@ -1,0 +1,6 @@
+{
+  "name": "EduBek",
+  "description": "AI-Powered Education Ecosystem unifying a Content Marketplace, AI Assistant, Quiz Platform, and Creator Economy",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,48 +1,29 @@
-/**
- * EmptyState — reusable empty-data UI.
- * Dashed-border card with muted circle icon, heading, helper text,
- * optional CTA button.
- */
-import Link from "next/link";
-import type { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import * as React from "react";
 import { cn } from "@/lib/utils";
+import { FolderOpen } from "lucide-react";
 
-export function EmptyState({
-  icon: Icon,
-  title,
-  description,
-  ctaLabel,
-  ctaHref,
-  className,
-}: {
-  icon: LucideIcon;
+export interface EmptyStateProps {
   title: string;
-  description: string;
-  ctaLabel?: string;
-  ctaHref?: string;
+  description?: string;
+  icon?: React.ReactNode;
+  action?: React.ReactNode;
   className?: string;
-}) {
+}
+
+export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
   return (
-    <Card
+    <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 border-dashed border-border/60 bg-card/30 p-8 text-center",
-        className,
+        "flex min-h-[260px] flex-col items-center justify-center rounded-xl border border-dashed p-8 text-center animate-in fade-in-50",
+        className
       )}
     >
-      <span className="inline-flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Icon className="size-5" aria-hidden />
-      </span>
-      <div>
-        <h3 className="text-base font-semibold">{title}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
+      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
+        {icon || <FolderOpen className="h-6 w-6" />}
       </div>
-      {ctaLabel && ctaHref && (
-        <Button asChild variant="outline" size="sm" className="mt-2">
-          <Link href={ctaHref}>{ctaLabel}</Link>
-        </Button>
-      )}
-    </Card>
+      <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+      {description && <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">{description}</p>}
+      {action && <div className="mt-4">{action}</div>}
+    </div>
   );
 }

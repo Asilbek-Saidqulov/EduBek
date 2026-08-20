@@ -20,25 +20,21 @@ const nextConfig: NextConfig = {
       {
         source: "/(.*)",
         headers: [
-          // CSP — strict default-src 'self'. 'unsafe-inline' for scripts/styles
-          // is needed because Next.js injects inline runtime + Tailwind styles.
+          // CSP headers adjusted for preview environment
           {
             key: "Content-Security-Policy",
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-inline'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
               "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https:",
+              "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' wss: ws:",
-              "frame-ancestors 'none'",
+              "connect-src 'self' wss: ws: https:",
               "object-src 'none'",
               "base-uri 'self'",
               "form-action 'self'",
-              "frame-src 'none'",
             ].join("; "),
           },
-          { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {

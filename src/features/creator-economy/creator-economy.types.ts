@@ -1,3 +1,0 @@
-export interface CreatorDashboardDto { totalEarnings: number; pendingEarnings: number; withdrawn: number; sales: number; downloads: number; views: number; conversionRate: number; averageRating: number; topResources: Array<{ id: string; title: string; earnings: number; sales: number }>; monthlyEarnings: Array<{ month: string; amount: number }> }
-export interface CreatorEarningDto { id: string; creatorId: string; source: string; amount: number; currency: string; eduTokens: number; referenceId: string | null; createdAt: string }
-export interface CreatorPayoutDto { id: string; creatorId: string; amount: number; currency: string; status: string; requestedAt: string; processedAt: string | null; failureReason: string | null }
