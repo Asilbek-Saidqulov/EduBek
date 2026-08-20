@@ -58,6 +58,10 @@ export const PlatformPermission = {
   // Phase 4C
   LIVEQUIZ_MANAGE_ALL: "livequiz.manage_all",
   TOURNAMENT_MANAGE_ALL: "tournament.manage_all",
+  // Phase 6 — Trust & moderation
+  PLATFORM_MODERATE: "platform.moderate",
+  TRUST_MANAGE: "trust.manage",
+  CLOUD_SECRET_MANAGE: "cloud.secret.manage",
 } as const;
 
 export type PlatformPermission =

@@ -278,7 +278,7 @@ export function voidPaymentIntent(intentId: string): PaymentIntent | null {
 }
 
 export function supportsAllPaymentProviders(): PaymentProviderId[] {
-  return ["click", "payme", "apple", "google", "bank", "invoice", "custom"];
+  return ["stripe", "payme", "click", "apple", "google", "bank", "invoice", "custom"];
 }
 export function supportsAllProviderStatuses(): PaymentProviderStatus[] {
   return ["active", "inactive", "maintenance", "deprecated"];

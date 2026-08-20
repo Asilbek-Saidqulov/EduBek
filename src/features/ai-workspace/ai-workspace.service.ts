@@ -92,12 +92,6 @@ export async function getSessions(ctx: AuthContext) {
   return sessions.map(mapSession)
 }
 
-export async function getGenerationHistory(ctx: AuthContext, limit = 20) {
-  if (!ctx.userId) throw unauthorized('Authentication required')
-  const sessions = await repo.findSessionsByOwner(ctx.userId)
-  return sessions.slice(0, limit).map(mapSession)
-}
-
 export async function getSession(ctx: AuthContext, id: string) {
   if (!ctx.userId) throw unauthorized('Authentication required')
   const s = await repo.findSessionWithMessages(id)
@@ -387,4 +381,33 @@ export function listPromptTemplates() { return listTemplates() }
 function parseJson(content: string): any | null {
   const cleaned = content.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim()
   try { return JSON.parse(cleaned) } catch { const m = cleaned.match(/\{[\s\S]*\}/); if (m) { try { return JSON.parse(m[0]) } catch {} } return null }
+}
+
+/**
+ * getGenerationHistory — returns the user's recent AI generation history.
+ * Used by the AI workspace history page.
+ *
+ * SECURITY: userId is derived from ctx.userId (never trusted from body/query).
+ */
+export async function getGenerationHistory(ctx: AuthContext, limit = 20): Promise<Array<{ id: string; sessionId: string; prompt: string; status: string; createdAt: string }>> {
+  if (!ctx.userId) throw unauthorized('Authentication required')
+  const sessions = await db.aiSession.findMany({
+    where: { ownerId: ctx.userId },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      createdAt: true,
+      _count: { select: { messages: true } },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: Math.min(limit, 100),
+  })
+  return sessions.map(s => ({
+    id: s.id,
+    sessionId: s.id,
+    prompt: s.title ?? '',
+    status: s.status,
+    createdAt: s.createdAt.toISOString(),
+  }))
 }

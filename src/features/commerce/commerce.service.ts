@@ -43,3 +43,37 @@ export async function getRecommendations(ctx: AuthContext, limit = 10): Promise<
   const listings = await db.mpListing.findMany({ where, include: { resource: { select: { resourceType: true, subject: true } } }, orderBy: [{ viewCount: 'desc' }, { favoriteCount: 'desc' }], take: limit })
   return listings.map(l => ({ listingId: l.id, title: l.title, reason: `Similar to your purchases`, score: l.viewCount }))
 }
+
+/**
+ * updateReview — update an existing review. Only the review's original
+ * author (buyerId === ctx.userId) can update it.
+ */
+export async function updateReview(ctx: AuthContext, reviewId: string, input: UpdateReviewBody): Promise<ReviewDto> {
+  if (!ctx.userId) throw unauthorized('Authentication required')
+  const existing = await db.mpReview.findUnique({ where: { id: reviewId } })
+  if (!existing) throw notFound('Review not found')
+  if (existing.buyerId !== ctx.userId) throw forbidden('Can only update your own reviews')
+  const updated = await db.mpReview.update({
+    where: { id: reviewId },
+    data: {
+      rating: input.rating ?? existing.rating,
+      title: input.title ?? existing.title,
+      body: input.body ?? existing.body,
+    },
+  })
+  eventBus.publish(buildEvent({ type: REVIEW_UPDATED, actorId: ctx.userId, reviewId, listingId: updated.listingId, rating: updated.rating, occurredAt: new Date().toISOString() } as any))
+  return { id: updated.id, listingId: updated.listingId, buyerId: updated.buyerId, purchaseId: updated.purchaseId, rating: updated.rating, title: updated.title, body: updated.body, createdAt: updated.createdAt.toISOString(), updatedAt: updated.updatedAt.toISOString() }
+}
+
+/**
+ * deleteReview — delete a review. Only the review's original author
+ * (buyerId === ctx.userId) can delete it.
+ */
+export async function deleteReview(ctx: AuthContext, reviewId: string): Promise<void> {
+  if (!ctx.userId) throw unauthorized('Authentication required')
+  const existing = await db.mpReview.findUnique({ where: { id: reviewId } })
+  if (!existing) throw notFound('Review not found')
+  if (existing.buyerId !== ctx.userId) throw forbidden('Can only delete your own reviews')
+  await db.mpReview.delete({ where: { id: reviewId } })
+  eventBus.publish(buildEvent({ type: REVIEW_DELETED, actorId: ctx.userId, reviewId, listingId: existing.listingId, occurredAt: new Date().toISOString() } as any))
+}

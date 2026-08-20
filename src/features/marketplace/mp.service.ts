@@ -1,12 +1,13 @@
 import { logger } from '@/lib/logger'
 import { badRequest, notFound, forbidden, unauthorized } from '@/lib/errors'
-import { can, canInOrg, isOrgMember, PersonalPermission, OrgPermission, type AuthContext } from '@/features/rbac'
+import { can, canInOrg, isOrgMember, PersonalPermission, OrgPermission, PlatformPermission, type AuthContext } from '@/features/rbac'
 import { eventBus } from '@/infra/event-bus'
 import { LISTING_CREATED, LISTING_UPDATED, LISTING_SUBMITTED, LISTING_APPROVED, LISTING_PUBLISHED, LISTING_UNPUBLISHED, LISTING_ARCHIVED, LISTING_FAVORITED, LISTING_UNFAVORITED, LISTING_VIEWED, buildEvent } from '@/infra/event-bus/events'
 import type { MpListingDto, MpListingListItemDto, MpListingListResult, MpCategoryDto, CreatorDashboardDto } from './mp.types'
 import type { CreateListingBody, UpdateListingBody, BrowseListingsQuery, CreateCategoryBody } from './mp.schema'
 import * as repo from './mp.repository'
 import { enforceMarketplaceAIPolicy } from './policy'
+import { db } from '@/lib/db'
 const log = logger.child({ module: 'mp-service' })
 
 function mapListing(l: any, isFavorited: boolean): MpListingDto {
@@ -89,6 +90,12 @@ export async function submitListing(ctx: AuthContext, id: string): Promise<MpLis
 
 export async function approveListing(ctx: AuthContext, id: string): Promise<MpListingDto> {
   if (!ctx.userId) throw unauthorized('Authentication required')
+  // RBAC: only moderators and admins can approve listings. The previous
+  // implementation let ANY authenticated user approve ANY submitted listing,
+  // which let a malicious user bypass marketplace moderation entirely.
+  if (!can(ctx, PlatformPermission.MARKETPLACE_MODERATE) && !ctx.isSuperadmin) {
+    throw forbidden('Only moderators and admins can approve listings')
+  }
   const e = await repo.findListingById(id); if (!e) throw notFound('Listing not found')
   if (e.status !== 'submitted') throw badRequest(`Cannot approve from '${e.status}'`)
   const u = await repo.updateListing(id, { status: 'approved', approvedAt: new Date(), approvedById: ctx.userId })
@@ -132,6 +139,19 @@ export async function browseListings(ctx: AuthContext, query: BrowseListingsQuer
   return { listings: listings.map(mapListItem), total }
 }
 
+/**
+ * List the current user's favorited listings.
+ * Wraps `repo.findFavoriteListings` and maps to `MpListingListItemDto`.
+ */
+export async function listFavoriteListings(ctx: AuthContext, limit = 20, offset = 0): Promise<MpListingListResult> {
+  if (!ctx.userId) throw unauthorized('Authentication required')
+  const rows = await repo.findFavoriteListings(ctx.userId, limit, offset)
+  return {
+    listings: rows.map((r) => mapListItem(r.listing)),
+    total: rows.length,
+  }
+}
+
 export async function toggleFavorite(ctx: AuthContext, id: string): Promise<{ favorited: boolean }> {
   if (!ctx.userId) throw unauthorized('Authentication required')
   if (!can(ctx, PersonalPermission.MARKETPLACE_FAVORITE)) throw forbidden('No permission to favorite')
@@ -139,32 +159,6 @@ export async function toggleFavorite(ctx: AuthContext, id: string): Promise<{ fa
   const existing = await repo.findFavorite(id, ctx.userId)
   if (existing) { await repo.deleteFavorite(id, ctx.userId); repo.updateFavoriteCount(id, -1).catch(() => {}); eventBus.publish(buildEvent({ type: LISTING_UNFAVORITED, actorId: ctx.userId, listingId: id, userId: ctx.userId, occurredAt: new Date().toISOString() } as any)); return { favorited: false } }
   else { await repo.createFavorite(id, ctx.userId); repo.updateFavoriteCount(id, 1).catch(() => {}); eventBus.publish(buildEvent({ type: LISTING_FAVORITED, actorId: ctx.userId, listingId: id, userId: ctx.userId, occurredAt: new Date().toISOString() } as any)); return { favorited: true } }
-}
-
-export async function listFavoriteListings(ctx: AuthContext, limit = 20, offset = 0) {
-  if (!ctx.userId) throw unauthorized('Authentication required')
-  const favorites = await repo.findFavoriteListings(ctx.userId, limit, offset)
-  return {
-    listings: favorites.map((favorite: any) => ({
-      id: favorite.listing?.id,
-      title: favorite.listing?.title,
-      description: favorite.listing?.description,
-      thumbnailUrl: favorite.listing?.thumbnailUrl,
-      resourceType: favorite.listing?.resource?.resourceType ?? 'unknown',
-      price: favorite.listing?.price,
-      currency: favorite.listing?.currency,
-      featured: favorite.listing?.featured,
-      viewCount: favorite.listing?.viewCount ?? 0,
-      favoriteCount: favorite.listing?.favoriteCount ?? 0,
-      ratingAverage: favorite.listing?.ratingAverage ?? 0,
-      ratingCount: favorite.listing?.ratingCount ?? 0,
-      creatorName: favorite.listing?.creator?.name ?? 'Unknown',
-      categories: favorite.listing?.categories?.map((c: any) => c.category?.name ?? '').filter(Boolean) ?? [],
-      publishedAt: favorite.listing?.publishedAt?.toISOString() ?? null,
-      createdAt: favorite.listing?.createdAt?.toISOString() ?? null,
-    })),
-    total: favorites.length,
-  }
 }
 
 export async function getCategories(): Promise<MpCategoryDto[]> { return (await repo.findCategories()).map(mapCategory) }
@@ -183,3 +177,52 @@ export async function getCreatorDashboard(ctx: AuthContext): Promise<CreatorDash
 export async function getFeatured(limit = 10) { return (await repo.findFeatured(limit)).map(mapListItem) }
 export async function getNew(limit = 10) { return (await repo.findNew(limit)).map(mapListItem) }
 export async function getPopular(limit = 10) { return (await repo.findPopular(limit)).map(mapListItem) }
+
+// ---------------------------------------------------------------------------
+// Marketplace quiz listing — for the public marketplace browse page.
+// Queries published quizzes from the Quiz table.
+// ---------------------------------------------------------------------------
+
+/**
+ * listQuizzes — returns published quizzes for the marketplace browse page.
+ * Optional filters: category (by subject), q (search in title/description).
+ */
+export async function listQuizzes(input: {
+  category?: string
+  q?: string
+  limit?: number
+}): Promise<{ quizzes: Array<{ id: string; title: string; description: string | null; subject: string | null; grade: string | null; thumbnailUrl: string | null; questionCount: number; createdAt: string }>; total: number }> {
+  const limit = Math.min(input.limit ?? 20, 50)
+  const where: Record<string, unknown> = { isPublished: true }
+  if (input.category && input.category !== 'all') {
+    where.subject = input.category
+  }
+  if (input.q) {
+    where.OR = [
+      { title: { contains: input.q, mode: 'insensitive' } },
+      { description: { contains: input.q, mode: 'insensitive' } },
+    ]
+  }
+  const [rows, total] = await Promise.all([
+    db.quiz.findMany({
+      where,
+      select: {
+        id: true, title: true, description: true, subject: true, grade: true,
+        thumbnailUrl: true, _count: { select: { questions: true } },
+        createdAt: true,
+      },
+      orderBy: { publishedAt: 'desc' },
+      take: limit,
+    }),
+    db.quiz.count({ where }),
+  ])
+  return {
+    quizzes: rows.map(r => ({
+      id: r.id, title: r.title, description: r.description,
+      subject: r.subject, grade: r.grade, thumbnailUrl: r.thumbnailUrl,
+      questionCount: r._count.questions,
+      createdAt: r.createdAt.toISOString(),
+    })),
+    total,
+  }
+}

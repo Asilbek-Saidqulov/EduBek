@@ -49,10 +49,11 @@ import {
   findUserPlatformRoles,
   findUserByUsername,
   revokeSession,
+  updateUser,
   updateUserLastLogin,
 } from "@/features/auth/auth.repository";
 import type { AuthSessionDto, UserDto } from "@/features/auth/auth.types";
-import type { RegisterBody } from "@/features/auth/auth.schema";
+import type { RegisterBody, UpdateProfileBody } from "@/features/auth/auth.schema";
 
 const log = getLogger("auth");
 
@@ -151,6 +152,7 @@ export async function register(input: RegisterInput): Promise<RegisterResult> {
     passwordHash,
     name: input.name,
     username: input.username,
+    locale: input.locale,
   });
 
   // Every new user gets the default `user` platform role. Creators are
@@ -311,6 +313,27 @@ export async function getCurrentUser(userId: string): Promise<UserDto> {
   }
   const roleRows = await findUserPlatformRoles(user.id);
   return toUserDto(user, roleRows.map((r) => r.role));
+}
+
+/**
+ * Update the authenticated user's editable profile fields (name, username,
+ * avatarUrl, bio, country). Email and password go through dedicated flows.
+ * Returns the refreshed UserDto.
+ */
+export async function updateMyProfile(
+  userId: string,
+  patch: UpdateProfileBody,
+): Promise<UserDto> {
+  // Username uniqueness check (only if changing).
+  if (patch.username !== undefined && patch.username !== null) {
+    const clash = await findUserByUsername(patch.username);
+    if (clash && clash.id !== userId) {
+      throw conflict("Username is already taken");
+    }
+  }
+  const updated = await updateUser(userId, patch);
+  const roleRows = await findUserPlatformRoles(updated.id);
+  return toUserDto(updated, roleRows.map((r) => r.role));
 }
 
 /**

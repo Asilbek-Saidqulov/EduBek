@@ -44,70 +44,71 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
+  /* Warm paper palette — hand-drawn children's book warmth */
+  --background: oklch(0.98 0.008 80);         /* warm white */
+  --foreground: oklch(0.27 0.01 60);          /* graphite */
+  --card: oklch(0.99 0.005 80);               /* paper */
+  --card-foreground: oklch(0.27 0.01 60);
+  --popover: oklch(0.99 0.005 80);
+  --popover-foreground: oklch(0.27 0.01 60);
+  --primary: oklch(0.45 0.08 220);           /* soft blue */
+  --primary-foreground: oklch(0.99 0.005 80);
+  --secondary: oklch(0.96 0.01 75);          /* cream */
+  --secondary-foreground: oklch(0.35 0.01 60);
+  --muted: oklch(0.96 0.01 75);
+  --muted-foreground: oklch(0.55 0.01 60);   /* graphite soft */
+  --accent: oklch(0.93 0.02 70);              /* muted orange */
+  --accent-foreground: oklch(0.35 0.01 60);
+  --destructive: oklch(0.55 0.12 25);
+  --border: oklch(0.90 0.005 75);            /* warm border */
+  --input: oklch(0.93 0.005 75);
+  --ring: oklch(0.45 0.08 220);
+  --chart-1: oklch(0.55 0.08 145);           /* forest green */
+  --chart-2: oklch(0.60 0.06 220);           /* soft blue */
+  --chart-3: oklch(0.65 0.07 60);            /* muted orange */
+  --chart-4: oklch(0.50 0.05 280);           /* soft purple */
+  --chart-5: oklch(0.60 0.05 180);           /* teal */
+  --sidebar: oklch(0.97 0.01 75);            /* cream sidebar */
+  --sidebar-foreground: oklch(0.27 0.01 60);
+  --sidebar-primary: oklch(0.45 0.08 220);
+  --sidebar-primary-foreground: oklch(0.99 0.005 80);
+  --sidebar-accent: oklch(0.94 0.015 75);
+  --sidebar-accent-foreground: oklch(0.35 0.01 60);
+  --sidebar-border: oklch(0.90 0.005 75);
+  --sidebar-ring: oklch(0.45 0.08 220);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.18 0.005 60);
+  --foreground: oklch(0.92 0.005 75);
+  --card: oklch(0.22 0.005 60);
+  --card-foreground: oklch(0.92 0.005 75);
+  --popover: oklch(0.22 0.005 60);
+  --popover-foreground: oklch(0.92 0.005 75);
+  --primary: oklch(0.60 0.08 220);
+  --primary-foreground: oklch(0.18 0.005 60);
+  --secondary: oklch(0.27 0.005 60);
+  --secondary-foreground: oklch(0.92 0.005 75);
+  --muted: oklch(0.27 0.005 60);
+  --muted-foreground: oklch(0.65 0.005 60);
+  --accent: oklch(0.30 0.02 60);
+  --accent-foreground: oklch(0.92 0.005 75);
+  --destructive: oklch(0.65 0.12 25);
+  --border: oklch(0.30 0.005 60);
+  --input: oklch(0.27 0.005 60);
+  --ring: oklch(0.60 0.08 220);
+  --chart-1: oklch(0.60 0.08 145);
+  --chart-2: oklch(0.65 0.06 220);
+  --chart-3: oklch(0.70 0.07 60);
+  --chart-4: oklch(0.55 0.05 280);
+  --chart-5: oklch(0.65 0.05 180);
+  --sidebar: oklch(0.22 0.005 60);
+  --sidebar-foreground: oklch(0.92 0.005 75);
+  --sidebar-primary: oklch(0.60 0.08 220);
+  --sidebar-primary-foreground: oklch(0.18 0.005 60);
+  --sidebar-accent: oklch(0.27 0.005 60);
+  --sidebar-accent-foreground: oklch(0.92 0.005 75);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
@@ -118,5 +119,83 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* ===========================================================================
+   Mascot animations — tiny alive school supplies
+   These are subtle, professional animations that give EduBek its
+   personality without being cartoonish. They only run inside cards,
+   empty states, loading areas, and AI assistant sections.
+   =========================================================================== */
+
+/* Blink — eyes close briefly every 3-4 seconds */
+@keyframes mascot-blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  95% { transform: scaleY(0.1); }
+}
+.mascot-blink {
+  animation: mascot-blink 4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Wave — pencil tilts side to side gently */
+@keyframes mascot-wave {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(8deg); }
+  75% { transform: rotate(-8deg); }
+}
+.mascot-wave {
+  animation: mascot-wave 3s ease-in-out infinite;
+  transform-origin: 20px 60px;
+}
+
+/* Yawn — book mouth opens and closes (use opacity for SVG ellipse) */
+@keyframes mascot-yawn {
+  0%, 100% { opacity: 0.8; transform: scaleY(1); }
+  50% { opacity: 1; transform: scaleY(1.4); }
+}
+.mascot-yawn {
+  animation: mascot-yawn 5s ease-in-out infinite;
+  transform-origin: center;
+}
+
+/* Look around — eyes shift side to side */
+@keyframes mascot-look {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(1.5px); }
+  75% { transform: translateX(-1.5px); }
+}
+.mascot-look {
+  animation: mascot-look 6s ease-in-out infinite;
+}
+
+/* Float — AI robot hovers up and down gently */
+@keyframes mascot-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+.mascot-float {
+  animation: mascot-float 3s ease-in-out infinite;
+}
+
+/* Pulse — robot chest light pulses */
+@keyframes mascot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.mascot-pulse {
+  animation: mascot-pulse 2s ease-in-out infinite;
+}
+
+/* Respect reduced motion — disable all mascot animations */
+@media (prefers-reduced-motion: reduce) {
+  .mascot-blink,
+  .mascot-wave,
+  .mascot-yawn,
+  .mascot-look,
+  .mascot-float,
+  .mascot-pulse {
+    animation: none;
   }
 }

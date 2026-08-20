@@ -6,11 +6,11 @@
  * matching `PaymentRequest.provider` (or the default when none is set).
  *
  * The default provider is the first *configured* provider in registration
- * order — in the sandbox that is always the mock provider because the Click
+ * order — in the sandbox that is always the mock provider because the Stripe
  * env vars are absent.
  */
 import type { PaymentProvider, PaymentProviderName, ProviderInfo } from "./types";
-import { MockPaymentProvider, ClickProvider } from "./payment-providers";
+import { MockPaymentProvider, StripeProvider } from "./payment-providers";
 
 export class PaymentProviderRegistry {
   private readonly providers = new Map<PaymentProviderName, PaymentProvider>();
@@ -77,7 +77,7 @@ function bootstrap(): void {
   bootstrapped = true;
   // Order matters: the first configured provider becomes the default.
   singleton.register(new MockPaymentProvider());
-  singleton.register(new ClickProvider());
+  singleton.register(new StripeProvider());
 }
 
 /** Access the singleton registry (auto-bootstrapped on first call). */

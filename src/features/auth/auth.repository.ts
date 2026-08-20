@@ -9,6 +9,7 @@
 
 import { db } from "@/lib/db";
 import type { User, UserPermission, UserRole, UserSession } from "@prisma/client";
+import { defaultLocale } from "@/i18n/routing";
 
 // ---------------------------------------------------------------------------
 // Users
@@ -47,7 +48,11 @@ export async function createUser(
       passwordHash: input.passwordHash,
       name: input.name ?? null,
       username: input.username ?? null,
-      locale: input.locale ?? "uz",
+      // Fall back to the platform's default locale (kept in sync with
+      // `src/i18n/routing.ts`), not a hardcoded language — previously
+      // this always wrote "uz" even for a user registering from the
+      // English or Russian site, silently overriding their locale.
+      locale: input.locale ?? defaultLocale,
     },
   });
 }
@@ -63,6 +68,34 @@ export async function updateUserLastLogin(
       lastLoginIpHash: ipHash ?? null,
     },
   });
+}
+
+/**
+ * Patch the user's editable profile fields. Only non-undefined fields are
+ * written; `null` clears nullable fields (e.g. bio, avatarUrl). The
+ * `email`, `passwordHash`, `isBanned`, `emailVerified` fields are
+ * intentionally NOT exposed here — those go through dedicated flows
+ * (email change, password change, admin ban).
+ */
+export interface UpdateUserInput {
+  name?: string | null;
+  username?: string | null;
+  avatarUrl?: string | null;
+  bio?: string | null;
+  country?: string | null;
+}
+
+export async function updateUser(
+  userId: string,
+  patch: UpdateUserInput,
+): Promise<User> {
+  const data: Record<string, unknown> = {};
+  if (patch.name !== undefined) data.name = patch.name;
+  if (patch.username !== undefined) data.username = patch.username;
+  if (patch.avatarUrl !== undefined) data.avatarUrl = patch.avatarUrl;
+  if (patch.bio !== undefined) data.bio = patch.bio;
+  if (patch.country !== undefined) data.country = patch.country;
+  return db.user.update({ where: { id: userId }, data });
 }
 
 // ---------------------------------------------------------------------------

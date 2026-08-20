@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { withErrorHandler } from '@/lib/errors'
 import { getAuthContext } from '@/features/auth'
-import { updateCategory, deleteCategory, updateCategoryBodySchema, categoryIdParamsSchema } from '@/features/marketplace'
+import { updateCategory, deleteCategory, updateCategoryBodySchema, categoryIdParamsSchema } from '@/features/category'
 export const PATCH = withErrorHandler<{ id: string }>(async (req, ctx) => {
   const { id } = categoryIdParamsSchema.parse(await ctx.params)
   const authCtx = await getAuthContext()

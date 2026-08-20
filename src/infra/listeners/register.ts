@@ -15,9 +15,13 @@
  */
 
 import { getLogger } from "@/lib/logger";
+import { registerAiListeners } from "@/infra/listeners/ai-listeners";
 import { registerAuditListeners } from "@/infra/listeners/audit-listeners";
+import { registerCommerceListeners } from "@/infra/listeners/commerce-listeners";
+import { registerMarketplaceListeners } from "@/infra/listeners/marketplace-listeners";
 import { registerNotificationListeners } from "@/infra/listeners/notification-listeners";
 import { registerRealtimeListeners } from "@/infra/listeners/realtime-listeners";
+import { registerResourceListeners } from "@/infra/listeners/resource-listeners";
 
 const log = getLogger("listeners");
 
@@ -30,6 +34,17 @@ export function registerAllListeners(): void {
     registerAuditListeners();
     registerNotificationListeners();
     registerRealtimeListeners();
+    // These four were previously missing from this list, which meant
+    // none of their `eventBus.subscribe(...)` calls ever ran: AI
+    // generation, commerce/wallet/purchase, marketplace listing, and
+    // resource CRUD events were silently never audit-logged (or, for
+    // ai/commerce/marketplace/resource-listeners specifically, never
+    // wired up at all despite their own docstrings saying they're
+    // "Registered in `src/infra/listeners/register.ts`").
+    registerAiListeners();
+    registerCommerceListeners();
+    registerMarketplaceListeners();
+    registerResourceListeners();
     log.debug("listeners.registered");
   } catch (err) {
     // Reset so a later retry can succeed (e.g. after a hot reload that

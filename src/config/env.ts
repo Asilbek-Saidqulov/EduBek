@@ -67,7 +67,12 @@ const isProd = nodeEnv === 'production';
 const isDev = nodeEnv === 'development';
 const isTest = nodeEnv === 'test';
 
-const databaseUrl = optional('DATABASE_URL') ?? 'postgresql://postgres:postgres@localhost:5432/edubek';
+const databaseUrl = optional('DATABASE_URL');
+if (!databaseUrl) {
+  throw new Error(
+    '[env] DATABASE_URL is required but was not found in the environment.',
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Auth block
@@ -75,17 +80,60 @@ const databaseUrl = optional('DATABASE_URL') ?? 'postgresql://postgres:postgres@
 
 const sessionSecret =
   optional('EDUBEK_SESSION_SECRET') ??
-  // Allow a generic fallback in dev/test so that local development works
-  // without forcing the developer to set secrets. In production the absence
-  // of an explicit secret is a hard error.
-  (isProd ? undefined : 'edubek-dev-session-secret-do-not-use-in-prod');
+  (isProd ? undefined : 'dev-session-secret-64-bytes-random-DO-NOT-USE-IN-PROD-a1b2c3d4e5f6');
 
 const refreshSecret =
-  optional('EDUBEK_REFRESH_SECRET') ??
-  (isProd ? undefined : 'edubek-dev-refresh-secret-do-not-use-in-prod');
+  requiredInProd('EDUBEK_REFRESH_SECRET') ??
+  (isProd ? undefined : 'dev-refresh-secret-64-bytes-random-DO-NOT-USE-IN-PROD-a1b2c3d4e5f6');
 
-const resolvedSessionSecret = sessionSecret ?? 'edubek-dev-session-secret-do-not-use-in-prod';
-const resolvedRefreshSecret = refreshSecret ?? 'edubek-dev-refresh-secret-do-not-use-in-prod';
+// Dedicated secret for guest JWTs — MUST be distinct from session/refresh
+// secrets so a leaked guest token cannot be used to forge a session JWT
+// (and vice versa). Verified at boot in production. Length-min enforced.
+const guestSecret =
+  requiredInProd('EDUBEK_GUEST_SECRET') ??
+  (isProd ? undefined : 'dev-guest-secret-64-bytes-random-DO-NOT-USE-IN-PROD-a1b2c3d4e5f6');
+
+// Encryption key for at-rest secrets (OAuth client secrets, payment provider
+// keys). MUST be 32 bytes (256 bits) for AES-256-GCM. Required in production.
+const encryptionKey =
+  requiredInProd('EDUBEK_ENCRYPTION_KEY') ??
+  (isProd ? undefined : 'dev-encryption-key-32-bytes!DO-NOT-USE-IN-PROD');
+
+if (isProd && (!sessionSecret || !refreshSecret || !guestSecret || !encryptionKey)) {
+  throw new Error(
+    '[env] EDUBEK_SESSION_SECRET, EDUBEK_REFRESH_SECRET, EDUBEK_GUEST_SECRET, and EDUBEK_ENCRYPTION_KEY must all be set in production.',
+  );
+}
+
+// Reject well-known placeholder secrets in production — even if an operator
+// sets the env var to a placeholder like "CHANGE_ME" or copies the dev string,
+// the platform refuses to boot. This is a last line of defense against
+// misconfigured production deployments.
+const KNOWN_BAD_SECRETS = new Set([
+  'edubek-dev-session-secret-do-not-use-in-prod',
+  'edubek-dev-refresh-secret-do-not-use-in-prod',
+  'CHANGE_ME_IN_PRODUCTION',
+  'CHANGE_ME',
+  'changeme',
+  'secret',
+  'password',
+  '',
+]);
+
+if (isProd) {
+  if (sessionSecret && (sessionSecret.length < 32 || KNOWN_BAD_SECRETS.has(sessionSecret))) {
+    throw new Error('[env] EDUBEK_SESSION_SECRET must be at least 32 bytes and not a known placeholder in production.');
+  }
+  if (refreshSecret && (refreshSecret.length < 32 || KNOWN_BAD_SECRETS.has(refreshSecret))) {
+    throw new Error('[env] EDUBEK_REFRESH_SECRET must be at least 32 bytes and not a known placeholder in production.');
+  }
+  if (guestSecret && (guestSecret.length < 32 || KNOWN_BAD_SECRETS.has(guestSecret))) {
+    throw new Error('[env] EDUBEK_GUEST_SECRET must be at least 32 bytes and not a known placeholder in production.');
+  }
+  if (encryptionKey && (encryptionKey.length < 32 || KNOWN_BAD_SECRETS.has(encryptionKey))) {
+    throw new Error('[env] EDUBEK_ENCRYPTION_KEY must be at least 32 bytes and not a known placeholder in production.');
+  }
+}
 
 // ---------------------------------------------------------------------------
 // App block
@@ -127,8 +175,10 @@ const features = {
 // ---------------------------------------------------------------------------
 
 const auth = {
-  sessionSecret: resolvedSessionSecret as string,
-  refreshSecret: resolvedRefreshSecret as string,
+  sessionSecret: sessionSecret as string,
+  refreshSecret: refreshSecret as string,
+  guestSecret: guestSecret as string,
+  encryptionKey: encryptionKey as string,
   sessionTtlSeconds: num('EDUBEK_SESSION_TTL_SECONDS', 900),
   refreshTtlSeconds: num('EDUBEK_REFRESH_TTL_SECONDS', 60 * 60 * 24 * 30), // 30 days
   bcryptRounds: num('EDUBEK_BCRYPT_ROUNDS', 12),
@@ -155,6 +205,8 @@ export interface Env {
   auth: {
     sessionSecret: string;
     refreshSecret: string;
+    guestSecret: string;
+    encryptionKey: string;
     sessionTtlSeconds: number;
     refreshTtlSeconds: number;
     bcryptRounds: number;

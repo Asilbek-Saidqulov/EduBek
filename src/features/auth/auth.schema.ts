@@ -10,6 +10,7 @@
  */
 
 import { z } from "zod";
+import { locales } from "@/i18n/routing";
 
 // ---------------------------------------------------------------------------
 // Reusable primitives
@@ -59,6 +60,10 @@ export const registerBodySchema = z.object({
     message: "Name is too long",
   }).optional(),
   username: usernameSchema.optional(),
+  // The locale the user was registering under (e.g. from `/uz/register`).
+  // Optional so non-frontend clients (tests, API consumers) still work;
+  // the service falls back to the platform default locale when omitted.
+  locale: z.enum([...locales] as [string, ...string[]]).optional(),
 });
 
 export type RegisterBody = z.infer<typeof registerBodySchema>;
@@ -84,3 +89,36 @@ export const refreshBodySchema = z.object({
 });
 
 export type RefreshBody = z.infer<typeof refreshBodySchema>;
+
+// ---------------------------------------------------------------------------
+// PATCH /api/auth/me — update profile
+// ---------------------------------------------------------------------------
+
+export const updateProfileBodySchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(1, { message: "Name cannot be empty" })
+    .max(100, { message: "Name is too long" })
+    .nullable()
+    .optional(),
+  username: usernameSchema.nullable().optional(),
+  avatarUrl: z
+    .string()
+    .url({ message: "Avatar URL must be a valid URL" })
+    .max(2_000, { message: "Avatar URL is too long" })
+    .nullable()
+    .optional(),
+  bio: z
+    .string()
+    .max(500, { message: "Bio is too long" })
+    .nullable()
+    .optional(),
+  country: z
+    .string()
+    .max(100, { message: "Country is too long" })
+    .nullable()
+    .optional(),
+});
+
+export type UpdateProfileBody = z.infer<typeof updateProfileBodySchema>;

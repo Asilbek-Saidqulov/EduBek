@@ -18,7 +18,15 @@
     "profile": "Profile",
     "login": "Login",
     "logout": "Logout",
-    "register": "Register"
+    "register": "Register",
+    "sections": {
+      "main": "Main",
+      "tools": "Tools"
+    },
+    "discover": "Discover",
+    "admin": "Admin",
+    "wallet": "Wallet",
+    "notifications": "Notifications"
   },
   "common": {
     "loading": "Loading...",
@@ -75,7 +83,15 @@
     "noPermission": "You do not have permission to perform this action",
     "resourceNotFound": "The requested resource was not found",
     "alreadyExists": "This item already exists",
-    "limitReached": "You have reached the limit for this feature"
+    "limitReached": "You have reached the limit for this feature",
+    "error": "Error",
+    "unexpectedTitle": "Something went wrong",
+    "unexpectedBody": "An unexpected error occurred. Please try again or return home.",
+    "tryAgain": "Try again",
+    "backHome": "Back to home",
+    "notFoundTitle": "Page not found",
+    "notFoundBody": "The page you're looking for doesn't exist or has been moved.",
+    "goLogin": "Sign in"
   },
   "gameModes": {
     "classic": "Classic Quiz",
@@ -179,7 +195,54 @@
     "aiTranslated": "AI Translation",
     "humanTranslated": "Human Translation",
     "machineTranslated": "Machine Translation",
-    "newArrivals": "New Arrivals"
+    "newArrivals": "New Arrivals",
+    "title": "Marketplace",
+    "subtitle": "Discover and purchase educational resources from creators.",
+    "searchPlaceholder": "Search by title or description…",
+    "free": "Free",
+    "paid": "Paid",
+    "featuredBadge": "Featured",
+    "freePrice": "Free",
+    "sort": "Sort",
+    "sorts": {
+      "newest": "Newest",
+      "popular": "Most popular",
+      "rated": "Top rated",
+      "alphabetical": "A → Z"
+    },
+    "resultsLabel": "Marketplace results",
+    "resultCount": "{count} listings",
+    "errorTitle": "Couldn't load listings",
+    "errorDescription": "Please try again in a moment.",
+    "emptyTitle": "No listings found",
+    "emptyDescription": "Try changing your search or filters.",
+    "clearFilters": "Clear filters",
+    "loadFailed": "Couldn't load listing",
+    "backToMarketplace": "Back to marketplace",
+    "byCreator": "by creator",
+    "balance": "Your balance",
+    "favorites": "Favorites",
+    "downloads": "Downloads",
+    "views": "Views",
+    "ownListing": "Your listing",
+    "claimFree": "Claim free",
+    "claiming": "Claiming…",
+    "buyNow": "Buy now",
+    "cancel": "Cancel",
+    "purchaseDialogTitle": "Confirm purchase",
+    "purchaseDialogBody": "You'll be charged EduTokens from your wallet. The resource will appear in your library.",
+    "yourBalance": "Your balance",
+    "afterPurchase": "After purchase",
+    "insufficientBalance": "Insufficient balance. Top up or earn EduTokens from live quizzes.",
+    "processing": "Processing…",
+    "confirmPurchase": "Confirm purchase",
+    "purchaseSuccess": "Purchase successful!",
+    "purchaseFailed": "Purchase failed",
+    "favorited": "Added to favorites",
+    "unfavorited": "Removed from favorites",
+    "favoriteError": "Could not update favorite",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites"
   },
   "ai": {
     "workspace": "AI Workspace",
@@ -236,7 +299,36 @@
       "lifecycle": "Lifecycle",
       "economy": "Economy",
       "principles": "Principles",
-      "vision": "Vision"
+      "vision": "Vision",
+      "login": "Login",
+      "register": "Register",
+      "dashboard": "Dashboard"
+    },
+    "roles": {
+      "teacher": {
+        "name": "Teachers",
+        "summary": "Save time and teach better with AI-powered tools"
+      },
+      "student": {
+        "name": "Students",
+        "summary": "Learn effectively and track progress"
+      },
+      "creator": {
+        "name": "Content Creators",
+        "summary": "Share expertise and earn money"
+      },
+      "school": {
+        "name": "Schools & Institutions",
+        "summary": "Manage education efficiently"
+      },
+      "admin": {
+        "name": "Administrators",
+        "summary": "Keep the platform secure and high quality"
+      },
+      "ai": {
+        "name": "AI Assistant",
+        "summary": "Help users make better decisions"
+      }
     },
     "hero": {
       "badge": "AI-Powered Education Ecosystem",
@@ -248,7 +340,11 @@
       "readPhilosophy": "Read the Philosophy",
       "scrollToExplore": "Scroll to explore",
       "ariaScrollToMore": "Scroll to learn more",
-      "ariaHeroHeading": "hero-heading"
+      "ariaHeroHeading": "hero-heading",
+      "ctaPrimary": "Get Started",
+      "ctaSecondary": "View Dashboard",
+      "ctaTitle": "Ready to transform education?",
+      "ctaDescription": "Join thousands of educators already using EduBek to save time and improve learning outcomes."
     },
     "stats": {
       "educationalSystems": "Educational Systems",
@@ -256,19 +352,30 @@
       "userRoles": "User Roles",
       "contentLifecycleSteps": "Content Lifecycle Steps"
     },
-    "common": {
-      "system": "System"
-    },
     "philosophy": {
+      "badge": "The Core Philosophy",
       "eyebrow": "The Core Philosophy",
       "title": "Marketplace First, AI Second",
       "subtitle": "EduBek's AI never starts by creating something new. It first searches everything teachers have already built, evaluates it, customizes it, combines it — and only generates new content as the absolute last resort.",
       "decisionProcessTitle": "The 5-Step AI Decision Process",
       "decisionProcessDescription": "Every AI request flows through these five gates, in order. Generation is the last option, not the first.",
       "lastResort": "Last resort",
-      "stepN": "Step {n}"
+      "stepN": "Step {n}",
+      "reuse": {
+        "title": "Reuse Existing Knowledge",
+        "description": "Search the Marketplace first. What you need may already exist."
+      },
+      "remix": {
+        "title": "Remix and Customize",
+        "description": "Use AI to adapt existing materials to your specific needs."
+      },
+      "reward": {
+        "title": "Reward Creators",
+        "description": "Teachers earn real money when others use their materials."
+      }
     },
     "systems": {
+      "badge": "The 10 Systems",
       "eyebrow": "The 10 Systems",
       "title": "One Platform, Ten Connected Systems",
       "subtitle": "Each system owns one responsibility. Together they form a single connected ecosystem — boundaries exist for developers, never for users.",
@@ -280,15 +387,7 @@
         "name": "AI Assistant",
         "responsibility": "Educational intelligence — understand, recommend, customize, combine, generate (in that order)."
       },
-      "ai-assistant": {
-        "name": "AI Assistant",
-        "responsibility": "Educational intelligence — understand, recommend, customize, combine, generate (in that order)."
-      },
       "quizPlatform": {
-        "name": "Quiz Platform",
-        "responsibility": "Deliver learning activities — live quizzes, homework, exams, real-time scoring."
-      },
-      "quiz-platform": {
         "name": "Quiz Platform",
         "responsibility": "Deliver learning activities — live quizzes, homework, exams, real-time scoring."
       },
@@ -297,10 +396,6 @@
         "responsibility": "Manage educational institutions — orgs, memberships, roles, cohorts, billing."
       },
       "creatorEconomy": {
-        "name": "Creator Economy",
-        "responsibility": "Manage creators & their work — publishing, tiers, earnings, payouts, reputation."
-      },
-      "creator-economy": {
         "name": "Creator Economy",
         "responsibility": "Manage creators & their work — publishing, tiers, earnings, payouts, reputation."
       },
@@ -323,9 +418,52 @@
       "library": {
         "name": "Library System",
         "responsibility": "Teacher's permanent workspace — purchased, created, saved, AI-generated resources."
+      },
+      "items": {
+        "marketplace": {
+          "name": "Marketplace",
+          "summary": "Store & distribute educational knowledge"
+        },
+        "ai-assistant": {
+          "name": "AI Assistant",
+          "summary": "Educational intelligence & content generation"
+        },
+        "quiz-platform": {
+          "name": "Quiz Platform",
+          "summary": "Deliver learning activities & assessments"
+        },
+        "organization": {
+          "name": "Organization",
+          "summary": "Manage educational institutions"
+        },
+        "creator-economy": {
+          "name": "Creator Economy",
+          "summary": "Manage creators & earnings"
+        },
+        "economy": {
+          "name": "Economy",
+          "summary": "Manage financial transactions"
+        },
+        "analytics": {
+          "name": "Analytics",
+          "summary": "Educational insights & reporting"
+        },
+        "search": {
+          "name": "Search",
+          "summary": "Connect users with knowledge"
+        },
+        "user": {
+          "name": "User System",
+          "summary": "Manage people & authentication"
+        },
+        "library": {
+          "name": "Library",
+          "summary": "Teacher's permanent workspace"
+        }
       }
     },
     "ecosystem": {
+      "badge": "The Ecosystem",
       "eyebrow": "The Ecosystem",
       "title": "Six Roles, One Connected Loop",
       "subtitle": "Teachers, students, creators, schools, admins, and the AI Assistant itself — each role has a clear goal, and every action strengthens the others.",
@@ -400,12 +538,25 @@
       }
     },
     "lifecycle": {
+      "badge": "Content Lifecycle",
       "eyebrow": "Content Lifecycle",
       "title": "How Knowledge Lives and Grows",
       "subtitle": "Every piece of content in EduBek moves through this ten-step cycle. Step ten feeds back into step one — for new teachers, the work of past teachers is already waiting.",
       "loopsToStep1": "Loops to step 1",
       "loopIndicator": "Step 10 → Step 1: future teachers inherit a richer library",
       "steps": {
+        "1": "Idea",
+        "2": "Search",
+        "3": "Create",
+        "4": "Save",
+        "5": "Use",
+        "6": "Collect Data",
+        "7": "Improve",
+        "8": "Publish",
+        "9": "Share",
+        "10": "Grow"
+      },
+      "stepDetails": {
         "1": {
           "title": "Idea",
           "description": "A teacher realizes they need something. EduBek helps determine the best way to obtain it."
@@ -449,6 +600,7 @@
       }
     },
     "economy": {
+      "badge": "The Dual-Currency Economy",
       "eyebrow": "The Dual-Currency Economy",
       "title": "Real Money Rewards Expertise. EduTokens Power AI.",
       "subtitle": "Two currencies, two purposes. Real Money preserves long-term value from human expertise. EduTokens pay for short-lived computational work performed by the AI.",
@@ -477,6 +629,7 @@
       ]
     },
     "principles": {
+      "badge": "The 14 Design Principles",
       "eyebrow": "The 14 Design Principles",
       "title": "The Constitution of EduBek",
       "subtitle": "Every feature, decision, and line of code is measured against these fourteen principles. Explore them by group:",
@@ -567,11 +720,20 @@
       }
     },
     "cycle": {
+      "badge": "The Continuous Cycle",
       "eyebrow": "The Continuous Cycle",
       "title": "A Self-Improving Ecosystem",
       "subtitle": "Knowledge never disappears in EduBek — it compounds. Each loop makes the library richer for the next teacher who joins.",
       "selfImproving": "Self-Improving Ecosystem",
       "footer": "Each pass through the loop leaves the library richer than it was before — for the next teacher, the next class, and the next generation of learners.",
+      "loop": "This cycle repeats, continuously improving the library",
+      "steps": {
+        "1": "Search",
+        "2": "Customize",
+        "3": "Learn",
+        "4": "Improve",
+        "5": "Share"
+      },
       "stages": {
         "1": "Teachers create content",
         "2": "Published to Marketplace",
@@ -586,32 +748,30 @@
       }
     },
     "vision": {
+      "badge": "The Long-Term Vision",
       "eyebrow": "The Long-Term Vision",
       "title": "Why EduBek Exists",
+      "subtitle": "EduBek exists to connect educators, knowledge, and artificial intelligence into one ecosystem where everyone benefits.",
       "quote": "EduBek exists to connect educators, knowledge, and artificial intelligence into one ecosystem where everyone benefits.",
       "ready": "Ready to see what education can become?",
       "readyDescription": "EduBek is being built in the open. This page is a live preview of the architecture being assembled — the foundation of a smarter, more connected education ecosystem.",
       "backToTop": "Back to the top",
       "pillars": {
-        "1": {
-          "title": "AI amplifies human expertise",
-          "description": "Teachers remain the decision-makers. AI removes repetitive work so educators can focus on what only humans can do."
+        "access": {
+          "title": "Universal Access",
+          "summary": "Education for everyone, everywhere"
         },
-        "2": {
-          "title": "Every teacher saves time",
-          "description": "Reuse, customize, and combine — instead of starting from scratch every lesson."
+        "quality": {
+          "title": "Quality Content",
+          "summary": "Verified, tested, and improved materials"
         },
-        "3": {
-          "title": "Every creator is rewarded",
-          "description": "Real Money flows back to the teachers whose materials the community relies on."
+        "community": {
+          "title": "Strong Community",
+          "summary": "Educators helping educators grow"
         },
-        "4": {
-          "title": "Every student deserves better learning",
-          "description": "Materials that have been tested in real classrooms and improved through real data."
-        },
-        "5": {
-          "title": "The Marketplace becomes the world's educational library",
-          "description": "One shared, searchable, ever-growing home for educational knowledge — owned by the educators who built it."
+        "future": {
+          "title": "Future-Ready",
+          "summary": "AI-powered, continuously evolving"
         }
       }
     },
@@ -10065,7 +10225,7 @@
     }
   },
   "notifications": {
-    "title": "Notification, Messaging & Communication Platform",
+    "title": "Notifications",
     "description": "Single source of truth for all user communications across EduBek.",
     "phase": "Phase 6G.17",
     "version": "1.0.0",
@@ -10592,7 +10752,21 @@
       "published": "Events published",
       "consumes": "Consumes events from",
       "produces": "Produces notification events"
-    }
+    },
+    "subtitle": "Stay up to date with quizzes, sales, achievements, and platform news.",
+    "total": "Total",
+    "unread": "Unread",
+    "read": "Read",
+    "pinned": "Pinned",
+    "archived": "Archived",
+    "dismissed": "Dismissed",
+    "markAllRead": "Mark all read",
+    "markRead": "Mark as read",
+    "pin": "Pin",
+    "archive": "Archive",
+    "delete": "Delete",
+    "empty": "You're all caught up",
+    "emptyDesc": "No notifications to show here."
   },
   "identity": {
     "title": "Identity, Access Management & Federation Platform",
@@ -17050,5 +17224,247 @@
     "extraKey_97": "Extra Key 97",
     "extraKey_98": "Extra Key 98",
     "extraKey_99": "Extra Key 99"
+  },
+  "auth": {
+    "login": {
+      "title": "Sign in",
+      "subtitle": "Welcome back. Sign in to continue learning.",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "forgotLink": "Forgot password?",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up",
+      "failed": "Sign in failed. Please try again.",
+      "networkError": "Network error. Please check your connection."
+    },
+    "register": {
+      "title": "Create your account",
+      "subtitle": "Start your learning journey with EduBek.",
+      "nameLabel": "Full name",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "passwordHint": "At least 8 characters, including one uppercase letter and one digit.",
+      "confirmLabel": "Confirm password",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "haveAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "failed": "Registration failed. Please try again.",
+      "networkError": "Network error. Please check your connection.",
+      "termsNotice": "By creating an account, you agree to EduBek's terms of service."
+    },
+    "forgot": {
+      "title": "Forgot password?",
+      "subtitle": "We'll send you instructions to reset your password.",
+      "unavailableTitle": "Password reset is not yet available",
+      "unavailableBody": "This MVP doesn't include a password reset endpoint. Please contact your administrator or sign up with a new email.",
+      "submitDisabled": "Send reset link (coming soon)",
+      "backToLogin": "Back to sign in"
+    }
+  },
+  "theme": {
+    "toggle": "Toggle theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "welcomeSubtitle": "Your EduBek home base.",
+    "sprint1Placeholder": "This is a Sprint 1 placeholder. The full teacher/student dashboards will arrive in later sprints.",
+    "comingSoon": "Explore EduBek",
+    "discoverDesc": "Browse free AI-generated quizzes and creator content.",
+    "liveQuizDesc": "Join a live quiz or host one for your class.",
+    "marketplaceDesc": "Discover and purchase educational resources from creators.",
+    "aiWorkspaceDesc": "Generate quizzes, worksheets, and lesson plans with AI.",
+    "libraryDesc": "Your saved resources, quizzes, and study materials.",
+    "walletDesc": "Check your EduToken balance and transaction history.",
+    "wallet": "Wallet",
+    "notifications": "Recent notifications",
+    "viewAll": "View all",
+    "noNotifications": "No notifications yet.",
+    "quickActions": {
+      "discover": "Discover",
+      "discoverDesc": "Browse free quizzes and resources.",
+      "liveQuiz": "Live quiz",
+      "liveQuizDesc": "Join a game or host one.",
+      "marketplace": "Marketplace",
+      "marketplaceDesc": "Buy and sell resources.",
+      "library": "Library",
+      "libraryDesc": "Your saved materials.",
+      "aiWorkspace": "AI workspace",
+      "aiWorkspaceDesc": "Generate content with AI.",
+      "wallet": "Wallet",
+      "walletDesc": "Check EduToken balance."
+    },
+    "teacherError": "Couldn't load teacher dashboard",
+    "teacher": {
+      "classrooms": "Classrooms",
+      "totalStudents": "Students",
+      "recommendations": "Recommendations",
+      "classroomInsights": "Classroom insights",
+      "students": "students",
+      "mastery": "Mastery",
+      "engagement": "Engagement",
+      "weak": "Weak topics",
+      "atRisk": "At-risk",
+      "noInsight": "Insights not available yet for this classroom."
+    },
+    "creatorError": "Couldn't load creator dashboard",
+    "creator": {
+      "earnings": "Total earnings",
+      "sales": "Sales",
+      "downloads": "Downloads",
+      "avgRating": "Avg rating",
+      "topResources": "Top resources"
+    },
+    "admin": {
+      "title": "Admin tools",
+      "desc": "Platform moderation and configuration live in the admin section."
+    }
+  },
+  "wallet": {
+    "title": "Wallet",
+    "subtitle": "Your EduToken balance and transaction history.",
+    "balanceLabel": "EduToken balance",
+    "balanceHint": "Earn EduTokens from live quizzes and creator sales; spend them in the marketplace.",
+    "spendInMarketplace": "Browse marketplace",
+    "earnFromQuiz": "Earn from quizzes",
+    "history": "Transaction history",
+    "historyCount": "{count} transactions",
+    "balanceAfter": "balance after",
+    "emptyTitle": "No transactions yet",
+    "emptyDescription": "Your EduToken movements will appear here once you buy or earn.",
+    "goToMarketplace": "Browse marketplace",
+    "signInRequired": "Sign in to view your wallet",
+    "signInRequiredDesc": "Your wallet holds EduTokens earned from quizzes and purchases."
+  },
+  "library": {
+    "title": "Library",
+    "subtitle": "Your saved resources, quizzes, and study materials.",
+    "searchPlaceholder": "Search by title or description…",
+    "filterByType": "Filter by type",
+    "filterByStatus": "Filter by status",
+    "types": {
+      "quiz": "Quiz",
+      "worksheet": "Worksheet",
+      "lesson_plan": "Lesson plan",
+      "presentation": "Presentation",
+      "flashcards": "Flashcards",
+      "notes": "Notes",
+      "exam": "Exam",
+      "homework": "Homework",
+      "practice_material": "Practice material"
+    },
+    "statusReady": "Ready",
+    "statusDraft": "Draft",
+    "statusArchived": "Archived",
+    "status_ready": "ready",
+    "status_draft": "draft",
+    "status_archived": "archived",
+    "resultCount": "{count} resources",
+    "emptyTitle": "No resources yet",
+    "emptyDescription": "Purchase from the marketplace or generate with AI to fill your library.",
+    "goToMarketplace": "Browse marketplace",
+    "backToLibrary": "Back to library",
+    "loadFailed": "Couldn't load resource",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "favorited": "Added to favorites",
+    "unfavorited": "Removed from favorites",
+    "favoriteError": "Could not update favorite",
+    "contentPreview": "Content preview",
+    "versionHistory": "Version history",
+    "version": "Version {n}",
+    "noVersions": "No version history",
+    "noVersionsDesc": "This resource has no recorded edit history yet.",
+    "moreByCreator": "More from this creator"
+  },
+  "discover": {
+    "title": "Discover",
+    "subtitle": "Browse free AI-generated quizzes and creator content.",
+    "searchPlaceholder": "Search quizzes, resources, topics…",
+    "resultsLabel": "Search results",
+    "searchResults": "Search results",
+    "resultCount": "{count} matches",
+    "searchError": "Search failed",
+    "noResults": "No matches",
+    "noResultsDesc": "Try different keywords or browse the feed below.",
+    "feedLabel": "Personalized feed",
+    "forYou": "For you",
+    "feedError": "Feed unavailable",
+    "feedEmpty": "Your feed is empty",
+    "feedEmptyDesc": "Take a quiz or favorite resources to personalize your feed.",
+    "topicsLabel": "Topic tree",
+    "topics": "Topics",
+    "topicsEmpty": "No topics yet",
+    "topicsEmptyDesc": "Topics will appear here once the knowledge graph is populated.",
+    "subtopics": "subtopics",
+    "noItems": "No items in this section yet."
+  },
+  "profile": {
+    "title": "Profile",
+    "edit": "Edit profile",
+    "editProfile": "Edit profile",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "updated": "Profile updated",
+    "nameLabel": "Full name",
+    "usernameLabel": "Username",
+    "usernameHint": "3-32 characters; letters, digits, and underscores only.",
+    "bioLabel": "Bio",
+    "bioPlaceholder": "Tell us about yourself…",
+    "bioHint": "Up to 500 characters.",
+    "countryLabel": "Country",
+    "avatarUrlLabel": "Avatar URL",
+    "avatarUrlHint": "Paste a hosted image URL. File uploads coming soon.",
+    "roles": "Roles & permissions",
+    "rolesDesc": "The platform roles currently granted to you.",
+    "defaultRole": "user",
+    "achievements": "Achievements",
+    "achievementsDesc": "Badges and milestones you've unlocked.",
+    "achievementsEmpty": "No achievements unlocked yet — take quizzes and join live games to start earning!",
+    "joined": "Joined"
+  },
+  "settings": {
+    "title": "Settings",
+    "subtitle": "Manage your account, language, appearance, and security.",
+    "account": {
+      "title": "Account",
+      "desc": "Your identity and contact information.",
+      "email": "Email",
+      "name": "Name",
+      "username": "Username",
+      "country": "Country",
+      "edit": "Edit profile"
+    },
+    "language": {
+      "title": "Language",
+      "desc": "Interface language. Affects URL prefix and i18n strings."
+    },
+    "appearance": {
+      "title": "Appearance",
+      "desc": "Switch between light and dark themes.",
+      "theme": "Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "desc": "Manage your inbox and notification preferences.",
+      "openInbox": "Open inbox"
+    },
+    "security": {
+      "title": "Security",
+      "desc": "Change your password and review active sessions.",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "changePasswordUnavailable": "Password change is not yet available",
+      "changePasswordDesc": "This MVP doesn't include a password-change endpoint. Please contact your administrator if you need a reset."
+    }
   }
 }

@@ -118,7 +118,7 @@ function detectHeavyDependencies(deps: Record<string, string>): HeavyDependency[
     "@prisma/client": { sizeKb: 1500, transitive: 5 },
     "next": { sizeKb: 5000, transitive: 50 },
     "react": { sizeKb: 150, transitive: 3 },
-    "z-ai-web-dev-sdk": { sizeKb: 500, transitive: 10 },
+    "openrouter-sdk": { sizeKb: 500, transitive: 10 },
     "socket.io": { sizeKb: 300, transitive: 15 },
     "@dnd-kit/core": { sizeKb: 200, transitive: 5 },
     "@mdxeditor/editor": { sizeKb: 800, transitive: 20 },

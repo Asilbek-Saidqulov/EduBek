@@ -315,7 +315,7 @@ export function canTransitionPurchase(from: PurchaseStatus, to: PurchaseStatus):
 // System 10 — Payment Provider Abstraction
 // ===========================================================================
 export type PaymentProviderId =
-  | "click" | "payme" | "apple" | "google"
+  | "stripe" | "payme" | "click" | "apple" | "google"
   | "bank" | "invoice" | "custom";
 
 export type PaymentProviderStatus = "active" | "inactive" | "maintenance" | "deprecated";

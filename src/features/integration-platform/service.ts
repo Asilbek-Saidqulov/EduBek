@@ -37,10 +37,28 @@ export {
   getBridgeProcessedCount, getBridgePublishedCount, getPublishedEvents,
   publishIntegrationEvent, _resetBridgeForTesting,
 } from "./event-bus-bridge";
+
+// Re-exports from core-systems.ts — API gateway + integration registry reports
+export {
+  generateAPIGatewayReport,
+  generateIntegrationRegistry,
+} from "./core-systems";
+
+// Re-exports from management-systems.ts — OAuth + API key + transformation + trigger reports
+export {
+  generateOAuthReport,
+  generateApiKeyReport,
+  generateTransformationReport,
+  generateTriggerReport,
+  generateAutomationReport,
+} from "./management-systems";
+
+// Re-exports from advanced-systems.ts — monitor report
+export {
+  generateMonitorReport,
+} from "./advanced-systems";
+
 export { _resetRepositoryForTesting } from "./repository";
-export { generateAPIGatewayReport, generateIntegrationRegistry, generateConnectorReport, generateWebhookReport } from "./core-systems";
-export { generateMonitorReport, generateDeveloperPortal, generateEventBridgeReport, generateSecurityReport } from "./advanced-systems";
-export { generateOAuthReport, generateApiKeyReport, generateTransformationReport, generateSyncReport, generateAutomationReport, generateTriggerReport } from "./management-systems";
 export type {
   ConnectorType, ConnectorStatus, ConnectorDefinition,
   ConnectorLifecycleEvent, LifecycleAction,

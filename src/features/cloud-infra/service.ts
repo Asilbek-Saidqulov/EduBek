@@ -8,6 +8,7 @@
  */
 import { db } from "@/lib/db";
 import { getLogger } from "@/lib/logger";
+import { env } from "@/config/env";
 import * as crypto from "node:crypto";
 import * as repo from "./repository";
 import type {
@@ -433,7 +434,7 @@ export async function completeDocumentJob(id: string, extractedContent: Record<s
 // 8. Secrets Management
 // ===========================================================================
 
-const ENCRYPTION_KEY = process.env.EDUBEK_ENCRYPTION_KEY ?? "edubek-default-encryption-key-change-in-prod-32b";
+const ENCRYPTION_KEY = env.auth.encryptionKey;
 
 export async function storeSecret(input: {
   type: string; name: string; value: string;
@@ -484,16 +485,58 @@ export async function findSecretsDueForRotation(): Promise<SecretDto[]> {
   return rows.map(mapSecret);
 }
 
+/**
+ * Encrypt a secret using AES-256-GCM with a fresh random IV per call.
+ *
+ * The encrypted blob is `iv:tag:ciphertext` (all hex), which:
+ *   - Uses a unique IV per encryption (prevents CBC-style pattern leakage)
+ *   - Includes an authentication tag (detects tampering)
+ *   - Uses the platform-wide EDUBEK_ENCRYPTION_KEY (32 bytes, validated at boot)
+ *
+ * The previous implementation used AES-256-CBC with a static zero IV, which
+ * catastrophically leaked plaintext patterns. This implementation is safe
+ * for at-rest storage of OAuth client secrets, payment provider keys, etc.
+ *
+ * NOTE: existing secrets encrypted with the old scheme cannot be decrypted
+ * with the new one — a migration script is needed to re-encrypt legacy
+ * values. For new deployments (fresh DB), this is fine.
+ */
 function encrypt(text: string): string {
-  const cipher = crypto.createCipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY.padEnd(32).slice(0, 32)), Buffer.alloc(16, 0));
+  const key = Buffer.from(ENCRYPTION_KEY, "utf8");
+  const keyBuf = key.length >= 32 ? key.subarray(0, 32) : (() => {
+    const padded = Buffer.alloc(32);
+    key.copy(padded);
+    return padded;
+  })();
+  return encryptWithKey(text, keyBuf);
+}
+
+function encryptWithKey(text: string, key: Buffer): string {
+  const iv = crypto.randomBytes(12); // 96-bit IV is recommended for GCM
+  const cipher = crypto.createCipheriv("aes-256-gcm", key, iv);
   let encrypted = cipher.update(text, "utf8", "hex");
   encrypted += cipher.final("hex");
-  return encrypted;
+  const tag = cipher.getAuthTag();
+  return `${iv.toString("hex")}:${tag.toString("hex")}:${encrypted}`;
 }
 
 function decrypt(encrypted: string): string {
-  const decipher = crypto.createDecipheriv("aes-256-cbc", Buffer.from(ENCRYPTION_KEY.padEnd(32).slice(0, 32)), Buffer.alloc(16, 0));
-  let decrypted = decipher.update(encrypted, "hex", "utf8");
+  const parts = encrypted.split(":");
+  if (parts.length !== 3) {
+    throw new Error("Invalid encrypted payload format (expected iv:tag:ciphertext)");
+  }
+  const [ivHex, tagHex, ciphertext] = parts;
+  const iv = Buffer.from(ivHex, "hex");
+  const tag = Buffer.from(tagHex, "hex");
+  const key = Buffer.from(ENCRYPTION_KEY, "utf8");
+  const keyBuf = key.length >= 32 ? key.subarray(0, 32) : (() => {
+    const padded = Buffer.alloc(32);
+    key.copy(padded);
+    return padded;
+  })();
+  const decipher = crypto.createDecipheriv("aes-256-gcm", keyBuf, iv);
+  decipher.setAuthTag(tag);
+  let decrypted = decipher.update(ciphertext, "hex", "utf8");
   decrypted += decipher.final("utf8");
   return decrypted;
 }

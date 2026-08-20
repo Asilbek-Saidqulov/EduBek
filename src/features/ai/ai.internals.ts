@@ -2,7 +2,7 @@
  * AI feature — pure helpers extracted for unit testing.
  *
  * These helpers are pure (no I/O, no LLM calls) and deterministic, which
- * makes them safe to test directly without mocking the AI provider.
+ * makes them safe to test directly without mocking the OpenRouter SDK.
  *
  * The `ai.service.ts` module re-exports them so the public surface stays
  * unchanged; tests import from this module instead.

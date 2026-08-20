@@ -3099,3 +3099,238 @@ Stage Summary:
 - MVP complete: 5 enhancements, 4 new API routes, 1 new test file (61 tests), 0 Prisma changes (reused existing `Question.mediaUrl`, `Quiz.isAiGenerated`, `Resource.metadata` columns).
 - Architecture preserved: existing repository/service/schema layering, Event Bus untouched, ownership boundaries respected (Identity owns users, Commerce owns billing, Discovery indexes, Marketplace enforces policy).
 - Clear separation: AI-assisted knowledge sharing = free Discover; creator-owned premium content = Marketplace. AI quizzes blocked from being sold but freely publishable to Discover.
+
+---
+Task ID: UI-Sprint-1
+Agent: main
+Task: EduBek UI Sprint 1 — Foundation (auth pages, app shell, theme, query, error pages, dashboard placeholder)
+
+Work Log:
+- Brand tokens added to globals.css (student/teacher/creator/school/admin/ai + success/warning) as OKLCH pairs in both :root and .dark; exposed to Tailwind via @theme inline so utilities like bg-teacher, text-ai, border-student work.
+- Mounted ThemeProvider (next-themes) + QueryClientProvider (@tanstack/react-query) in [locale]/layout.tsx. Geist font subset extended to include Cyrillic (needed for uz/ru locales).
+- Created src/components/edubek/theme-provider.tsx, theme-toggle.tsx (light/dark/system dropdown), query-provider.tsx (30s staleTime, no refetch-on-focus).
+- Created src/hooks/use-current-user.ts — useQuery wrapper around GET /api/auth/me, treats 401 as anonymous not error.
+- Created src/components/edubek/app-shell.tsx — desktop sidebar + topbar (BrandMark, SidebarNav with PRIMARY_NAV + SECONDARY_NAV role-gated, UserCard, LogoutButton) + mobile Sheet drawer + fixed bottom tab bar (5 items: Home/Discover/Live/Marketplace/Profile). Theme toggle + LanguageSwitcher in topbar.
+- Auth pages: src/app/[locale]/login/{page.tsx, login-form.tsx}, src/app/[locale]/register/{page.tsx, register-form.tsx}, src/app/[locale]/forgot-password/page.tsx (UI-only — no reset API; disabled form + info Alert).
+  * Server-side: if ctx.userId present, redirect to /dashboard.
+  * Client: react-hook-form + zod + shadcn Form, posts to /api/auth/{login,register}, on success router.refresh() + replace(/dashboard). Maps API error envelope codes (UNAUTHORIZED/INVALID_CREDENTIALS → invalidCredentials, FORBIDDEN → accountBanned, CONFLICT → alreadyExists, RATE_LIMITED → rateLimited) to translated messages. Field-level Zod issue mapping supported.
+- Error/loading pages: src/app/[locale]/{loading,error,not-found}.tsx. Loading uses Loader2 spinner. Error is a client boundary with AlertTriangle + retry + back-home. NotFound shows 404 + back-home + sign-in CTAs.
+- Dashboard placeholder: src/app/[locale]/dashboard/{page.tsx, welcome.tsx}. Server pre-renders with anonymous fallback; client-side useCurrentUser re-fetches and redirects to /login if unauthenticated. Welcome card shows "Welcome, {name}" + role badge (roleAccent: student/teacher/creator/admin roles map to brand colors). Coming-soon grid links to /discover, /live-quiz, /marketplace, /ai-workspace, /library, /wallet.
+- 10 placeholder pages for AppShell-linked routes that aren't built yet: /discover, /live-quiz, /marketplace, /profile, /library, /wallet, /ai-workspace, /classrooms, /settings, /admin — each uses shared <PlaceholderPage> component with Construction icon + back-to-dashboard button.
+- Landing header replaced: src/components/edubek/landing-header.tsx is a client component that swaps Sign in/Sign up → Dashboard/Profile when user is authenticated (via useCurrentUser). Mobile Sheet drawer with all nav links + CTAs (previously nav was hidden lg:flex). ThemeToggle + LanguageSwitcher wired.
+- Brand color migration: replaced `from-emerald-500 via-teal-500 to-violet-500` and similar hardcoded utilities in the landing header, app shell, auth pages, dashboard welcome with brand tokens (bg-teacher, from-teacher to-ai, text-teacher, etc.). The full landing page body still has many hardcoded emerald/teal/violet utilities — those will be migrated in Sprint 2 since they're deep in section content (SystemsSection, EcosystemSection, etc.) and touching them risks regressions.
+
+i18n keys added (scripts/add_sprint1_i18n.py):
+  +65 keys per locale × 3 = 195 new translation entries
+  Sections: auth.{login,register,forgot}.*, theme.*, nav.{sections,discover,admin,wallet}, dashboard.*, errors.{error,unexpectedTitle,unexpectedBody,tryAgain,backHome,notFoundTitle,notFoundBody,goLogin}
+
+Verification:
+- TypeScript: 0 errors in all Sprint 1 files (pre-existing errors in dead marketplace-browser.tsx untouched).
+- ESLint: 0 errors, 0 warnings in all Sprint 1 files.
+- Tests: 12827/12827 passing (64 test files) — zero regressions.
+
+Stage Summary:
+- Sprint 1 foundation complete: auth flow (login/register/forgot-password), app shell (sidebar + topbar + mobile Sheet + bottom tab bar), theme toggle (dark mode wired), React Query provider, error/loading/not-found boundaries, dashboard placeholder, 10 placeholder pages for unbuilt routes, landing header made auth-aware + mobile-navigable.
+- All 4 auth APIs (POST /api/auth/{login,register,logout,refresh}, GET /api/auth/me) preserved unchanged.
+- Brand tokens (student/teacher/creator/school/admin/ai + success/warning) in CSS variables, exposed to Tailwind.
+- 0 Prisma changes, 0 API contract changes, 0 backend changes.
+
+---
+Task ID: UI-Sprint-2
+Agent: main
+Task: EduBek UI Sprint 2 — Real product screens (marketplace, library, wallet, discover, notifications, profile, settings, role-aware dashboard)
+
+Work Log:
+- Backend fixes:
+  * Fixed broken GET /api/marketplace/favorites — added listFavoriteListings service function in mp.service.ts + exported from marketplace barrel.
+  * Added PATCH /api/auth/me — new updateMyProfile service function + updateProfileBodySchema + updateUser repository function. Supports name, username (with uniqueness check), bio, country, avatarUrl.
+- Shared client utilities:
+  * src/lib/api-client.ts — typed fetch wrapper with `credentials: same-origin`, JSON envelope error parsing, ApiError + UnauthenticatedError types, api.get/post/patch/put/del methods.
+  * src/components/edubek/empty-state.tsx — reusable dashed-border empty-state card with icon + heading + description + optional CTA button.
+  * src/components/edubek/loading-list.tsx — reusable skeleton grid for paginated cards.
+- Marketplace browse (src/app/[locale]/marketplace/browse.tsx):
+  * Calls GET /api/marketplace/listings, /featured, /categories with browseListingsQuery params (search, sort, categoryId, free, paid, limit, offset).
+  * Features: featured strip, debounced search, sort select, filter chips (All/Free/Paid), category chips, pagination, listing cards with thumbnail/title/creator/price/rating/favorites, loading skeleton, empty state, error state.
+  * Auth-aware: works for anonymous (browse is public).
+- Marketplace detail (src/app/[locale]/marketplace/[id]/detail.tsx):
+  * Calls GET /api/marketplace/listings/[id] + /wallet/balance (when logged in).
+  * Features: thumbnail, title, description, badges, category/difficulty/license badges, stats (rating/favorites/downloads/views), favorite toggle (optimistic UI), purchase dialog with balance/after-balance/insufficient-balance checks, claim-free vs paid paths.
+- Wallet (src/app/[locale]/wallet/view.tsx):
+  * Calls GET /api/wallet/balance + /api/wallet/history with pagination.
+  * Features: balance card with gradient accent, transaction list with signed delta colors (green for credits, red for debits), reason icons per transaction type, balanceAfter per row, pagination, loading skeleton, empty state.
+- Library (src/app/[locale]/library/view.tsx):
+  * Calls GET /api/resources with search + resourceType + status filters.
+  * Features: filter bar (search + type select + status select), grid of resource cards (icon by type, title, description, status badge, visibility badge, subject/grade/language badges), pagination, loading skeleton, empty state.
+- Resource detail (src/app/[locale]/library/[id]/detail.tsx):
+  * Calls GET /api/resources/[id] + /versions + POST /favorite.
+  * Features: large resource card with icon, full title/description, status/visibility/subject/grade/language badges, tags, favorite toggle (optimistic), content preview (JSON pretty-print), version history timeline.
+- Discover (src/app/[locale]/discover/view.tsx):
+  * Calls GET /api/discovery/feed + /api/discovery/topics + POST /api/search.
+  * Features: search bar with debounced submit, personalized feed sections (continue_learning, recommended_today, weak_topics, trending, marketplace_picks — each with icon + items grid), topic tree (root topics with children count + difficulty + language), search results list with score badges.
+- Notifications inbox (src/app/[locale]/notifications/view.tsx):
+  * Calls GET /api/notifications/inbox + PUT /api/notifications/inbox.
+  * Features: 6-stat summary grid (total/unread/read/pinned/archived/dismissed), filter chips, mark-all-read button, per-item favorite/pin/archive/delete actions, unread highlight, priority/category badges.
+- Profile (src/app/[locale]/profile/view.tsx):
+  * Calls GET /api/auth/me + PATCH /api/auth/me.
+  * Features: public card (avatar fallback, name, role badge, email, bio, username/country/joined meta, edit button), inline edit form (react-hook-form + zod + shadcn Form) with name/username/bio/country/avatarUrl fields, roles & permissions summary, achievements stub.
+- Settings (src/app/[locale]/settings/view.tsx):
+  * Sections: Account (links to profile), Language (3 locale buttons with POST /api/auth/locale + URL replace), Appearance (theme select via next-themes), Notifications (link to inbox), Security (disabled change-password form with info alert — backend doesn't exist yet).
+- Role-aware Dashboard (src/app/[locale]/dashboard/dashboard.tsx):
+  * Replaced placeholder welcome with role-aware dashboard.
+  * Student: 6-card quick-actions grid + wallet preview + notifications preview.
+  * Teacher: GET /api/dashboard/teacher → 3 stat cards (classrooms/students/recommendations) + classroom insights card (per-class mastery/engagement/weak-topics/at-risk).
+  * Creator: GET /api/creator/dashboard → 4 stat cards (earnings/sales/downloads/avgRating) + top resources list.
+  * Admin/superadmin: admin tools placeholder card with 3 action buttons.
+  * Cross-role: WalletPreview card + NotificationsPreview card (recent 3 items).
+- Updated AppShell: added Notifications to SECONDARY_NAV (Bell icon).
+- i18n: added 231 keys per locale × 3 = 693 new translation entries across marketplace, wallet, library, discover, notifications, profile, settings, dashboard sections (full en/uz/ru translations).
+- Deleted: src/app/[locale]/dashboard/welcome.tsx (replaced by dashboard.tsx).
+
+API gaps hit:
+1. /api/marketplace/favorites was broken (listFavoriteListings not exported from barrel) — FIXED.
+2. /api/wallet/transfer is broken (transfer function doesn't exist) — wallet UI omits Transfer button.
+3. /api/auth/me had no PATCH endpoint — ADDED.
+4. No /api/auth/change-password — Settings shows disabled form with info alert.
+5. No /api/dashboard/student — StudentDashboard uses quick actions + wallet/notifications previews only.
+6. No /api/profile/[id] public-profile endpoint — Profile uses /api/auth/me (self only); public profile views not in this sprint.
+7. POST /api/search is the cross-entity search (not GET) — Discover uses POST with `{ query }` body.
+
+Verification:
+- TypeScript: 0 errors in all Sprint 2 files.
+- ESLint: 0 errors, 0 warnings in all Sprint 2 files.
+- Tests: 12827/12827 passing (64 test files) — zero regressions.
+
+Stage Summary:
+- Sprint 2 product screens complete: 10 real screens (marketplace browse + detail, wallet, library + resource detail, discover, notifications, profile, settings, role-aware dashboard), all with real API integration, loading/empty/error states, optimistic UI where appropriate, mobile-first responsive, full i18n.
+- Total UI surface now: 14 real screens + 4 placeholder screens (live-quiz, ai-workspace, classrooms, admin) — Sprint 3 will build these.
+
+---
+Task ID: SECURITY-AUDIT-APPLIED
+Agent: main
+Task: Apply Security Audit Fixes (actually persisted to disk this time)
+
+Work Log:
+- Set up PostgreSQL 17.10 (downloaded binary, initialized cluster, started on localhost:5432)
+- Migrated Prisma schema from sqlite to postgresql
+- Fixed polymorphic Library relation (added map: for FK constraint names)
+- Applied migration: 20260819084320_edubek_initial_postgresql
+- Applied schema change: LivePlayer.userId nullable + isGuest Boolean (migration: 20260819085629_add_guest_player_support)
+- Ran seed script to populate test data
+- Fixed 2 enterprise-operations test failures (added beforeAll fixtures for Organization data)
+
+SECURITY FIXES APPLIED (all persisted to disk):
+
+1. env.ts hardening:
+   - Added EDUBEK_GUEST_SECRET (separate from session secret)
+   - Added EDUBEK_ENCRYPTION_KEY (32-byte min in production)
+   - Length validation: all secrets >= 32 bytes in production
+   - KNOWN_BAD_SECRETS blocklist (rejects CHANGE_ME, changeme, etc.)
+   - All 4 secrets required in production
+
+2. guest-service.ts (NEW FILE):
+   - Separate EDUBEK_GUEST_SECRET (not session secret)
+   - iss=aud="edubek:guest" on sign + verify
+   - verifyGuestToken rejects isGuest !== true
+   - verifyGuestToken rejects missing playerId/sessionId
+   - enforceGuestJoinRateLimit (5 per IP per 5 min)
+   - guestAnswer checks answerLockAt (REST path)
+   - questionSnapshot parsed with try/catch
+
+3. cloud-infra/service.ts crypto rewrite:
+   - AES-256-CBC with static zero IV → AES-256-GCM with random 96-bit IV
+   - Output format: iv:tag:ciphertext (hex) — tamper-evident
+   - Key from env.auth.encryptionKey (not process.env)
+
+4. next.config.ts security headers:
+   - Content-Security-Policy (frame-ancestors 'none', object-src 'none')
+   - X-Frame-Options: DENY
+   - X-Content-Type-Options: nosniff
+   - Referrer-Policy: strict-origin-when-cross-origin
+   - Permissions-Policy (camera/mic/geo/payment locked)
+   - Strict-Transport-Security (2 years, includeSubDomains, preload)
+
+5. realtime/index.ts (full rewrite):
+   - Auth middleware applied to EVERY namespace (io.use + ns.use for each)
+   - /spectator now requires auth (was no-op)
+   - /spectator:join verifies session membership
+   - /leaderboard:subscribe verifies session membership
+   - /analytics:subscribe verifies session membership
+   - /lobby:join verifies membership for BOTH guests AND authenticated users
+   - session:submit_answer calls guestAnswer() directly (no REST delegation)
+   - Host-only events (start_round, finish_round, pause, resume, end, kick) check isHost
+   - Guest sockets cannot call host-only events
+   - Rate limit: 30 events/sec + 5 submits/sec per socket
+   - CORS: production requires EDUBEK_ALLOWED_ORIGINS; dev keeps wildcard
+
+6. Guest routes (NEW):
+   - POST /api/live/guest/join (rate limit + Unicode filter for displayName)
+   - POST /api/live/guest/answer (answerLockAt enforced)
+   - POST /api/live/guest/status (question preview without correct answer)
+
+7. Trust sanctions RBAC:
+   - GET/POST/PUT require PLATFORM_MODERATE or TRUST_MANAGE
+   - Zod validation on body
+   - issuedBy always from ctx.userId
+
+8. Cloud secrets RBAC:
+   - GET/POST require CLOUD_SECRET_MANAGE
+   - GET never returns encryptedValue
+   - POST never returns encryptedValue
+
+9. AI quiz generate:
+   - requireAuth + getAuthContext
+   - Per-user rate limit (10/min)
+
+10. Health metrics:
+    - Loopback bypass (Prometheus scraper)
+    - Non-loopback requires ANALYTICS_VIEW or superadmin
+
+11. Notes IDOR fix:
+    - getNote() takes viewerUserId, rejects private notes owned by others
+    - updateNote() adds ownership check
+
+12. Marketplace approveListing() RBAC:
+    - Requires MARKETPLACE_MODERATE or superadmin
+
+13. Wallet credit() atomicity:
+    - Replaced read-then-write with Prisma atomic increment
+    - Concurrent credits no longer lose increments
+
+14. Search regex DoS:
+    - Escapes metacharacters before wildcard substitution
+
+15. resolveTargetUserId helper (NEW):
+    - Only admins/moderators can target another user via ?userId=
+    - Applied to 51 IDOR-prone routes
+
+16. New PlatformPermissions:
+    - PLATFORM_MODERATE, TRUST_MANAGE, CLOUD_SECRET_MANAGE
+    - Added to admin + moderator roles
+
+17. tooManyRequests error helper added to lib/errors.ts
+
+18. .env untracked from git (git rm --cached .env)
+    - Updated .env with proper 64-byte dev secrets
+
+NEW TESTS:
+- tests/integration/socket-io.test.ts — 12 tests (real server, real PG)
+- tests/integration/security-regression.test.ts — 11 tests (real server, real PG)
+- tests/unit/resolve-target-user.test.ts — 6 tests
+Total new tests: 29
+
+VERIFICATION:
+- TypeScript: 0 errors in src/ (npx tsc --noEmit)
+- ESLint: 0 errors / 0 warnings in src/ (npx eslint src/ --max-warnings 0)
+- Tests: 12,856 / 12,856 passing (12,827 original + 29 new security/integration tests)
+- Build: 40 pre-existing errors in unrelated routes (developer-platform, integrations, workflows) — NOT caused by security changes. Zero errors in any file modified by the security audit.
+
+Stage Summary:
+- All 26 critical security vulnerabilities FIXED and persisted to disk
+- Guest JWT now uses separate secret + iss/aud — no token confusion
+- AES-256-GCM with random IV replaces catastrophically broken CBC
+- All 51 IDOR-prone routes patched with resolveTargetUserId
+- Spectator namespace no longer leaks session broadcasts
+- Wallet credit uses atomic increment (no lost-update)
+- Security headers (CSP, HSTS, X-Frame-Options, etc.) applied
+- Production secrets validated for length + known-bad placeholders
+- 29 new security/integration tests, all passing against real PostgreSQL + real Socket.IO

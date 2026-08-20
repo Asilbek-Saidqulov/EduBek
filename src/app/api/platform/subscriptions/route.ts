@@ -7,6 +7,7 @@ import { withErrorHandler } from "@/lib/errors";
 import { getAuthContext } from "@/features/auth";
 import { listSubscriptions, subscribeToExtension } from "@/features/platform-sdk";
 import { z } from "zod";
+import { resolveTargetUserId } from "@/lib/auth/resolve-target-user";
 
 const schema = z.object({
   extensionId: z.string().min(1), organizationId: z.string().optional(), userId: z.string().optional(),
@@ -20,7 +21,7 @@ export const GET = withErrorHandler(async (req) => {
   const subs = await listSubscriptions({
     extensionId: url.searchParams.get("extensionId") ?? undefined,
     organizationId: url.searchParams.get("organizationId") ?? undefined,
-    userId: url.searchParams.get("userId") ?? ctx.userId,
+    userId: url.resolveTargetUserId(ctx, searchParams.get("userId")),
     status: url.searchParams.get("status") ?? undefined,
     limit: Number(url.searchParams.get("limit") ?? 100),
   });

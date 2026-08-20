@@ -58,7 +58,7 @@ const SYSTEMS_META: Array<{ id: number; name: string; description: string; endpo
   },
   {
     id: 10, name: "Payment Provider Abstraction",
-    description: "Interfaces only. No real payment SDK. Supports Click, Payme, Apple, Google, Bank, Invoice, Custom. Provider plugins.",
+    description: "Interfaces only. No real payment SDK. Supports Stripe, Payme, Click, Apple, Google, Bank, Invoice, Custom. Provider plugins.",
     endpoints: ["/api/commerce-platform/providers"],
     events: ["PaymentFailed", "PaymentCaptured"],
   },

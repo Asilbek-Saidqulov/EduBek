@@ -7,3 +7,11 @@ export const browseListingsQuerySchema = z.object({ search: z.string().optional(
 export type BrowseListingsQuery = z.infer<typeof browseListingsQuerySchema>
 export const createCategoryBodySchema = z.object({ slug: z.string().min(2).max(50).regex(/^[a-z0-9-]+$/), name: z.string().min(2).max(100), description: z.string().max(500).optional(), icon: z.string().max(10).optional(), sortOrder: z.number().int().default(0) })
 export type CreateCategoryBody = z.infer<typeof createCategoryBodySchema>
+
+/** Query schema for the marketplace quiz browse page. */
+export const listMarketplaceQuizzesQuerySchema = z.object({
+  category: z.string().optional(),
+  q: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+})
+export type ListMarketplaceQuizzesQuery = z.infer<typeof listMarketplaceQuizzesQuerySchema>

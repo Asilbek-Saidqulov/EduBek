@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "LivePlayer" ADD COLUMN     "isGuest" BOOLEAN NOT NULL DEFAULT false,
+ALTER COLUMN "userId" DROP NOT NULL;

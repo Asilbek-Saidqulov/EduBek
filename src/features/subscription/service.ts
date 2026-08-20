@@ -69,7 +69,7 @@ function mapSubscription(s: any): UserSubscriptionDto {
     startedAt: s.startedAt.toISOString(),
     currentPeriodEnd: s.currentPeriodEnd?.toISOString() ?? null,
     autoRenew: s.autoRenew,
-    providerSubscriptionId: s.stripeSubscriptionId ?? null,
+    stripeSubscriptionId: s.stripeSubscriptionId ?? null,
     cancelledAt: s.cancelledAt?.toISOString() ?? null,
   };
 }
@@ -112,22 +112,6 @@ const FREE_PLAN_FALLBACK: SubscriptionPlanDto = {
   createdAt: new Date(0).toISOString(),
 };
 
-function getFreeSubscriptionFallback(userId: string): UserSubscriptionDto {
-  return {
-    id: "none",
-    userId,
-    planId: FREE_PLAN_FALLBACK.id,
-    planTier: FREE_PLAN_FALLBACK.tier,
-    planName: FREE_PLAN_FALLBACK.name,
-    status: "active",
-    startedAt: new Date(0).toISOString(),
-    currentPeriodEnd: null,
-    autoRenew: false,
-    providerSubscriptionId: null,
-    cancelledAt: null,
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -146,7 +130,19 @@ export async function getCurrentSubscription(
   }
   const sub = await repo.findActiveSubscription(ctx.userId);
   if (!sub) {
-    return getFreeSubscriptionFallback(ctx.userId);
+    return {
+      id: "none",
+      userId: ctx.userId,
+      planId: FREE_PLAN_FALLBACK.id,
+      planTier: FREE_PLAN_FALLBACK.tier,
+      planName: FREE_PLAN_FALLBACK.name,
+      status: "active",
+      startedAt: new Date(0).toISOString(),
+      currentPeriodEnd: null,
+      autoRenew: false,
+      stripeSubscriptionId: null,
+      cancelledAt: null,
+    };
   }
   return mapSubscription(sub);
 }
@@ -395,7 +391,31 @@ export async function consumeUsage(
   const limits = await getSubscriptionLimits(ctx);
   const limit = featureLimit(limits, feature);
   if (limit <= 0) return;
-  const current = await currentUsage(ctx.userId, feature) + amount;
+
+  // Persist the usage itself. `currentUsage()` (below) counts
+  // AnalyticsEvent rows for this feature to derive the caller's usage
+  // this month — but nothing ever wrote one, so every call to
+  // `canUseFeature`/`getRemainingUsage` saw 0 usage and the monthly
+  // quota could never actually be reached. `amount` extra rows are
+  // recorded so metered features (e.g. bulk operations) count
+  // correctly against the same query `currentUsage()` runs.
+  try {
+    const { db } = await import("@/lib/db");
+    const events = Array.from({ length: Math.max(1, Math.floor(amount)) }, () => ({
+      userId: ctx.userId!,
+      eventName: feature,
+      occurredAt: new Date(),
+    }));
+    await db.analyticsEvent.createMany({ data: events });
+  } catch (err) {
+    log.warn("usage_record_failed", {
+      userId: ctx.userId,
+      feature,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  const current = await currentUsage(ctx.userId, feature);
   if (current >= limit) {
     eventBus.publish(
       buildEvent<FeatureLimitReachedEvent>({

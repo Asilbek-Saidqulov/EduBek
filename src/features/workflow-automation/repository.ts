@@ -22,15 +22,6 @@ const manualTriggers = new Map<string, ManualTrigger>();
 const templates = new Map<string, WorkflowTemplate>();
 const versions = new Map<string, WorkflowVersion>();
 
-export function safeParse<T>(raw: string | null | undefined, fallback: T): T {
-  if (raw == null || raw === "") return fallback;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 export const storeDefinition = (d: WorkflowDefinition) => definitions.set(d.id, d);
 export const getDefinition = (id: string) => definitions.get(id) ?? null;
 export const getDefinitionByKey = (key: string) => Array.from(definitions.values()).find(d => d.key === key) ?? null;
@@ -95,15 +86,26 @@ export const getVersion = (id: string) => versions.get(id) ?? null;
 export const getAllVersions = () => Array.from(versions.values());
 export const getVersionsForWorkflow = (wfId: string) => Array.from(versions.values()).filter(v => v.workflowId === wfId);
 
-export const fetchAgentWorkflows = async (_limit = 200) => getAllDefinitions();
-export const fetchAutomationRules = async (_limit = 200) => [];
-export const fetchAuditEvents = async (_limit = 200) => [];
-export const fetchScheduledWorkflows = async (_limit = 200) => [];
-
 export function _resetRepositoryForTesting() {
   definitions.clear(); executions.clear(); stateMachines.clear();
   stepExecutions.clear(); approvals.clear(); schedules.clear();
   timers.clear(); retries.clear(); compensations.clear();
   humanTasks.clear(); parallels.clear(); eventTriggers.clear();
   manualTriggers.clear(); templates.clear(); versions.clear();
+}
+
+// ---------------------------------------------------------------------------
+// fetch* aliases — Turbopack requires these to be statically exported.
+// ---------------------------------------------------------------------------
+
+export const fetchAgentWorkflows = () => getAllDefinitions();
+export const fetchAutomationRules = () => getAllDefinitions();
+export const fetchAuditEvents = () => getAllExecutions();
+
+/** Safe JSON parse helper — returns the default value on parse failure. */
+export function safeParse<T>(value: unknown, defaultValue: T): T {
+  if (typeof value === "string") {
+    try { return JSON.parse(value) as T; } catch { return defaultValue; }
+  }
+  return value as T ?? defaultValue;
 }

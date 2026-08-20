@@ -44,51 +44,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   }
 
-  // Dynamic resource pages - skip during build if DB not available
-  if (process.env.NODE_ENV !== 'production' || process.env.DATABASE_URL) {
-    try {
-      const resources = await db.resource.findMany({
-        where: {
-          visibility: { in: ["public", "marketplace"] },
-          status: { not: "archived" },
-        },
-        select: {
-          id: true,
-          updatedAt: true,
-          language: true,
-          translations: { select: { language: true } },
-        },
-        take: 1000,
-      });
+  // Dynamic resource pages
+  try {
+    const resources = await db.resource.findMany({
+      where: {
+        visibility: { in: ["public", "marketplace"] },
+        status: { not: "archived" },
+      },
+      select: {
+        id: true,
+        updatedAt: true,
+        language: true,
+        translations: { select: { language: true } },
+      },
+      take: 1000,
+    });
 
-      for (const resource of resources) {
-        const availableLanguages = new Set([
-          resource.language,
-          ...resource.translations.map((t: any) => t.language),
-        ]);
+    for (const resource of resources) {
+      const availableLanguages = new Set([
+        resource.language,
+        ...resource.translations.map((t: any) => t.language),
+      ]);
 
-        const alternates: Record<string, string> = {};
-        for (const locale of locales) {
-          if (availableLanguages.has(locale)) {
-            alternates[locale] = `${baseUrl}/${locale}/resources/${resource.id}`;
-          }
-        }
-
-        for (const lang of availableLanguages) {
-          if (locales.includes(lang as any)) {
-            entries.push({
-              url: `${baseUrl}/${lang}/resources/${resource.id}`,
-              lastModified: resource.updatedAt,
-              changeFrequency: "monthly" as const,
-              priority: 0.6,
-              alternates: { languages: alternates },
-            });
-          }
+      const alternates: Record<string, string> = {};
+      for (const locale of locales) {
+        if (availableLanguages.has(locale)) {
+          alternates[locale] = `${baseUrl}/${locale}/resources/${resource.id}`;
         }
       }
-    } catch {
-      // DB unavailable — return static pages only
+
+      for (const lang of availableLanguages) {
+        if (locales.includes(lang as any)) {
+          entries.push({
+            url: `${baseUrl}/${lang}/resources/${resource.id}`,
+            lastModified: resource.updatedAt,
+            changeFrequency: "monthly" as const,
+            priority: 0.6,
+            alternates: { languages: alternates },
+          });
+        }
+      }
     }
+  } catch {
+    // DB unavailable — return static pages only
   }
 
   return entries;

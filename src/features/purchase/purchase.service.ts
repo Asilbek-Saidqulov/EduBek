@@ -52,6 +52,13 @@ export async function refundPurchase(ctx: AuthContext, purchaseId: string): Prom
   const p = await repo.findPurchaseById(purchaseId); if (!p) throw notFound('Purchase not found')
   if (p.buyerId !== ctx.userId && !ctx.isSuperadmin) throw forbidden('Can only refund own purchases')
   if (p.status === 'refunded') throw badRequest('Already refunded')
+  // `refundableUntil` is computed and persisted at purchase time (see
+  // `purchase()` above) but was never actually enforced here, so a
+  // purchase stayed refundable forever regardless of the platform's
+  // configured refund window. Superadmins can still override.
+  if (!ctx.isSuperadmin && p.refundableUntil && p.refundableUntil.getTime() < Date.now()) {
+    throw badRequest('Refund window has expired for this purchase')
+  }
   const refundAmount = calculateRefund(p.pricePaid)
   if (refundAmount > 0) { await walletCredit(ctx.userId, refundAmount, 'refund', 'mp_purchase', purchaseId); if (p.creatorEarning > 0) await walletDebit(p.creatorId, p.creatorEarning, 'refund', 'mp_purchase', purchaseId); if (p.platformFee > 0) await walletDebit(PLATFORM_CONFIG.PLATFORM_WALLET_USER_ID, p.platformFee, 'refund', 'mp_purchase', purchaseId) }
   await repo.updatePurchaseStatus(purchaseId, 'refunded', new Date())

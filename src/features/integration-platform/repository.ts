@@ -22,15 +22,6 @@ const conflicts = new Map<string, ConflictRecord>();
 const schedules = new Map<string, SyncSchedule>();
 const audit: IntegrationAuditEntry[] = [];
 
-export function safeParse<T>(raw: string | null | undefined, fallback: T): T {
-  if (raw == null || raw === "") return fallback;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 export const storeConnector = (c: ConnectorDefinition) => connectors.set(c.id, c);
 export const getConnector = (id: string) => connectors.get(id) ?? null;
 export const getConnectorByKey = (key: string) => Array.from(connectors.values()).find(c => c.key === key) ?? null;
@@ -92,14 +83,6 @@ export const appendAudit = (e: IntegrationAuditEntry) => audit.push(e);
 export const getAllAuditEntries = () => audit.slice();
 export const getAuditForConnector = (connectorId: string) => audit.filter(e => e.connectorId === connectorId);
 
-export const fetchIntegrations = async (_limit = 200) => getAllConnectors();
-export const fetchIntegrationSyncLogs = async (_limit = 200) => [];
-export const fetchWebhookEndpoints = async (_limit = 200) => getAllWebhooks();
-export const fetchWebhookDeliveries = async (_limit = 200) => [];
-export const fetchApiKeys = async (_limit = 200) => [];
-export const fetchOAuthClients = async (_limit = 200) => [];
-export const fetchEventSubscriptions = async (_limit = 200) => [];
-
 export function _resetRepositoryForTesting() {
   connectors.clear(); lifecycleEvents.clear(); authRefs.clear();
   syncJobs.clear(); importJobs.clear(); exportJobs.clear();
@@ -107,3 +90,25 @@ export function _resetRepositoryForTesting() {
   rateLimits.clear(); mappings.clear(); conflicts.clear();
   schedules.clear(); audit.length = 0;
 }
+
+// ---------------------------------------------------------------------------
+// fetch* aliases — Turbopack requires these to be statically exported.
+// ---------------------------------------------------------------------------
+
+export const fetchIntegrations = () => getAllConnectors();
+export const fetchApiKeys = () => getAllAuthRefs();
+export const fetchOAuthClients = () => getAllAuthRefs();
+export const fetchWebhookEndpoints = () => getAllConnectors();
+export const fetchWebhookDeliveries = () => getAllConnectors();
+export const fetchIntegrationSyncLogs = () => getAllSyncJobs();
+
+/** Safe JSON parse helper — returns the default value on parse failure. */
+export function safeParse<T>(value: unknown, defaultValue: T): T {
+  if (typeof value === "string") {
+    try { return JSON.parse(value) as T; } catch { return defaultValue; }
+  }
+  return value as T ?? defaultValue;
+}
+
+/** Event subscriptions — alias for webhook list (integration platform). */
+export const fetchEventSubscriptions = () => getAllConnectors();

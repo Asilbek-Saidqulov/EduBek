@@ -34,8 +34,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // =============================================================================
@@ -86,7 +87,7 @@ model User {
   creatorProfile       Creator?
   quizCreated          Quiz[]
   quizAttempts         QuizAttempt[]
-  libraryOwned         Library[]
+  libraryOwned         Library[]                @relation("UserLibraryOwner")
   libraryItemsAdded    LibraryItem[]
   marketplaceListings  MarketplaceListing[]  @relation("ListingSeller")
   marketplacePurchases MarketplacePurchase[] @relation("PurchaseBuyer")
@@ -1275,8 +1276,8 @@ model Library {
   id          String   @id @default(cuid())
   ownerType   String   @default("user") // 'user' | 'org'
   ownerId     String
-  user        User?    @relation(fields: [ownerId], references: [id]) // when ownerType = 'user'
-  org         Organization? @relation("OrgLibrary", fields: [ownerId], references: [id]) // when ownerType = 'org'
+  user        User?    @relation("UserLibraryOwner", fields: [ownerId], references: [id], map: "library_user_owner_fk") // when ownerType = 'user'
+  org         Organization? @relation("OrgLibrary", fields: [ownerId], references: [id], map: "library_org_owner_fk") // when ownerType = 'org'
   name        String
   description String?
   visibility  String   @default("private") // 'private' | 'shared' | 'public'
@@ -2506,8 +2507,14 @@ model LivePlayer {
   id              String   @id @default(cuid())
   sessionId       String
   session         LiveSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  userId          String
-  user            User     @relation("UserLivePlayers", fields: [userId], references: [id], onDelete: Cascade)
+  // Nullable to support guest players (userId = null when isGuest = true).
+  // The @relation is also made optional below.
+  userId          String?
+  user            User?    @relation("UserLivePlayers", fields: [userId], references: [id], onDelete: Cascade)
+  // True for guest players (no User account). The guest JWT is scoped to
+  // the (playerId, sessionId) pair and is verified server-side on every
+  // guest API call. See src/features/live-session/guest-service.ts.
+  isGuest         Boolean  @default(false)
   // Player display name within the session (defaults to user.name)
   displayName     String
   // 'host' | 'co_host' | 'player' | 'spectator'

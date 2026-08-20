@@ -1,5 +1,5 @@
 /** EduBek — Enterprise Operations tests. Phase 6C.1: 14 systems. */
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeAll } from "vitest";
 import { generateTenantReport } from "@/features/enterprise-operations/tenant-manager";
 import { generateSubscriptionReport } from "@/features/enterprise-operations/subscription-engine";
 import { generateBillingSummary } from "@/features/enterprise-operations/billing-engine";
@@ -13,6 +13,52 @@ import { generateDeploymentReport } from "@/features/enterprise-operations/deplo
 import { generateEnterpriseDashboard } from "@/features/enterprise-operations/enterprise-dashboard";
 import { generateBusinessForecast } from "@/features/enterprise-operations/forecasting";
 import { generateBusinessReport } from "@/features/enterprise-operations/reporting";
+
+// Test fixtures — minimum Organization data required by the byType /
+// budgetUtilization assertions. Real rows in PostgreSQL, not mocks.
+const TEST_USER_ID = `ent-ops-user-${process.env.VITEST_POOL_ID ?? "0"}`;
+const TEST_ORG_SUFFIX = process.env.VITEST_POOL_ID ?? "0";
+
+beforeAll(async () => {
+  const { db } = await import("@/lib/db");
+  await db.user.upsert({
+    where: { id: TEST_USER_ID },
+    create: {
+      id: TEST_USER_ID,
+      email: `${TEST_USER_ID}@test.edubek.local`,
+      username: TEST_USER_ID,
+      passwordHash: "test",
+      name: "Enterprise Ops Test User",
+    },
+    update: {},
+  });
+  await db.organization.upsert({
+    where: { slug: `ent-ops-school-${TEST_ORG_SUFFIX}` },
+    create: {
+      name: "Enterprise Ops Test School",
+      slug: `ent-ops-school-${TEST_ORG_SUFFIX}`,
+      type: "school",
+      ownerId: TEST_USER_ID,
+      country: "UZ",
+      plan: "enterprise",
+      seats: 250,
+    },
+    update: {},
+  });
+  await db.organization.upsert({
+    where: { slug: `ent-ops-company-${TEST_ORG_SUFFIX}` },
+    create: {
+      name: "Enterprise Ops Test Company",
+      slug: `ent-ops-company-${TEST_ORG_SUFFIX}`,
+      type: "company",
+      ownerId: TEST_USER_ID,
+      country: "US",
+      plan: "enterprise",
+      seats: 500,
+    },
+    update: {},
+  });
+});
 
 describe("Enterprise — Tenant Manager", () => {
   it("generates a tenant report", async () => {

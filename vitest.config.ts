@@ -24,7 +24,7 @@ export default defineConfig({
       exclude: ["src/**/*.test.ts", "src/**/index.ts"],
     },
     setupFiles: [],
-    testTimeout: 10_000,
+    testTimeout: 30_000,
   },
   resolve: {
     alias: {

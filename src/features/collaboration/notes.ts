@@ -103,9 +103,19 @@ export async function createNote(input: {
   return mapNote(note);
 }
 
-export async function getNote(id: string): Promise<CollaborativeNoteDto | null> {
+export async function getNote(id: string, viewerUserId?: string): Promise<CollaborativeNoteDto | null> {
   const note = await repo.findNote(id);
-  return note ? mapNote(note) : null;
+  if (!note) return null;
+  // Ownership / visibility check:
+  // - The owner can always read.
+  // - If the note is `private`, only the owner can read.
+  // - If the note is `shared`/`classroom`/`group`/`public`, anyone with the
+  //   link can read.
+  // If `viewerUserId` is provided, enforce the ownership check for private notes.
+  if (viewerUserId && note.visibility === "private" && note.ownerId !== viewerUserId) {
+    return null; // not found — do not leak existence
+  }
+  return mapNote(note);
 }
 
 export async function listNotes(input: {
@@ -131,6 +141,11 @@ export async function updateNote(input: {
 }): Promise<CollaborativeNoteDto> {
   const existing = await repo.findNote(input.noteId);
   if (!existing) throw new Error("Note not found");
+
+  // OWNERSHIP CHECK — prevents IDOR. Only the note's owner can edit it.
+  if (existing.ownerId !== input.userId) {
+    throw new Error("Forbidden: only the note's owner can edit it");
+  }
 
   // Compute new version number
   const newVersion = existing.version + 1;

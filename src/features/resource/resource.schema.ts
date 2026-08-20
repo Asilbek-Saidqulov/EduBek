@@ -56,10 +56,6 @@ export const listResourcesQuerySchema = z.object({
 })
 export type ListResourcesQuery = z.infer<typeof listResourcesQuerySchema>
 
-export const resourceIdParamsSchema = z.object({
-  id: z.string().min(1),
-})
-
 export const restoreVersionParamsSchema = z.object({
   id: z.string().min(1),
   version: z.coerce.number().int().min(1),
@@ -84,3 +80,8 @@ export type ImportResourceBody = z.infer<typeof importResourceBodySchema>
 
 export const importResourcesBatchBodySchema = z.array(importResourceBodySchema).min(1).max(50)
 export type ImportResourcesBatchBody = z.infer<typeof importResourcesBatchBodySchema>
+
+/** Path-parameter schema for resource ID routes. */
+export const resourceIdParamsSchema = z.object({
+  id: z.string().min(1),
+})

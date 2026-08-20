@@ -4,16 +4,21 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/edubek/theme-provider";
+import { QueryProvider } from "@/components/edubek/query-provider";
 import { routing, getDir, type Locale } from "@/i18n/routing";
 
+// Geist ships both Latin and Cyrillic subsets. Cyrillic is required for
+// Uzbek (Cyrillic variant) and Russian — otherwise those locales fall
+// back to system fonts and look broken.
 const geistSans = Geist({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "cyrillic"],
 });
 
 // Enable static rendering for all locales
@@ -101,10 +106,19 @@ export default async function LocaleLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-          <Toaster />
-        </NextIntlClientProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <QueryProvider>
+            <NextIntlClientProvider locale={locale} messages={messages}>
+              {children}
+              <Toaster />
+            </NextIntlClientProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

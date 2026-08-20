@@ -45,6 +45,32 @@ export {
   getCliMetadata, getDeveloperIntegration, getDeveloperStatus,
 } from "./certification-docs-cli";
 
+// Re-exports from core-systems.ts — capability/permission/marketplace reports + runtime
+export {
+  generateCapabilityReport,
+  generatePermissionReport,
+  generateMarketplaceReport,
+  describeRuntime,
+} from "./core-systems";
+
+// Re-exports from management-systems.ts — compatibility + analytics + publishing + docs
+export {
+  analyzeCompatibility,
+  generateAnalyticsReport,
+  generatePublishingReport,
+  generateDocumentation,
+  validateExtension,
+} from "./management-systems";
+
+// Re-exports from developer-tools.ts — account/SDK/explorer/webhook catalog reports
+export {
+  generateDeveloperAccountReport,
+  generateSDKReport,
+  generateAPIExplorerReport,
+  generateWebhookCatalogReport,
+  validateInSandbox,
+} from "./developer-tools";
+
 // System 19
 export {
   subscribeDeveloper, unsubscribeDeveloper, isDeveloperSubscribed,
@@ -53,9 +79,6 @@ export {
 } from "./event-bus-bridge";
 
 export { _resetRepositoryForTesting } from "./repository";
-export { describeRuntime, generateCapabilityReport, generatePermissionReport, generateMarketplaceReport } from "./core-systems";
-export { generateDeveloperAccountReport, generateSDKReport, generateAPIExplorerReport, generateWebhookCatalogReport, validateInSandbox } from "./developer-tools";
-export { validateExtension, analyzeCompatibility, generateAnalyticsReport, generatePublishingReport, generateDocumentation } from "./management-systems";
 
 export type {
   ExtensionType, ExtensionStatus, ExtensionRegistryEntry,

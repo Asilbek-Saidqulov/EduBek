@@ -311,6 +311,9 @@ function listFiles(relPath: string): string[] {
 function findRouteFiles(relPath: string): Array<{ path: string; fullPath: string }> {
   const results: Array<{ path: string; fullPath: string }> = [];
   try {
+    // Guard against overly-broad directory scans — only allow paths under
+    // src/app/api to avoid Turbopack's "matches 13994 files" warning.
+    if (!relPath.startsWith("src/app/api/")) return results;
     const abs = join(process.cwd(), relPath);
     if (!existsSync(abs)) return results;
     const entries = readdirSync(abs, { withFileTypes: true });

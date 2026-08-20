@@ -139,7 +139,7 @@ function detectDynamicImportCandidates(): DynamicImportCandidate[] {
   // Find modules that are only used in specific contexts (e.g., heavy AI providers)
   const candidates: DynamicImportCandidate[] = [];
   const heavyModules = [
-    { module: "z-ai-web-dev-sdk", reason: "AI SDK — only needed when AI features are used" },
+    { module: "openrouter-sdk", reason: "AI SDK — only needed when AI features are used" },
     { module: "@prisma/client", reason: "Prisma client — can be dynamically imported in serverless" },
     { module: "socket.io", reason: "Socket.IO — only needed for real-time features" },
   ];

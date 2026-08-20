@@ -141,6 +141,17 @@ export function conflict(
   return new HttpError("CONFLICT", message, { details, messageKey, params });
 }
 
+/**
+ * 429 Too Many Requests — for rate-limited endpoints (login, registration,
+ * guest join, AI generation, etc.).
+ */
+export function tooManyRequests(
+  message = "Too many requests",
+  messageKey = "errors.rateLimited",
+): HttpError {
+  return new HttpError("RATE_LIMITED", message, { messageKey });
+}
+
 // ---------------------------------------------------------------------------
 // Route context (Next.js 16)
 // ---------------------------------------------------------------------------

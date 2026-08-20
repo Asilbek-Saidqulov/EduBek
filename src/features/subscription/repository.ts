@@ -96,7 +96,7 @@ export async function createSubscription(data: {
   status?: string;
   currentPeriodEnd?: Date;
   autoRenew?: boolean;
-  providerSubscriptionId?: string;
+  stripeSubscriptionId?: string;
 }) {
   return db.userSubscription.create({
     data: {
@@ -105,7 +105,7 @@ export async function createSubscription(data: {
       status: data.status ?? "active",
       currentPeriodEnd: data.currentPeriodEnd ?? null,
       autoRenew: data.autoRenew ?? false,
-      stripeSubscriptionId: data.providerSubscriptionId ?? null,
+      stripeSubscriptionId: data.stripeSubscriptionId ?? null,
     },
     include: { plan: true },
   });
@@ -119,15 +119,12 @@ export async function updateSubscriptionStatus(
     autoRenew?: boolean;
     cancelledAt?: Date | null;
     planId?: string;
-    providerSubscriptionId?: string | null;
+    stripeSubscriptionId?: string | null;
   },
 ) {
   return db.userSubscription.update({
     where: { id },
-    data: {
-      ...data,
-      stripeSubscriptionId: data.providerSubscriptionId,
-    },
+    data,
     include: { plan: true },
   });
 }

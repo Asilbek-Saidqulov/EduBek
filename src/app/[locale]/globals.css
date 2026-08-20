@@ -37,6 +37,30 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  /* Sprint 1 brand accents — each persona has a foreground/bg/border trio.
+     Tailwind sees them as bg-student, text-student, border-student, etc. */
+  --color-student: var(--student);
+  --color-student-foreground: var(--student-foreground);
+  --color-student-border: var(--student-border);
+  --color-teacher: var(--teacher);
+  --color-teacher-foreground: var(--teacher-foreground);
+  --color-teacher-border: var(--teacher-border);
+  --color-creator: var(--creator);
+  --color-creator-foreground: var(--creator-foreground);
+  --color-creator-border: var(--creator-border);
+  --color-school: var(--school);
+  --color-school-foreground: var(--school-foreground);
+  --color-school-border: var(--school-border);
+  --color-admin: var(--admin);
+  --color-admin-foreground: var(--admin-foreground);
+  --color-admin-border: var(--admin-border);
+  --color-ai: var(--ai);
+  --color-ai-foreground: var(--ai-foreground);
+  --color-ai-border: var(--ai-border);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -76,6 +100,33 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Sprint 1 — Brand accent palette.
+     OKLCH pairs for each persona: base color + a low-chroma tint for
+     backgrounds + a near-transparent border tint. The base colors mirror
+     the Tailwind 500/600 hue family that the landing page already uses. */
+  --student: oklch(0.65 0.18 230);            /* sky-500 */
+  --student-foreground: oklch(0.985 0 0);
+  --student-border: oklch(0.65 0.18 230 / 30%);
+  --teacher: oklch(0.6 0.16 160);             /* emerald-500 */
+  --teacher-foreground: oklch(0.985 0 0);
+  --teacher-border: oklch(0.6 0.16 160 / 30%);
+  --creator: oklch(0.65 0.22 0);              /* pink-500 */
+  --creator-foreground: oklch(0.985 0 0);
+  --creator-border: oklch(0.65 0.22 0 / 30%);
+  --school: oklch(0.72 0.17 70);              /* amber-500 */
+  --school-foreground: oklch(0.18 0 0);
+  --school-border: oklch(0.72 0.17 70 / 30%);
+  --admin: oklch(0.45 0.02 250);              /* slate-600 */
+  --admin-foreground: oklch(0.985 0 0);
+  --admin-border: oklch(0.45 0.02 250 / 30%);
+  --ai: oklch(0.6 0.22 290);                  /* violet-500 */
+  --ai-foreground: oklch(0.985 0 0);
+  --ai-border: oklch(0.6 0.22 290 / 30%);
+  --success: oklch(0.6 0.16 160);
+  --success-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.72 0.17 70);
+  --warning-foreground: oklch(0.18 0 0);
 }
 
 .dark {
@@ -110,6 +161,30 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* Brand accents — slightly brighter chroma in dark mode for contrast. */
+  --student: oklch(0.7 0.18 230);
+  --student-foreground: oklch(0.145 0 0);
+  --student-border: oklch(0.7 0.18 230 / 35%);
+  --teacher: oklch(0.68 0.16 160);
+  --teacher-foreground: oklch(0.145 0 0);
+  --teacher-border: oklch(0.68 0.16 160 / 35%);
+  --creator: oklch(0.72 0.22 0);
+  --creator-foreground: oklch(0.145 0 0);
+  --creator-border: oklch(0.72 0.22 0 / 35%);
+  --school: oklch(0.78 0.17 70);
+  --school-foreground: oklch(0.145 0 0);
+  --school-border: oklch(0.78 0.17 70 / 35%);
+  --admin: oklch(0.65 0.02 250);
+  --admin-foreground: oklch(0.145 0 0);
+  --admin-border: oklch(0.65 0.02 250 / 35%);
+  --ai: oklch(0.7 0.22 290);
+  --ai-foreground: oklch(0.145 0 0);
+  --ai-border: oklch(0.7 0.22 290 / 35%);
+  --success: oklch(0.68 0.16 160);
+  --success-foreground: oklch(0.145 0 0);
+  --warning: oklch(0.78 0.17 70);
+  --warning-foreground: oklch(0.145 0 0);
 }
 
 @layer base {

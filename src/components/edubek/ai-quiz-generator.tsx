@@ -5,7 +5,7 @@
  *
  * Visitors can type any topic, pick a difficulty + question count, and
  * generate a real, playable quiz in 5-15s via POST /api/quiz/generate
- * (which calls the AI LLM under the hood).
+ * (which calls the OpenRouter Gemini 3.7 Flash LLM under the hood).
  *
  * UX:
  *   1. Form (topic input + difficulty select + count select + example chips)

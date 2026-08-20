@@ -20,7 +20,6 @@ import { getLogger } from "@/lib/logger";
 import { badRequest, forbidden, notFound, unauthorized } from "@/lib/errors";
 import { can, PersonalPermission, type AuthContext } from "@/features/rbac";
 import { db } from "@/lib/db";
-import { defaultLocale } from "@/i18n/routing";
 import * as repo from "./repository";
 import type {
   CategoryTranslationDto,
@@ -238,7 +237,12 @@ export async function buildMultilingualMetadata(
     availableLanguages.unshift(defaultLanguage);
   }
 
-  const currentLanguage = requestedLanguage ?? defaultLocale;
+  // Fall back to the resource's own original language, not the
+  // platform's UI locale (`defaultLocale` from i18n/routing) — those
+  // are two different things. A resource authored in Russian should
+  // resolve to "ru" when no language was explicitly requested, even
+  // if the platform's UI default is "en".
+  const currentLanguage = requestedLanguage ?? defaultLanguage;
   const currentTranslation = translations.find(
     (t: any) => t.language === currentLanguage,
   );

@@ -37,7 +37,7 @@ export interface UserSubscriptionDto {
   startedAt: string;
   currentPeriodEnd: string | null;
   autoRenew: boolean;
-  providerSubscriptionId: string | null;
+  stripeSubscriptionId: string | null;
   cancelledAt: string | null;
 }
 

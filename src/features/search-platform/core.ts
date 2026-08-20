@@ -134,7 +134,12 @@ export function search(query: SearchQuery): SearchResult {
       if (matchType === "phrase") return title.includes(q) || body.includes(q);
       if (matchType === "prefix") return title.startsWith(q) || body.startsWith(q) || tags.some(t => t.startsWith(q));
       if (matchType === "wildcard") {
-        const regex = new RegExp(q.replace(/\*/g, ".*").replace(/\?/g, "."));
+        // ReDoS defense: escape regex metacharacters BEFORE substituting
+        // wildcard chars. Without this, an attacker payload like
+        // `(a+)+!` triggers catastrophic backtracking against any
+        // long title/body, hanging the event loop.
+        const escaped = q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const regex = new RegExp(escaped.replace(/\*/g, ".*").replace(/\?/g, "."));
         return regex.test(title) || regex.test(body) || tags.some(t => regex.test(t));
       }
       // keyword: any word in query matches

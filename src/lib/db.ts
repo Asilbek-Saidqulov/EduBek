@@ -19,12 +19,6 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  // Skip Prisma initialization during build if DATABASE_URL is not set
-  if (!process.env.DATABASE_URL) {
-    // Return a mock client that throws on any operation
-    return new PrismaClient() as any;
-  }
-  
   // `log: ['query']` is verbose and slow; only enable it when the operator
   // (or a developer in dev mode) has explicitly opted in via env.logQueries.
   if (env.logQueries) {

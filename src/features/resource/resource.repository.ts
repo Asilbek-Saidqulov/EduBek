@@ -139,7 +139,3 @@ export async function updateFavoriteCount(resourceId: string, delta: number) {
 export async function touchLastEdited(resourceId: string) {
   await db.resourceStat.update({ where: { resourceId }, data: { lastEditedAt: new Date() } }).catch(() => {})
 }
-
-export async function assignCategory(resourceId: string, categoryId: string | null) {
-  return db.resource.update({ where: { id: resourceId }, data: { categoryId } }).catch(() => null)
-}

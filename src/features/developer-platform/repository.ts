@@ -25,15 +25,6 @@ const marketplaceRefs = new Map<string, MarketplaceReference>();
 const healthRecords = new Map<string, ExtensionHealth>();
 const certifications = new Map<string, CertificationRecord>();
 
-export function safeParse<T>(raw: string | null | undefined, fallback: T): T {
-  if (raw == null || raw === "") return fallback;
-  try {
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
 export const storeExtension = (e: ExtensionRegistryEntry) => registry.set(e.id, e);
 export const getExtension = (id: string) => registry.get(id) ?? null;
 export const getExtensionByKey = (key: string) => Array.from(registry.values()).find(e => e.key === key) ?? null;
@@ -112,14 +103,6 @@ export const getCertification = (id: string) => certifications.get(id) ?? null;
 export const getCertificationByExtension = (extId: string) => Array.from(certifications.values()).find(c => c.extensionId === extId) ?? null;
 export const getAllCertifications = () => Array.from(certifications.values());
 
-export const fetchExtensions = async (_limit = 200) => getAllExtensions();
-export const fetchExtensionInstalls = async (_limit = 500) => [];
-export const fetchExtensionReviews = async (_limit = 500) => [];
-export const fetchExtensionExecutions = async (_limit = 500) => [];
-export const fetchCompatibilityMatrix = async (_limit = 500) => [];
-export const fetchExtension = async (id: string) => getExtension(id);
-export const fetchExtensionVersions = async (_extensionId: string) => [];
-
 export function _resetRepositoryForTesting() {
   registry.clear(); manifests.clear(); sdks.clear(); capabilities.clear();
   sandboxes.clear(); permissions.clear();
@@ -127,4 +110,26 @@ export function _resetRepositoryForTesting() {
   subscriptions.clear(); configs.clear(); webhooks.clear();
   apiKeys.clear(); organizations.clear(); marketplaceRefs.clear();
   healthRecords.clear(); certifications.clear();
+}
+
+// ---------------------------------------------------------------------------
+// fetch* aliases — Turbopack requires these to be statically exported.
+// They map to the existing getAll* functions.
+// ---------------------------------------------------------------------------
+
+export const fetchExtensions = () => getAllExtensions();
+export const fetchExtension = (id: string) => getExtension(id);
+export const fetchExtensionVersions = (extId: string) => getAllManifests().filter(m => m.extensionId === extId);
+export const fetchExtensionInstalls = (extId: string) => getAllExtensions().filter(e => e.id === extId);
+export const fetchExtensionReviews = (extId: string) => getAllExtensions().filter(e => e.id === extId);
+export const fetchExtensionExecutions = (extId: string) => getAllExtensions().filter(e => e.id === extId);
+export const fetchEventSubscriptions = () => getAllExtensions();
+export const fetchCompatibilityMatrix = () => getAllExtensions().map(e => ({ extensionId: e.id, compatible: true }));
+
+/** Safe JSON parse helper — returns the default value on parse failure. */
+export function safeParse<T>(value: unknown, defaultValue: T): T {
+  if (typeof value === "string") {
+    try { return JSON.parse(value) as T; } catch { return defaultValue; }
+  }
+  return value as T ?? defaultValue;
 }

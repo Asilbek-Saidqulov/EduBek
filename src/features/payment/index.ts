@@ -3,7 +3,7 @@
  */
 export { processPayment, listProviders } from "./service";
 export { getPaymentRegistry, PaymentProviderRegistry } from "./registry";
-export { MockPaymentProvider, ClickProvider } from "./payment-providers";
+export { MockPaymentProvider, StripeProvider } from "./payment-providers";
 export type {
   PaymentProvider,
   PaymentProviderName,

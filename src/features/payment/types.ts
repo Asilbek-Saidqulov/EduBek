@@ -1,14 +1,14 @@
 /**
  * EduBek — Payment feature types.
  *
- * The payment feature abstracts over multiple payment providers (Click,
+ * The payment feature abstracts over multiple payment providers (Stripe,
  * mock, …) behind a uniform `PaymentProvider` interface. Higher layers
  * (subscriptions, marketplace purchases, wallet top-ups) call
  * `processPayment(request)` and never need to know which provider handled
  * the charge.
  */
 
-export type PaymentProviderName = "mock" | "click";
+export type PaymentProviderName = "mock" | "stripe";
 
 export interface PaymentRequest {
   /** The user initiating the payment. */

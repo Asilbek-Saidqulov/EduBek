@@ -249,10 +249,27 @@ export async function getStats(ctx: AuthContext, id: string): Promise<ResourceSt
   return { viewCount: stats.viewCount, duplicateCount: stats.duplicateCount, favoriteCount: stats.favoriteCount, lastOpenedAt: stats.lastOpenedAt?.toISOString() ?? null, lastEditedAt: stats.lastEditedAt?.toISOString() ?? null }
 }
 
+/**
+ * assignCategory — assign a resource to an org category (or unassign if null).
+ *
+ * The category itself is managed by the category feature; this function only
+ * stores the assignment on the resource's metadata (since the Resource model
+ * doesn't have a direct categoryId field, we use the metadata JSON column).
+ *
+ * Authorization: the caller must be able to UPDATE the resource.
+ */
 export async function assignCategory(ctx: AuthContext, resourceId: string, categoryId: string | null): Promise<void> {
   if (!ctx.userId) throw unauthorized('Authentication required')
   const resource = await repo.findResourceById(resourceId)
   if (!resource) throw notFound('Resource not found')
   if (!canUpdate(ctx, resource)) throw forbidden('Cannot update this resource')
-  await repo.assignCategory(resourceId, categoryId)
+  // Parse existing metadata, set categoryId, re-serialize.
+  let metadata: Record<string, unknown> = {}
+  try { metadata = JSON.parse(resource.metadata ?? '{}') as Record<string, unknown> } catch { metadata = {} }
+  if (categoryId === null) {
+    delete metadata.categoryId
+  } else {
+    metadata.categoryId = categoryId
+  }
+  await db.resource.update({ where: { id: resourceId }, data: { metadata: JSON.stringify(metadata) } })
 }

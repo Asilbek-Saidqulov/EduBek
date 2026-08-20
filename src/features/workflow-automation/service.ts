@@ -56,10 +56,24 @@ export {
   publishWorkflowEvent, _resetBridgeForTesting,
 } from "./event-bus-bridge";
 
+// Re-exports from actions-execution-scheduling.ts — action + scheduler reports
+export {
+  generateActionReport,
+  generateSchedulerReport,
+} from "./actions-execution-scheduling";
+
+// Re-exports from builder-triggers-conditions.ts — builder + trigger reports
+export {
+  generateBuilderReport,
+  generateTriggerReport,
+} from "./builder-triggers-conditions";
+
+// Re-exports from monitoring-templates-analytics-dashboard.ts — analytics report
+export {
+  generateAnalyticsReport,
+} from "./monitoring-templates-analytics-dashboard";
+
 export { _resetRepositoryForTesting } from "./repository";
-export { validateWorkflow, generateBuilderReport, generateTriggerReport, evaluateCondition, evaluateConditionGroup } from "./builder-triggers-conditions";
-export { generateActionReport, generateSchedulerReport, generateApprovalReport } from "./actions-execution-scheduling";
-export { generateMonitoringReport, generateTemplateReport, generateAnalyticsReport, generateAutomationDashboard } from "./monitoring-templates-analytics-dashboard";
 
 export type {
   WorkflowCategory, WorkflowRegistryStatus, WorkflowDefinition,
