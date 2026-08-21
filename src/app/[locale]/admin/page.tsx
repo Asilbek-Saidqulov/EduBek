@@ -1,4 +1,4 @@
-import { setRequestLocale, getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import { AppShell } from "@/components/edubek/app-shell";
 import { AdminClient } from "./view";
 
@@ -11,11 +11,10 @@ export default async function AdminPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("admin");
 
   return (
     <AppShell>
-      <AdminClient t={t} />
+      <AdminClient />
     </AppShell>
   );
 }

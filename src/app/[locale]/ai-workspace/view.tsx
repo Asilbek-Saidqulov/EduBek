@@ -40,7 +40,7 @@ interface GeneratedQuestion {
   explanation: string;
 }
 
-export function AiWorkspaceClient({ t }: { t?: any }) {
+export function AiWorkspaceClient() {
   const { user } = useCurrentUser();
   const [activeTab, setActiveTab] = React.useState<"generator" | "tutor">("generator");
 

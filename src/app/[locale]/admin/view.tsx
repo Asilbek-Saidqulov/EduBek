@@ -29,7 +29,8 @@ interface PlatformStats {
   pendingReports: number;
 }
 
-export function AdminClient({ t }: { t: any }) {
+export function AdminClient() {
+  const t = useTranslations("admin");
   const [stats, setStats] = React.useState<PlatformStats | null>(null);
   const [loading, setLoading] = React.useState(true);
 

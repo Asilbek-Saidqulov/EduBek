@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link, usePathname, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Compass,
@@ -37,7 +38,9 @@ interface AppShellProps {
   children: React.ReactNode;
 }
 
-export function AppShell({ user: initialUser, t, children }: AppShellProps) {
+export function AppShell({ user: initialUser, children }: AppShellProps) {
+  const tNav = useTranslations("nav");
+  const tCommon = useTranslations("common");
   const pathname = usePathname();
   const router = useRouter();
   const { user: fetchedUser } = useCurrentUser();
@@ -59,31 +62,33 @@ export function AppShell({ user: initialUser, t, children }: AppShellProps) {
   }, []);
 
   const primaryNavItems = [
-    { href: "/dashboard", label: t?.("nav.dashboard") || "Launchpad", icon: LayoutDashboard, tag: "Home" },
-    { href: "/discover", label: t?.("nav.discover") || "Discover", icon: Compass, tag: "Nexus" },
-    { href: "/library", label: t?.("nav.library") || "Workspace", icon: FolderOpen },
-    { href: "/marketplace", label: t?.("nav.marketplace") || "Marketplace", icon: Store },
-    { href: "/live-quiz", label: t?.("nav.liveQuiz") || "Quiz Hub", icon: Gamepad2 },
-    { href: "/ai-workspace", label: t?.("nav.aiWorkspace") || "AI Assistant", icon: Sparkles },
-    { href: "/classrooms", label: t?.("nav.classrooms") || "Classrooms", icon: Users },
+    { href: "/dashboard", label: tNav("dashboard"), icon: LayoutDashboard },
+    { href: "/discover", label: tNav("discover"), icon: Compass },
+    { href: "/library", label: tNav("library"), icon: FolderOpen },
+    { href: "/marketplace", label: tNav("marketplace"), icon: Store },
+    { href: "/live-quiz", label: tNav("liveQuiz"), icon: Gamepad2 },
+    { href: "/ai-workspace", label: tNav("aiWorkspace"), icon: Sparkles },
+    { href: "/classrooms", label: tNav("classrooms"), icon: Users },
   ];
 
   const secondaryNavItems = [
-    { href: "/wallet", label: t?.("nav.wallet") || "EduTokens", icon: Wallet },
-    { href: "/notifications", label: t?.("nav.notifications") || "Notifications", icon: Bell },
-    { href: "/settings", label: t?.("nav.settings") || "Settings", icon: Settings },
+    { href: "/wallet", label: tNav("wallet"), icon: Wallet },
+    { href: "/notifications", label: tNav("notifications"), icon: Bell },
+    { href: "/settings", label: tNav("settings"), icon: Settings },
   ];
 
   if (user?.platformRoles?.includes("ADMIN") || user?.platformRoles?.includes("SUPERADMIN") || user?.platformRoles?.includes("admin") || user?.platformRoles?.includes("superadmin")) {
-    secondaryNavItems.push({ href: "/admin", label: t?.("nav.admin") || "Admin Console", icon: Shield });
+    secondaryNavItems.push({ href: "/admin", label: tNav("admin"), icon: Shield });
   }
 
   const handleLogout = async () => {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     } catch {
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     }
   };
 
@@ -387,7 +392,7 @@ export function AppShell({ user: initialUser, t, children }: AppShellProps) {
                   onClick={handleLogout}
                 >
                   <LogOut className="h-4 w-4" />
-                  <span>Log out</span>
+                  <span>{tNav("logout")}</span>
                 </Button>
               </div>
             </div>

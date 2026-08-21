@@ -32,24 +32,23 @@ export async function generateMetadata({
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   const { locale } = await params;
-  const title = "EduBek — AI-Powered Education Ecosystem";
+  const title = "EduBek — Connected Learning Ecosystem";
   const description =
-    "EduBek is an AI-powered education ecosystem that unites a content Marketplace, an AI Assistant, a Quiz Platform, and a Creator Economy into one connected platform. Reuse existing knowledge first. Create new knowledge only when necessary.";
+    "EduBek is a connected learning ecosystem uniting interactive quizzes, knowledge discovery, contextual AI assistance, teacher workspaces, and an educational marketplace.";
 
   return {
     title,
     description,
     keywords: [
       "EduBek",
-      "AI education",
-      "education ecosystem",
-      "marketplace for teachers",
-      "AI assistant",
-      "quiz platform",
-      "creator economy",
+      "connected learning ecosystem",
+      "interactive quizzes",
+      "educational marketplace",
+      "AI study tutor",
+      "quiz arena",
+      "teacher workspace",
+      "student progress",
       "EdTech",
-      "learning platform",
-      "educational content",
     ],
     authors: [{ name: "EduBek Team" }],
     icons: {
@@ -76,7 +75,7 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description:
-        "Reuse existing knowledge first. Create new knowledge only when necessary. The AI-powered education ecosystem for teachers, students, creators, and schools.",
+        "EduBek brings together knowledge discovery, interactive quizzes, contextual AI assistance, and an educational marketplace in one connected ecosystem.",
     },
   };
 }

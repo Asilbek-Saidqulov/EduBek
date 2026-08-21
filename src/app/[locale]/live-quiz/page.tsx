@@ -1,4 +1,4 @@
-import { setRequestLocale, getTranslations } from "next-intl/server";
+import { setRequestLocale } from "next-intl/server";
 import { AppShell } from "@/components/edubek/app-shell";
 import { LiveQuizClient } from "./view";
 
@@ -11,11 +11,10 @@ export default async function LiveQuizPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("liveQuiz");
 
   return (
     <AppShell>
-      <LiveQuizClient t={t} />
+      <LiveQuizClient />
     </AppShell>
   );
 }

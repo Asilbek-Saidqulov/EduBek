@@ -27,7 +27,8 @@ interface Classroom {
   assignmentCount: number;
 }
 
-export function ClassroomsClient({ t }: { t: any }) {
+export function ClassroomsClient() {
+  const t = useTranslations("classrooms");
   const { user } = useCurrentUser();
   const [classrooms, setClassrooms] = React.useState<Classroom[]>([]);
   const [loading, setLoading] = React.useState(true);

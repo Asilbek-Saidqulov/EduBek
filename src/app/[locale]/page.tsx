@@ -1,66 +1,73 @@
-import { getTranslations, setRequestLocale } from "next-intl/server"
+import { setRequestLocale } from "next-intl/server";
 
-import { LandingHeader } from "@/components/edubek/landing-header"
-import { QuickJoinPanel } from "@/components/edubek/quick-join-panel"
-import { Mascot } from "@/components/edubek/mascots"
+import { LandingHeader } from "@/components/edubek/landing-header";
+import { HeroSection } from "@/components/landing/hero-section";
+import { EcosystemSection } from "@/components/landing/ecosystem-section";
+import { HowItWorksSection } from "@/components/landing/how-it-works-section";
+import { ProductShowcaseSection } from "@/components/landing/product-showcase-section";
+import { QuizFocusSection } from "@/components/landing/quiz-focus-section";
+import { KnowledgeDiscoverySection } from "@/components/landing/knowledge-discovery-section";
+import { AiContextualSection } from "@/components/landing/ai-contextual-section";
+import { RoleSwitcherSection } from "@/components/landing/role-switcher-section";
+import { MarketplacePreviewSection } from "@/components/landing/marketplace-preview-section";
+import { PlatformTruthSection } from "@/components/landing/platform-truth-section";
+import { FinalCtaSection } from "@/components/landing/final-cta-section";
+import { LandingFooter } from "@/components/landing/landing-footer";
 
-export const dynamic = "force-dynamic"
+export const dynamic = "force-dynamic";
 
 export default async function LandingPage({
   params,
 }: {
-  params: Promise<{ locale: string }>
+  params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params
-  setRequestLocale(locale)
-  const tNav = await getTranslations("nav")
+  const { locale } = await params;
+  setRequestLocale(locale);
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex min-h-screen flex-col bg-background text-foreground selection:bg-primary/20 selection:text-primary">
+      {/* Universal Navigation Header */}
       <LandingHeader />
-      <main className="relative flex flex-1 items-center justify-center overflow-hidden px-6 py-16">
-        {/* Playful gradient blobs — no copy, just color */}
-        <div className="pointer-events-none absolute inset-0" aria-hidden>
-          <div className="absolute -left-24 -top-24 size-72 rounded-full bg-teacher/20 blur-3xl" />
-          <div className="absolute -bottom-24 -right-24 size-80 rounded-full bg-ai/20 blur-3xl" />
-          <div className="absolute left-1/2 top-1/3 size-64 -translate-x-1/2 rounded-full bg-student/10 blur-3xl" />
-        </div>
 
-        <div className="relative flex w-full max-w-md flex-col items-center gap-8 text-center">
-          <div className="relative">
-            <div className="absolute inset-0 rounded-full bg-violet-500/10 blur-2xl" />
-            <Mascot name="robot" size={96} className="relative text-violet-500" />
-          </div>
+      {/* Main Narrative Flow */}
+      <main className="flex-1 flex flex-col">
+        {/* 1. Hero: Where learning connects */}
+        <HeroSection />
 
-          <QuickJoinPanel locale={locale} />
+        {/* 2. Connected Product Ecosystem */}
+        <EcosystemSection />
 
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <a href="/login" className="hover:text-foreground">
-              {tNav("login")}
-            </a>
-            <span aria-hidden>·</span>
-            <a href="/register" className="hover:text-foreground">
-              {tNav("register")}
-            </a>
-          </div>
-        </div>
+        {/* 3. How It Works: The Continuous Learning Loop */}
+        <HowItWorksSection />
+
+        {/* 4. Interactive Product Showcase */}
+        <ProductShowcaseSection />
+
+        {/* 5. Deep-Dive: Interactive Quizzes & Arena Modes */}
+        <QuizFocusSection />
+
+        {/* 6. Deep-Dive: Structured Knowledge Discovery */}
+        <KnowledgeDiscoverySection />
+
+        {/* 7. Deep-Dive: Contextual AI (Where it actually helps) */}
+        <AiContextualSection />
+
+        {/* 8. Tailored Audiences: Role Switcher (Student / Teacher / Creator) */}
+        <RoleSwitcherSection />
+
+        {/* 9. Verified Educational Marketplace */}
+        <MarketplacePreviewSection />
+
+        {/* 10. Platform Architecture & Truthful Highlights */}
+        <PlatformTruthSection />
+
+        {/* 11. Grounded Final CTA */}
+        <FinalCtaSection />
       </main>
-      <SiteFooter />
+
+      {/* Semantic Footer */}
+      <LandingFooter />
     </div>
-  )
+  );
 }
 
-// ===========================================================================
-// Footer — one line, no fluff
-// ===========================================================================
-
-function SiteFooter() {
-  return (
-    <footer className="border-t py-6">
-      <div className="container mx-auto flex max-w-6xl items-center justify-center gap-2 px-6 text-xs text-muted-foreground">
-        <Mascot name="notebook" size={16} />
-        <span>EduBek © 2026</span>
-      </div>
-    </footer>
-  )
-}

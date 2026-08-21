@@ -39,7 +39,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
 
-export function LiveQuizClient({ t }: { t?: any }) {
+export function LiveQuizClient() {
   const searchParams = useSearchParams();
   const codeFromUrl = searchParams.get("code")?.trim().toUpperCase() ?? "";
 
