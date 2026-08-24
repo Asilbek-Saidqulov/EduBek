@@ -87,43 +87,10 @@ export function AiWorkspaceClient() {
       if (data.questions && data.questions.length > 0) {
         setGeneratedQuestions(data.questions);
       } else {
-        // Fallback realistic generated set
-        setGeneratedQuestions([
-          {
-            question: `In ${topic}, what is the primary foundational principle?`,
-            options: ["Conservation of state", "Direct proportional relationship", "Linear transformation", "Discrete boundary condition"],
-            correctIndex: 1,
-            explanation: `The foundational theorem of ${topic} states direct proportionality under standard equilibrium conditions.`,
-          },
-          {
-            question: `Which formula is most commonly applied when evaluating ${topic}?`,
-            options: ["E = mc²", "y = ax² + bx + c", "F = ma", "PV = nRT"],
-            correctIndex: 1,
-            explanation: `This standard form is the primary analytical framework used in ${topic}.`,
-          },
-          {
-            question: `What occurs when the boundary parameters for ${topic} are doubled?`,
-            options: ["System destabilizes", "Response magnitude doubles proportionally", "No observable impact", "Harmonic oscillation"],
-            correctIndex: 1,
-            explanation: "Linear scaling laws apply directly across the defined domain.",
-          },
-        ]);
+        setGeneratedQuestions(null);
       }
     } catch {
-      setGeneratedQuestions([
-        {
-          question: `In ${topic}, what is the primary foundational principle?`,
-          options: ["Conservation of state", "Direct proportional relationship", "Linear transformation", "Discrete boundary condition"],
-          correctIndex: 1,
-          explanation: `The foundational theorem of ${topic} states direct proportionality under standard equilibrium conditions.`,
-        },
-        {
-          question: `Which formula is most commonly applied when evaluating ${topic}?`,
-          options: ["E = mc²", "y = ax² + bx + c", "F = ma", "PV = nRT"],
-          correctIndex: 1,
-          explanation: `This standard form is the primary analytical framework used in ${topic}.`,
-        },
-      ]);
+      setGeneratedQuestions(null);
     } finally {
       setIsGenerating(false);
     }
@@ -151,7 +118,7 @@ export function AiWorkspaceClient() {
           ...prev,
           {
             role: "assistant",
-            text: `Here is a clear breakdown of **${text.slice(0, 40)}...**:\n\n1. **Core Concept**: First identify the fundamental rules and known variables.\n2. **Step-by-Step Approach**: Break complex problems into smaller atomic steps.\n3. **Verification**: Check your units, boundary values, and algebraic balance.\n\nWould you like a sample practice question on this topic?`,
+            text: "Sorry, I could not generate a response for this question right now. Please try rephrasing your topic or asking again in a moment.",
           },
         ]);
       }
@@ -160,7 +127,7 @@ export function AiWorkspaceClient() {
         ...prev,
         {
           role: "assistant",
-          text: `Here is a clear breakdown:\n\n1. **Identify the core principle**: Focus on the fundamental definitions first.\n2. **Work systematically**: Break the problem down into sequential steps.\n3. **Practice**: Applying the concept to 2–3 questions will solidify your intuition.\n\nFeel free to ask for a specific example!`,
+          text: "We could not connect to the AI tutor service. Please check your connection and try again.",
         },
       ]);
     } finally {

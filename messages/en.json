@@ -26,7 +26,11 @@
     "discover": "Discover",
     "admin": "Admin",
     "wallet": "Wallet",
-    "notifications": "Notifications"
+    "notifications": "Notifications",
+    "ecosystem": "Ecosystem",
+    "workspaceAndTools": "Workspace & Tools",
+    "search": "Search EduBek...",
+    "forEducators": "For Educators"
   },
   "common": {
     "loading": "Loading...",
@@ -10766,7 +10770,9 @@
     "archive": "Archive",
     "delete": "Delete",
     "empty": "You're all caught up",
-    "emptyDesc": "No notifications to show here."
+    "emptyDesc": "No notifications to show here.",
+    "emptyTitle": "No notifications",
+    "emptyDescription": "You are all caught up! Updates about your quizzes, achievements, and materials will appear here."
   },
   "identity": {
     "title": "Identity, Access Management & Federation Platform",
@@ -17507,7 +17513,8 @@
     "tip2Title": "Host live quiz sessions",
     "tip2Desc": "Use Quiz Arena to run live, gamified formative assessments during class.",
     "tip3Title": "Review actionable analytics",
-    "tip3Desc": "Track student performance and identify knowledge gaps instantly."
+    "tip3Desc": "Track student performance and identify knowledge gaps instantly.",
+    "loading": "Loading classrooms..."
   },
   "aiWorkspace": {
     "title": "AI Workspace",

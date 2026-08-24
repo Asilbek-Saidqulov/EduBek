@@ -14,9 +14,11 @@ import { loginBodySchema } from "@/features/auth/auth.schema";
 import {
   refreshCookieOptions,
   sessionCookieOptions,
-  serializeCookie,
+  SESSION_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
 } from "@/features/auth/auth.cookies";
 import { login } from "@/features/auth/auth.service";
+import { checkRateLimit } from "@/lib/rate-limiter";
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const body = await req.json().catch(() => null);
@@ -30,8 +32,17 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     });
   }
 
+  // Rate limiting based on IP address
+  const ipAddress = getClientIp(req) || "unknown";
+  const rateLimitResult = checkRateLimit(`login:${ipAddress}`, 5, 60 * 1000); // 5 attempts per minute
+  
+  if (!rateLimitResult.allowed) {
+    throw badRequest("Too many login attempts. Please try again later.", {
+      retryAfter: Math.ceil((rateLimitResult.resetAt.getTime() - Date.now()) / 1000),
+    });
+  }
+
   const userAgent = req.headers.get("user-agent") ?? undefined;
-  const ipAddress = getClientIp(req);
 
   const { session } = await login({
     email: parsed.data.email,
@@ -40,21 +51,23 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
     ipAddress,
   });
 
-  const response = NextResponse.json({ user: session.user });
-  response.headers.append(
-    "Set-Cookie",
-    serializeCookie({
-      ...sessionCookieOptions(),
-      value: session.sessionToken,
-    }),
+  const response = NextResponse.json({ 
+    user: session.user,
+    expiresAt: session.expiresAt,
+  });
+  
+  // Set cookies via NextResponse.cookies.set for better Next.js 16 compatibility
+  response.cookies.set(
+    SESSION_COOKIE_NAME,
+    session.sessionToken,
+    sessionCookieOptions()
   );
-  response.headers.append(
-    "Set-Cookie",
-    serializeCookie({
-      ...refreshCookieOptions(),
-      value: session.refreshToken,
-    }),
+  response.cookies.set(
+    REFRESH_COOKIE_NAME,
+    session.refreshToken,
+    refreshCookieOptions()
   );
+  
   return response;
 });
 

@@ -4,7 +4,7 @@
  * Visiting any non-existent path under /{locale}/… shows this page
  * (e.g. /en/dashboard/missing-route, /en/whatever).
  */
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import { Compass, Home, LogIn } from "lucide-react";
 import { Button } from "@/components/ui/button";

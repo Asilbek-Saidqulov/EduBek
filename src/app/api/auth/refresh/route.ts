@@ -11,12 +11,12 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { badRequest, withErrorHandler } from "@/lib/errors";
-import { env } from "@/config/env";
 import { refreshBodySchema } from "@/features/auth/auth.schema";
 import {
   refreshCookieOptions,
   sessionCookieOptions,
-  serializeCookie,
+  SESSION_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
 } from "@/features/auth/auth.cookies";
 import { refreshSession } from "@/features/auth/auth.service";
 
@@ -34,24 +34,26 @@ export const POST = withErrorHandler(async (req: NextRequest) => {
 
   const refreshToken =
     parsed.data.refreshToken ??
-    req.cookies.get(env.auth.refreshCookieName)?.value;
+    req.cookies.get(REFRESH_COOKIE_NAME)?.value;
 
   const { session } = await refreshSession(refreshToken);
 
-  const response = NextResponse.json({ user: session.user });
-  response.headers.append(
-    "Set-Cookie",
-    serializeCookie({
-      ...sessionCookieOptions(),
-      value: session.sessionToken,
-    }),
+  const response = NextResponse.json({ 
+    user: session.user,
+    expiresAt: session.expiresAt,
+  });
+  
+  // Set cookies via NextResponse.cookies.set for better Next.js 16 compatibility
+  response.cookies.set(
+    SESSION_COOKIE_NAME,
+    session.sessionToken,
+    sessionCookieOptions()
   );
-  response.headers.append(
-    "Set-Cookie",
-    serializeCookie({
-      ...refreshCookieOptions(),
-      value: session.refreshToken,
-    }),
+  response.cookies.set(
+    REFRESH_COOKIE_NAME,
+    session.refreshToken,
+    refreshCookieOptions()
   );
+  
   return response;
 });

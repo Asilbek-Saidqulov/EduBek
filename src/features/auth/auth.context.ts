@@ -1,5 +1,8 @@
 import { cookies } from "next/headers";
 import { unauthorized, forbidden } from "@/lib/errors";
+import { db } from "@/lib/db";
+import { hashToken, isSessionExpired, isSessionRevoked, isUserBanned } from "./auth.utils";
+import { getSessionCookie } from "./auth.cookies";
 
 export interface AuthContext {
   userId: string | null;
@@ -10,10 +13,9 @@ export interface AuthContext {
 
 export async function getAuthContext(): Promise<AuthContext> {
   try {
-    const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get("edubek_session");
+    const sessionToken = await getSessionCookie();
 
-    if (!sessionCookie?.value) {
+    if (!sessionToken) {
       return {
         userId: null,
         email: null,
@@ -22,17 +24,63 @@ export async function getAuthContext(): Promise<AuthContext> {
       };
     }
 
-    const payload = JSON.parse(
-      Buffer.from(sessionCookie.value, "base64").toString("utf-8")
-    );
+    const sessionTokenHash = hashToken(sessionToken);
+
+    // Find valid session
+    const session = await db.userSession.findFirst({
+      where: {
+        sessionTokenHash,
+        revokedAt: null,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      include: {
+        user: {
+          include: {
+            roles: true,
+          },
+        },
+      },
+    });
+
+    if (!session) {
+      return {
+        userId: null,
+        email: null,
+        platformRoles: [],
+        isAuthenticated: false,
+      };
+    }
+
+    // Check if user is banned
+    if (isUserBanned(session.user.isBanned, session.user.bannedUntil)) {
+      // Revoke the session
+      await db.userSession.update({
+        where: { id: session.id },
+        data: { revokedAt: new Date() },
+      });
+      return {
+        userId: null,
+        email: null,
+        platformRoles: [],
+        isAuthenticated: false,
+      };
+    }
+
+    // Map roles to string array
+    const platformRoles = session.user.roles
+      .filter((role: any) => !role.expiresAt || new Date(role.expiresAt) > new Date())
+      .map((role: any) => role.role);
 
     return {
-      userId: payload.userId || null,
-      email: payload.email || null,
-      platformRoles: payload.platformRoles || ["STUDENT"],
-      isAuthenticated: !!payload.userId,
+      userId: session.user.id,
+      email: session.user.email,
+      platformRoles: platformRoles.length > 0 ? platformRoles : ["STUDENT"],
+      isAuthenticated: true,
     };
-  } catch {
+  } catch (error) {
+    console.error("Auth context error:", error);
     return {
       userId: null,
       email: null,

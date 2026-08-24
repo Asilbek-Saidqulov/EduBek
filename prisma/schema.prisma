@@ -185,6 +185,7 @@ model UserSession {
   id                 String    @id @default(cuid())
   userId             String
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessionTokenHash   String?   @unique
   refreshTokenHash   String    @unique
   deviceId           String?
   userAgent          String?
@@ -195,6 +196,7 @@ model UserSession {
   lastUsedAt         DateTime?
 
   @@index([userId])
+  @@index([sessionTokenHash])
   @@index([refreshTokenHash])
 }
 

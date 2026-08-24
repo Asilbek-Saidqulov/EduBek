@@ -18,7 +18,8 @@ import { registerBodySchema } from "@/features/auth/auth.schema";
 import {
   refreshCookieOptions,
   sessionCookieOptions,
-  serializeCookie,
+  SESSION_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
 } from "@/features/auth/auth.cookies";
 import { register } from "@/features/auth/auth.service";
 
@@ -47,20 +48,25 @@ export const POST = withErrorHandler(
     });
 
     const response = NextResponse.json(
-      { user: session.user },
+      { 
+        user: session.user,
+        expiresAt: session.expiresAt,
+      },
       { status: 201 },
     );
-    // Set cookies via raw Set-Cookie header so the helper does not depend
-    // on the `cookies()` async API (which is unavailable inside a
-    // `NextResponse.json` handler in some Next 16 configurations).
-    response.headers.append(
-      "Set-Cookie",
-      serializeCookie({ ...sessionCookieOptions(), value: session.sessionToken }),
+    
+    // Set cookies via NextResponse.cookies.set for better Next.js 16 compatibility
+    response.cookies.set(
+      SESSION_COOKIE_NAME,
+      session.sessionToken,
+      sessionCookieOptions()
     );
-    response.headers.append(
-      "Set-Cookie",
-      serializeCookie({ ...refreshCookieOptions(), value: session.refreshToken }),
+    response.cookies.set(
+      REFRESH_COOKIE_NAME,
+      session.refreshToken,
+      refreshCookieOptions()
     );
+    
     return response;
   },
 );

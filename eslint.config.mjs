@@ -46,7 +46,17 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills", "scripts/**"]
+  ignores: [
+    "node_modules/**", 
+    ".next/**", 
+    "out/**", 
+    "build/**",
+    "dist-server/**", 
+    "next-env.d.ts", 
+    "examples/**", 
+    "skills", 
+    "scripts/**"
+  ],
 }];
 
 export default eslintConfig;

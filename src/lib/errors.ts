@@ -6,7 +6,13 @@ export class ApiError extends Error {
   details?: any;
   messageKey?: string;
 
-  constructor(statusCode: number, message: string, details?: any, messageKey?: string, code?: string) {
+  constructor(
+    statusCode: number,
+    message: string,
+    details?: any,
+    messageKey?: string,
+    code?: string,
+  ) {
     super(message);
     this.name = "ApiError";
     this.statusCode = statusCode;
@@ -16,27 +22,51 @@ export class ApiError extends Error {
   }
 }
 
-export function badRequest(message: string, details?: any, messageKey?: string) {
+export function badRequest(
+  message: string,
+  details?: any,
+  messageKey?: string,
+) {
   return new ApiError(400, message, details, messageKey, "BAD_REQUEST");
 }
 
-export function unauthorized(message = "Unauthorized", details?: any, messageKey = "errors.unauthorized") {
+export function unauthorized(
+  message = "Unauthorized",
+  details?: any,
+  messageKey = "errors.unauthorized",
+) {
   return new ApiError(401, message, details, messageKey, "UNAUTHORIZED");
 }
 
-export function forbidden(message = "Forbidden", details?: any, messageKey = "errors.forbidden") {
+export function forbidden(
+  message = "Forbidden",
+  details?: any,
+  messageKey = "errors.forbidden",
+) {
   return new ApiError(403, message, details, messageKey, "FORBIDDEN");
 }
 
-export function notFound(message = "Not found", details?: any, messageKey = "errors.notFound") {
+export function notFound(
+  message = "Not found",
+  details?: any,
+  messageKey = "errors.notFound",
+) {
   return new ApiError(404, message, details, messageKey, "NOT_FOUND");
 }
 
-export function conflict(message = "Conflict", details?: any, messageKey = "errors.conflict") {
+export function conflict(
+  message = "Conflict",
+  details?: any,
+  messageKey = "errors.conflict",
+) {
   return new ApiError(409, message, details, messageKey, "CONFLICT");
 }
 
-export function internalError(message = "Internal Server Error", details?: any, messageKey = "errors.internal") {
+export function internalError(
+  message = "Internal Server Error",
+  details?: any,
+  messageKey = "errors.internal",
+) {
   return new ApiError(500, message, details, messageKey, "INTERNAL_ERROR");
 }
 
@@ -45,10 +75,35 @@ export function zodIssueToMessageKey(issue: any): string {
   return `errors.validation.${issue.code || "invalid"}`;
 }
 
-export function withErrorHandler(
-  handler: (req: NextRequest, ctx?: any) => Promise<Response | NextResponse>,
+/**
+ * Context passed to Next.js dynamic route handlers.
+ *
+ * Next.js 15/16 exposes `params` as a Promise.
+ */
+export type RouteContext<TParams extends Record<string, string> = Record<string, string>> = {
+  params: Promise<TParams>;
+};
+
+/**
+ * Generic API route handler.
+ *
+ * The generic parameter is kept for backwards compatibility with
+ * existing routes using:
+ *
+ * withErrorHandler<{ id: string }>(...)
+ */
+export function withErrorHandler<
+  TParams extends Record<string, string> = Record<string, string>,
+>(
+  handler: (
+    req: NextRequest,
+    ctx: RouteContext<TParams>,
+  ) => Promise<Response | NextResponse>,
 ) {
-  return async (req: NextRequest, ctx?: any) => {
+  return async (
+    req: NextRequest,
+    ctx: RouteContext<TParams>,
+  ) => {
     try {
       return await handler(req, ctx);
     } catch (err: any) {
@@ -67,6 +122,7 @@ export function withErrorHandler(
       }
 
       console.error("[Unhandled API Error]", err);
+
       return NextResponse.json(
         {
           error: {

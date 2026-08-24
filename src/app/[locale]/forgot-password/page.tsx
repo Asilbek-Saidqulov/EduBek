@@ -11,7 +11,7 @@
  */
 import { setRequestLocale } from "next-intl/server";
 import { getTranslations } from "next-intl/server";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { GraduationCap, Info } from "lucide-react";
 
 import { ThemeToggle } from "@/components/edubek/theme-toggle";

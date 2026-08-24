@@ -27,7 +27,10 @@
     "sections": {
       "main": "Asosiy",
       "tools": "Vositalar"
-    }
+    },
+    "ecosystem": "Ekotizim",
+    "workspaceAndTools": "Ishchi maydon",
+    "search": "EduBek bo'yicha qidiruv..."
   },
   "common": {
     "loading": "Yuklanmoqda...",
@@ -39,7 +42,7 @@
     "delete": "O'chirish",
     "edit": "Tahrirlash",
     "create": "Yaratish",
-    "search": "Qidirish",
+    "search": "Qidiruv",
     "filter": "Filtr",
     "sort": "Saralash",
     "next": "Keyingi",
@@ -75,7 +78,20 @@
     "learnMore": "Batafsil",
     "comingSoon": "Tez kunda",
     "notFound": "Topilmadi",
-    "noData": "Ma'lumot mavjud emas"
+    "noData": "Ma'lumot mavjud emas",
+    "duration": "Davomiyligi",
+    "score": "Ball",
+    "rank": "O'rin",
+    "email": "Elektron pochta",
+    "password": "Parol",
+    "username": "Foydalanuvchi nomi",
+    "role": "Rol",
+    "title": "Sarlavha",
+    "language": "Til",
+    "locale": "Hududiy til",
+    "step": "Qadam",
+    "system": "Tizim",
+    "searchPlaceholder": "Qidirish..."
   },
   "errors": {
     "unauthorized": "Tizimga kirish talab qilinadi",
@@ -140,7 +156,38 @@
     "classicQuiz": "Klassik viktorina",
     "battleRoyale": "Quiz Royale",
     "treasureHeist": "Xazina poygasi",
-    "empireBuilder": "Imperiya quruvchi"
+    "empireBuilder": "Imperiya quruvchi",
+    "replay": "Qayta ko'rish",
+    "tournament": "Turnir",
+    "ready": "Tayyorman",
+    "notReady": "Tayyor emasman",
+    "readyCheck": "Tayyorgarlikni tekshirish",
+    "startCountdown": "Hisoblashni boshlash",
+    "countdown": "Ortga hisoblash",
+    "answer": "Javob",
+    "submit": "Yuborish",
+    "reveal": "Ko'rsatish",
+    "nextRound": "Keyingi bosqich",
+    "finish": "Yakunlash",
+    "pause": "Pauza",
+    "resume": "Davom ettirish",
+    "endSession": "Sessiyani yakunlash",
+    "cancelSession": "Sessiyani bekor qilish",
+    "extendTimer": "Vaqtni uzaytirish",
+    "endQuestionEarly": "Savolni muddatidan oldin tugatish",
+    "transferHost": "Boshqaruvni topshirish",
+    "mutePlayer": "Ovozni o'chirish",
+    "unmutePlayer": "Ovozni yoqish",
+    "kickPlayer": "Chiqarib yuborish",
+    "winner": "G'olib",
+    "champion": "Chempion",
+    "finalRank": "Yakuniy o'rin",
+    "rewards": "Mukofotlar",
+    "spectate": "Kuzatish",
+    "createLiveQuiz": "Jonli viktorina yaratish",
+    "joinLiveQuiz": "Jonli viktorinaga qo'shilish",
+    "chooseGameMode": "O'yin rejimini tanlang",
+    "gameMode": "O'yin rejimi"
   },
   "subscription": {
     "plan": "План",
@@ -179,7 +226,64 @@
     "purchased": "Sotib olingan",
     "seller": "Muallif",
     "rating": "Reyting",
-    "eduTokens": "EduTokenlar"
+    "eduTokens": "EduTokenlar",
+    "creator": "Muallif",
+    "leaveReview": "Fikr qoldirish",
+    "filterByLanguage": "Til bo'yicha saralash",
+    "contentLanguage": "Material tili",
+    "originalLanguage": "Asl tili",
+    "translated": "Tarjima qilingan",
+    "aiTranslated": "Sun'iy intellekt tarjimasi",
+    "humanTranslated": "Mutaxassis tarjimasi",
+    "machineTranslated": "Avtomatik tarjima",
+    "newArrivals": "Yangi materiallar",
+    "title": "Resurslar bozori",
+    "subtitle": "O'qituvchi va mualliflardan eng sara ta'lim materiallarini toping va xarid qiling.",
+    "searchPlaceholder": "Nomi yoki tavsifi bo'yicha qidiring…",
+    "free": "Bepul",
+    "paid": "Pullik",
+    "featuredBadge": "Tavsiya etilgan",
+    "freePrice": "Bepul",
+    "sort": "Saralash",
+    "sorts": {
+      "newest": "Eng yangi",
+      "popular": "Eng ommabop",
+      "rated": "Yuqori baholangan",
+      "alphabetical": "A dan Z gacha"
+    },
+    "resultsLabel": "Bozor natijalari",
+    "resultCount": "{count} ta material",
+    "errorTitle": "Materiallarni yuklab bo'lmadi",
+    "errorDescription": "Iltimos, birozdan keyin qayta urinib ko'ring.",
+    "emptyTitle": "Hech qanday material topilmadi",
+    "emptyDescription": "Qidiruv so'zini yoki filtrlarni o'zgartirib ko'ring.",
+    "clearFilters": "Filtrlarni tozalash",
+    "loadFailed": "Materialni yuklab bo'lmadi",
+    "backToMarketplace": "Bozorga qaytish",
+    "byCreator": "muallif",
+    "balance": "Sizning balansingiz",
+    "favorites": "Sevimlilar",
+    "downloads": "Yuklab olishlar",
+    "views": "Ko'rishlar",
+    "ownListing": "Sizning materialingiz",
+    "claimFree": "Bepul olish",
+    "claiming": "Olinmoqda…",
+    "buyNow": "Xarid qilish",
+    "cancel": "Bekor qilish",
+    "purchaseDialogTitle": "Xaridni tasdiqlash",
+    "purchaseDialogBody": "Hamyoningizdan EduTokenlar yechib olinadi va material kutubxonangizga qo'shiladi.",
+    "yourBalance": "Sizning balansingiz",
+    "afterPurchase": "Xariddan so'ng qoladi",
+    "insufficientBalance": "Balansda mablag' yetarli emas. Hamyonni to'ldiring yoki jonli viktorinalarda EduToken ishlang.",
+    "processing": "Bajarilmoqda…",
+    "confirmPurchase": "Xaridni tasdiqlash",
+    "purchaseSuccess": "Muvaffaqiyatli xarid qilindi!",
+    "purchaseFailed": "Xarid amalga oshmadi",
+    "favorited": "Sevimlilarga qo'shildi",
+    "unfavorited": "Sevimlilardan olib tashlandi",
+    "favoriteError": "Sevimlilar holatini yangilab bo'lmadi",
+    "favorite": "Sevimlilarga qo'shish",
+    "unfavorite": "Sevimlilardan o'chirish"
   },
   "ai": {
     "workspace": "AI Ish maydoni",
@@ -326,6 +430,34 @@
         "userSystem": {
           "name": "Foydalanuvchi tizimi",
           "summary": "Odamlar va autentifikatsiyani boshqarish"
+        },
+        "ai-assistant": {
+          "name": "AI Yordamchi",
+          "summary": "Ta'limiy intellekt va kontent yaratish"
+        },
+        "quiz-platform": {
+          "name": "Viktorinalar platformasi",
+          "summary": "Interaktiv testlar, turnirlar va bilimni baholash"
+        },
+        "organization": {
+          "name": "Tashkilotlar",
+          "summary": "Ta'lim muassasalari va guruhlarni boshqarish"
+        },
+        "creator-economy": {
+          "name": "Mualliflar iqtisodiyoti",
+          "summary": "Mualliflik materiallarini monetizatsiya qilish"
+        },
+        "economy": {
+          "name": "EduToken iqtisodiyoti",
+          "summary": "Tranzaksiyalar va mukofotlar tizimi"
+        },
+        "search": {
+          "name": "Aqlli qidiruv",
+          "summary": "Bilimlar va materiallarga tezkor kirish"
+        },
+        "user": {
+          "name": "Foydalanuvchilar tizimi",
+          "summary": "Foydalanuvchilar va xavfsizlik boshqaruvi"
         }
       },
       "ecosystem": {
@@ -492,7 +624,9 @@
           "Объяснение",
           "Анализ",
           "Улучшение"
-        ]
+        ],
+        "name": "Экономическая система",
+        "responsibility": "Управление финансовыми операциями — EduTokens, реальные деньги, подписки, счета."
       },
       "principles": {
         "badge": "14 принципов дизайна",
@@ -671,6 +805,42 @@
           "action": "Сгенерировать новый контент",
           "outcome": "Только тогда — последняя мера."
         }
+      },
+      "marketplace": {
+        "name": "Маркетплейс",
+        "responsibility": "Хранение и распространение образовательных знаний — объявления, цены, покупки, отзывы, возвраты."
+      },
+      "aiAssistant": {
+        "name": "ИИ-помощник",
+        "responsibility": "Образовательный интеллект — понимать, рекомендовать, настраивать, комбинировать, генерировать (в таком порядке)."
+      },
+      "quizPlatform": {
+        "name": "Платформа квизов",
+        "responsibility": "Доставка учебных занятий — живые квизы, домашние задания, экзамены, оценивание в реальном времени."
+      },
+      "organization": {
+        "name": "Система организаций",
+        "responsibility": "Управление образовательными учреждениями — организации, членство, роли, когорты, биллинг."
+      },
+      "creatorEconomy": {
+        "name": "Экономика создателей",
+        "responsibility": "Управление создателями и их работой — публикация, уровни, заработок, выплаты, репутация."
+      },
+      "analytics": {
+        "name": "Система аналитики",
+        "responsibility": "Образовательная аналитика — прогресс учеников, успеваемость классов, отчёты организаций, тенденции."
+      },
+      "search": {
+        "name": "Система поиска",
+        "responsibility": "Соединение пользователей со знаниями — индексация, ранжирование, фильтрация, рекомендации."
+      },
+      "user": {
+        "name": "Пользовательская система",
+        "responsibility": "Управление людьми — регистрация, аутентификация, профили, роли, разрешения, уведомления."
+      },
+      "library": {
+        "name": "Система библиотеки",
+        "responsibility": "Постоянное рабочее пространство учителя — купленные, созданные, сохранённые, ИИ-сгенерированные ресурсы."
       }
     },
     "backend": {
@@ -17332,6 +17502,376 @@
         "changePasswordUnavailable": "Смена пароля пока недоступна",
         "changePasswordDesc": "В этом MVP нет эндпоинта смены пароля. Обратитесь к администратору."
       }
+    },
+    "roles": {
+      "teacher": {
+        "name": "O'qituvchilar",
+        "summary": "Sun'iy intellekt vositalari yordamida vaqtingizni tejang va samarali dars bering"
+      },
+      "student": {
+        "name": "O'quvchilar",
+        "summary": "Qiziqarli o'rganing va yutuqlaringizni kuzatib boring"
+      },
+      "creator": {
+        "name": "Mualliflar",
+        "summary": "Bilimingizni ulashing va sifatli materiallardan daromad oling"
+      },
+      "school": {
+        "name": "Maktablar va markazlar",
+        "summary": "Ta'lim jarayonlarini zamonaviy usulda boshqaring"
+      },
+      "admin": {
+        "name": "Administratorlar",
+        "summary": "Platforma xavfsizligi va yuqori sifatini ta'minlang"
+      },
+      "ai": {
+        "name": "AI Yordamchi",
+        "summary": "Ta'limda to'g'ri qarorlar qabul qilishga ko'maklashadi"
+      }
+    },
+    "ecosystem": {
+      "badge": "Экосистема",
+      "eyebrow": "Экосистема",
+      "title": "Шесть ролей, один связанный цикл",
+      "subtitle": "Учителя, ученики, создатели, школы, администраторы и сам ИИ-помощник — у каждой роли есть чёткая цель, и каждое действие усиливает других.",
+      "teacher": {
+        "name": "Учителя",
+        "goal": "Экономить время и учить лучше.",
+        "actions": [
+          "Создавать учебные материалы",
+          "Искать в Маркетплейсе",
+          "Покупать материалы у других учителей",
+          "Настраивать материалы с помощью ИИ",
+          "Проводить Живые Квизы",
+          "Отслеживать успеваемость учеников",
+          "Публиковать и зарабатывать"
+        ]
+      },
+      "student": {
+        "name": "Ученики",
+        "goal": "Учиться эффективно и улучшать знания.",
+        "actions": [
+          "Присоединяться к квизам по коду",
+          "Выполнять домашние задания",
+          "Сдавать экзамены",
+          "Просматривать ответы",
+          "Получать обратную связь",
+          "Отслеживать прогресс"
+        ]
+      },
+      "creator": {
+        "name": "Создатели контента",
+        "goal": "Делиться опытом и зарабатывать.",
+        "actions": [
+          "Публиковать квизы, уроки, рабочие листы",
+          "Устанавливать цену и категорию",
+          "Зарабатывать с каждой покупки",
+          "Строить репутацию",
+          "ИИ помогает улучшать материалы"
+        ]
+      },
+      "school": {
+        "name": "Школы и учреждения",
+        "goal": "Эффективно управлять образованием и отслеживать результаты.",
+        "actions": [
+          "Создать организацию",
+          "Приглашать учителей и учеников",
+          "Отслеживать результаты",
+          "Покупать институциональные планы",
+          "Просматривать отчёты по школе"
+        ]
+      },
+      "admin": {
+        "name": "Администраторы",
+        "goal": "Поддерживать платформу безопасной, организованной и качественной.",
+        "actions": [
+          "Просматривать жалобный контент",
+          "Модерировать загрузки",
+          "Решать споры",
+          "Управлять категориями",
+          "Отслеживать состояние платформы"
+        ]
+      },
+      "ai": {
+        "name": "ИИ-помощник",
+        "goal": "Помогать каждому пользователю принимать лучшие решения и сокращать рутину.",
+        "actions": [
+          "Сначала искать в Маркетплейсе",
+          "Рекомендовать лучшие ресурсы",
+          "Настраивать существующие материалы",
+          "Генерировать новый контент только при необходимости",
+          "Анализировать данные об обучении"
+        ]
+      }
+    },
+    "lifecycle": {
+      "badge": "Жизненный цикл контента",
+      "eyebrow": "Жизненный цикл контента",
+      "title": "Как знания живут и растут",
+      "subtitle": "Каждый элемент контента в EduBek проходит через этот десятиэтапный цикл. Десятый этап возвращается к первому — для новых учителей работа прошлых учителей уже готова.",
+      "loopsToStep1": "Возвращается к шагу 1",
+      "loopIndicator": "Шаг 10 → Шаг 1: будущие учителя наследуют более богатую библиотеку",
+      "steps": {
+        "1": "Идея",
+        "2": "Поиск",
+        "3": "Создание",
+        "4": "Сохранение",
+        "5": "Использование",
+        "6": "Сбор данных",
+        "7": "Улучшение",
+        "8": "Публикация",
+        "9": "Шаринг",
+        "10": "Рост"
+      },
+      "stepDetails": {
+        "1": {
+          "title": "Идея",
+          "description": "Учитель понимает, что ему что-то нужно. EduBek помогает определить лучший способ это получить."
+        },
+        "2": {
+          "title": "Поиск перед созданием",
+          "description": "Проверьте личную библиотеку → библиотеку организации → глобальный Маркетплейс. Повторно используйте знания перед созданием новых."
+        },
+        "3": {
+          "title": "Создать или настроить",
+          "description": "Создать вручную, сгенерировать с помощью ИИ, настроить существующий ресурс или объединить несколько ресурсов."
+        },
+        "4": {
+          "title": "Сохранить",
+          "description": "Каждый ресурс сохраняется. Учителя со временем создают личную библиотеку."
+        },
+        "5": {
+          "title": "Использовать в обучении",
+          "description": "Задать как домашнее задание, провести Живой Квиз, показать на уроке. Один и тот же ресурс может использоваться многократно."
+        },
+        "6": {
+          "title": "Сбор данных об обучении",
+          "description": "Процент завершения, средний балл, сложные вопросы, типичные ошибки, затраченное время."
+        },
+        "7": {
+          "title": "Улучшить",
+          "description": "Исправить ошибки, переписать объяснения, заменить запутанные вопросы. Ресурсы улучшаются через реальный опыт в классе."
+        },
+        "8": {
+          "title": "Опубликовать (необязательно)",
+          "description": "Опубликовать в Маркетплейсе — приватно, только для организации или публично. Учитель всегда сохраняет полное право собственности."
+        },
+        "9": {
+          "title": "Помочь другим учителям",
+          "description": "Другие педагоги находят, покупают, настраивают, преподают и улучшают это. Работа одного учителя становится ценной для многих."
+        },
+        "10": {
+          "title": "Продолжать развиваться",
+          "description": "Обновления, переводы, адаптация под классы. Образовательный контент должен улучшаться со временем, а не устаревать."
+        }
+      }
+    },
+    "economy": {
+      "badge": "Экономика с двумя валютами",
+      "eyebrow": "Экономика с двумя валютами",
+      "title": "Реальные деньги вознаграждают опыт. EduTokens питают ИИ.",
+      "subtitle": "Две валюты, две цели. Реальные деньги сохраняют долгосрочную ценность человеческого опыта. EduTokens оплачивают кратковременные вычисления, выполняемые ИИ.",
+      "realMoney": {
+        "name": "Реальные деньги",
+        "usedFor": "Покупки в Маркетплейсе",
+        "represents": "Человеческий опыт — образовательные материалы с долгосрочной ценностью"
+      },
+      "eduTokens": {
+        "name": "EduTokens",
+        "usedFor": "ИИ-сервисы",
+        "represents": "Вычислительная работа — временная ценность, выполняет задачу один раз"
+      },
+      "represents": "Олицетворяет",
+      "spentOn": "Тратится на",
+      "longTermValue": "Долгосрочная ценность",
+      "humanExpertise": "Человеческий опыт",
+      "eduTokenExamples": [
+        "Генерация",
+        "Кастомизация",
+        "Перевод",
+        "Обобщение",
+        "Объяснение",
+        "Анализ",
+        "Улучшение"
+      ]
+    },
+    "principles": {
+      "badge": "14 принципов дизайна",
+      "eyebrow": "14 принципов дизайна",
+      "title": "Конституция EduBek",
+      "subtitle": "Каждая функция, решение и строка кода оценивается по этим четырнадцати принципам. Изучите их по группам:",
+      "allAtGlance": "Все 14 принципов кратко",
+      "groups": {
+        "philosophy": {
+          "label": "Философия",
+          "description": "Основной образ мышления, формирующий каждое решение."
+        },
+        "ux": {
+          "label": "UX",
+          "description": "Как учителя и ученики воспринимают продукт."
+        },
+        "ecosystem": {
+          "label": "Экосистема",
+          "description": "Как каждый вклад делает целое сильнее."
+        },
+        "trust": {
+          "label": "Доверие",
+          "description": "Прозрачность и контроль пользователя укрепляют уверенность."
+        },
+        "quality": {
+          "label": "Качество и масштаб",
+          "description": "Делайте меньше, но лучше, с масштабируемостью с первого дня."
+        },
+        "vision": {
+          "label": "Видение",
+          "description": "Сначала образование, постоянное развитие."
+        }
+      },
+      "items": {
+        "1": {
+          "title": "Решайте проблемы, а не запросы",
+          "summary": "Пользователям не нужен ИИ — у них есть образовательная проблема. Сфокусируйтесь на реальной проблеме, а не на слепом выполнении запроса."
+        },
+        "2": {
+          "title": "Повторно используйте знания перед созданием новых",
+          "summary": "Всегда спрашивайте: 'Уже существует ли хорошее решение?' Повторное использование → улучшение → создание нового только тогда, когда нет ничего подходящего."
+        },
+        "3": {
+          "title": "ИИ поддерживает людей",
+          "summary": "ИИ не заменяет учителей, создателей или образовательный опыт. Учителя принимают решения; ИИ устраняет рутину."
+        },
+        "4": {
+          "title": "Простота лучше сложности",
+          "summary": "Учителя никогда не должны чувствовать себя перегруженными. Лучшая функция часто та, которую учителя едва замечают, потому что она работает естественно."
+        },
+        "5": {
+          "title": "Каждая функция должна экономить время",
+          "summary": "Если функция добавляет шаги без существенной ценности, переработайте её. Время — один из самых ценных ресурсов, который есть у учителей."
+        },
+        "6": {
+          "title": "Уважайте право собственности",
+          "summary": "Личная работа остаётся личной. Ресурсы организации остаются внутри организации, если не поделиться. Ресурсы Маркетплейса всегда признают оригинальных создателей."
+        },
+        "7": {
+          "title": "Каждое действие должно усиливать экосистему",
+          "summary": "Знания должны постоянно накапливаться, а не исчезать. Каждый вклад делает платформу более ценной для всех остальных."
+        },
+        "8": {
+          "title": "Пользователь всегда контролирует",
+          "summary": "ИИ даёт рекомендации; учителя принимают решения. Платформа должна помогать, а не контролировать."
+        },
+        "9": {
+          "title": "Прозрачность строит доверие",
+          "summary": "Пользователи должны понимать, почему что-то произошло. Скрытые решения создают путаницу."
+        },
+        "10": {
+          "title": "Качество важнее количества",
+          "summary": "Делать меньше, но хорошо — лучше, чем делать много, но плохо."
+        },
+        "11": {
+          "title": "Стройте для будущего",
+          "summary": "Масштабируемость следует учитывать с самого начала."
+        },
+        "12": {
+          "title": "Одна платформа, один опыт",
+          "summary": "Пользователи никогда не должны чувствовать, что переключаются между системами. Границы существуют для разработчиков, а не для пользователей."
+        },
+        "13": {
+          "title": "Образование прежде всего",
+          "summary": "Технология существует для улучшения образования. Образование существует не для демонстрации технологий."
+        },
+        "14": {
+          "title": "Непрерывное улучшение",
+          "summary": "EduBek никогда не 'закончен'. Развивайтесь на основе реальных образовательных потребностей, а не трендов."
+        }
+      }
+    },
+    "cycle": {
+      "badge": "Непрерывный цикл",
+      "eyebrow": "Непрерывный цикл",
+      "title": "Самоулучшающаяся экосистема",
+      "subtitle": "Знания в EduBek никогда не исчезают — они накапливаются. Каждый цикл делает библиотеку богаче для следующего учителя.",
+      "selfImproving": "Самоулучшающаяся экосистема",
+      "footer": "Каждый проход через цикл оставляет библиотеку богаче, чем она была раньше — для следующего учителя, следующего класса и следующего поколения учеников.",
+      "loop": "Этот цикл повторяется, непрерывно улучшая библиотеку",
+      "steps": {
+        "1": "Поиск",
+        "2": "Настройка",
+        "3": "Обучение",
+        "4": "Улучшение",
+        "5": "Шаринг"
+      },
+      "stages": {
+        "1": "Учителя создают контент",
+        "2": "Опубликовано в Маркетплейсе",
+        "3": "Другие учителя находят",
+        "4": "ИИ настраивает",
+        "5": "Ученики учатся",
+        "6": "Данные собраны",
+        "7": "ИИ анализирует",
+        "8": "Учителя улучшают",
+        "9": "Опубликовано заново",
+        "10": "Будущие учителя выигрывают"
+      }
+    },
+    "vision": {
+      "badge": "Долгосрочное видение",
+      "eyebrow": "Долгосрочное видение",
+      "title": "Зачем существует EduBek",
+      "subtitle": "EduBek существует, чтобы объединить педагогов, знания и искусственный интеллект в единую экосистему, где выигрывают все.",
+      "quote": "EduBek существует, чтобы объединить педагогов, знания и искусственный интеллект в единую экосистему, где выигрывают все.",
+      "ready": "Готовы увидеть, каким может стать образование?",
+      "readyDescription": "EduBek создаётся открыто. Эта страница — живой предпросмотр собираемой архитектуры — фундамента более умной и связанной образовательной экосистемы.",
+      "backToTop": "Наверх",
+      "pillars": {
+        "access": {
+          "title": "Универсальный доступ",
+          "summary": "Образование для всех, везде"
+        },
+        "quality": {
+          "title": "Качественный контент",
+          "summary": "Проверенные, протестированные и улучшенные материалы"
+        },
+        "community": {
+          "title": "Сильное сообщество",
+          "summary": "Педагоги помогают педагогам расти"
+        },
+        "future": {
+          "title": "Готовность к будущему",
+          "summary": "На базе ИИ, непрерывно развивающийся"
+        }
+      }
+    },
+    "footer": {
+      "phaseBadge": "Этап 1 — Предпросмотр архитектуры",
+      "description": "Это живой предпросмотр фундамента платформы, который находится в разработке. Все системы, принципы и этапы жизненного цикла, показанные здесь — архитектурный план EduBek."
+    },
+    "aiDecision": {
+      "1": {
+        "question": "У нас уже есть что-то подобное?",
+        "action": "Поиск в Маркетплейсе",
+        "outcome": "Если да, рекомендуйте."
+      },
+      "2": {
+        "question": "Существующий ресурс достаточно хорош?",
+        "action": "Оценить качество",
+        "outcome": "Если да, рекомендуйте."
+      },
+      "3": {
+        "question": "Нужны лишь небольшие изменения?",
+        "action": "Настроить с помощью ИИ",
+        "outcome": "Если да, настройте."
+      },
+      "4": {
+        "question": "Можно объединить несколько ресурсов?",
+        "action": "Объединить ресурсы",
+        "outcome": "Если да, объедините."
+      },
+      "5": {
+        "question": "Нет подходящего ресурса?",
+        "action": "Сгенерировать новый контент",
+        "outcome": "Только тогда — последняя мера."
+      }
     }
   },
   "backend": {
@@ -26766,8 +27306,537 @@
       "channels": "Yetkazib berish kanallari",
       "preferences": "Foydalanuvchi sozlamalari",
       "inbox": "Xabarlar qutisi",
-      "realtime": "Real-vaqt tizimi"
-    }
+      "realtime": "Real-vaqt tizimi",
+      "announcements": "Платформа объявлений",
+      "messages": "Платформа сообщений",
+      "routing": "Маршрутизация уведомлений",
+      "scheduling": "Планирование уведомлений",
+      "analytics": "Аналитика уведомлений",
+      "dashboard": "Панель уведомлений",
+      "bridge": "Мост шины событий",
+      "developer": "Интеграция разработчика",
+      "documentation": "Генератор документации"
+    },
+    "sections": {
+      "overview": "Обзор",
+      "registry": "Реестр",
+      "templates": "Шаблоны",
+      "channels": "Каналы",
+      "preferences": "Настройки",
+      "inbox": "Входящие",
+      "realtime": "Реальное время",
+      "announcements": "Объявления",
+      "messages": "Сообщения",
+      "routing": "Маршрутизация",
+      "scheduling": "Планирование",
+      "analytics": "Аналитика",
+      "dashboard": "Панель",
+      "bridge": "Мост шины событий",
+      "developer": "Разработчик",
+      "documentation": "Документация"
+    },
+    "categories": {
+      "system": "Система",
+      "social": "Социальные",
+      "competitive": "Соревновательные",
+      "progression": "Прогрессия",
+      "commerce": "Коммерция",
+      "liveops": "LiveOps",
+      "administration": "Администрирование",
+      "achievement": "Достижения",
+      "maintenance": "Обслуживание",
+      "emergency": "Экстренные",
+      "tournament": "Турниры",
+      "campaign": "Кампании",
+      "season": "Сезон",
+      "reminder": "Напоминания",
+      "digest": "Дайджест"
+    },
+    "priorities": {
+      "critical": "Критический",
+      "high": "Высокий",
+      "medium": "Средний",
+      "low": "Низкий",
+      "informational": "Информационный"
+    },
+    "registryStatuses": {
+      "active": "Активна",
+      "draft": "Черновик",
+      "deprecated": "Устарела",
+      "retired": "Снята"
+    },
+    "deliveryChannels": {
+      "in_app": "В приложении",
+      "push": "Push-уведомление",
+      "email": "Email (только ссылка)",
+      "sms": "SMS (только ссылка)",
+      "organization_announcement": "Объявление организации",
+      "broadcast_overlay": "Трансляция",
+      "webhook": "Webhook",
+      "developer_callback": "Callback разработчика"
+    },
+    "channelStatuses": {
+      "active": "Активен",
+      "inactive": "Неактивен",
+      "maintenance": "Обслуживание",
+      "deprecated": "Устарел"
+    },
+    "inboxStatuses": {
+      "unread": "Непрочитано",
+      "read": "Прочитано",
+      "archived": "В архиве",
+      "dismissed": "Отклонено",
+      "pinned": "Закреплено",
+      "expired": "Истекло",
+      "deleted": "Удалено"
+    },
+    "realtimeStatuses": {
+      "queued": "В очереди",
+      "dispatched": "Отправлено",
+      "delivered": "Доставлено",
+      "failed": "Неудачно",
+      "dropped": "Отброшено",
+      "collapsed": "Свернуто"
+    },
+    "announcementScopes": {
+      "global": "Глобально",
+      "organization": "Организация",
+      "tournament": "Турнир",
+      "maintenance": "Обслуживание",
+      "emergency": "Экстренное",
+      "regional": "Региональное"
+    },
+    "announcementStatuses": {
+      "draft": "Черновик",
+      "pending_approval": "Ожидает одобрения",
+      "approved": "Одобрено",
+      "active": "Активно",
+      "expired": "Истекло",
+      "rejected": "Отклонено",
+      "retired": "Снято"
+    },
+    "messageTypes": {
+      "system": "Системное сообщение",
+      "warning": "Предупреждение",
+      "maintenance": "Обслуживание",
+      "reminder": "Напоминание",
+      "campaign_update": "Обновление кампании",
+      "season_update": "Обновление сезона",
+      "purchase_confirmation": "Подтверждение покупки",
+      "achievement_summary": "Сводка достижений",
+      "digest": "Дайджест"
+    },
+    "scheduleTypes": {
+      "immediate": "Немедленно",
+      "delayed": "Отложено",
+      "scheduled": "Запланировано",
+      "recurring": "Повторяющееся",
+      "digest": "Дайджест"
+    },
+    "scheduleStatuses": {
+      "pending": "Ожидает",
+      "dispatched": "Отправлено",
+      "completed": "Завершено",
+      "cancelled": "Отменено",
+      "failed": "Неудачно",
+      "expired": "Истекло"
+    },
+    "digestPreferences": {
+      "none": "Без дайджеста",
+      "daily": "Ежедневный",
+      "weekly": "Еженедельный",
+      "monthly": "Ежемесячный"
+    },
+    "routingOperators": {
+      "equals": "Равно",
+      "not_equals": "Не равно",
+      "contains": "Содержит",
+      "in": "Входит",
+      "not_in": "Не входит",
+      "gt": "Больше",
+      "lt": "Меньше",
+      "exists": "Существует"
+    },
+    "variableTypes": {
+      "string": "Строка",
+      "number": "Число",
+      "boolean": "Булево",
+      "date": "Дата",
+      "user": "Пользователь",
+      "organization": "Организация",
+      "match": "Матч",
+      "tournament": "Турнир"
+    },
+    "events": {
+      "NotificationDelivered": "Уведомление доставлено",
+      "NotificationRead": "Уведомление прочитано",
+      "NotificationDismissed": "Уведомление отклонено",
+      "NotificationFailed": "Уведомление не доставлено",
+      "NotificationArchived": "Уведомление архивировано",
+      "NotificationPinned": "Уведомление закреплено",
+      "AnnouncementPublished": "Объявление опубликовано",
+      "AnnouncementExpired": "Объявление истекло",
+      "SystemMessageSent": "Системное сообщение отправлено",
+      "DigestGenerated": "Дайджест создан",
+      "InboxCleared": "Входящие очищены",
+      "PreferencesUpdated": "Настройки обновлены",
+      "TemplatePublished": "Шаблон опубликован",
+      "TemplateDeprecated": "Шаблон устарел",
+      "RoutingRuleMatched": "Правило маршрутизации совпало",
+      "ScheduleDispatched": "Расписание отправлено"
+    },
+    "actions": {
+      "create": "Создать",
+      "update": "Обновить",
+      "delete": "Удалить",
+      "publish": "Опубликовать",
+      "deprecate": "Устареть",
+      "retire": "Снять",
+      "activate": "Активировать",
+      "approve": "Одобрить",
+      "reject": "Отклонить",
+      "submit": "Отправить на одобрение",
+      "dispatch": "Отправить",
+      "deliver": "Доставить",
+      "fail": "Отметить неудачным",
+      "drop": "Отбросить",
+      "retry": "Повторить",
+      "cancel": "Отменить",
+      "expire": "Истечь",
+      "complete": "Завершить",
+      "pin": "Закрепить",
+      "unpin": "Открепить",
+      "archive": "Архивировать",
+      "dismiss": "Отклонить",
+      "markRead": "Отметить прочитанным",
+      "markAllRead": "Отметить все прочитанными",
+      "clear": "Очистить",
+      "enqueue": "Добавить в очередь",
+      "collapse": "Свернуть",
+      "route": "Маршрутизировать",
+      "render": "Рендерить шаблон",
+      "generateDigest": "Создать дайджест",
+      "list": "Список",
+      "view": "Просмотр"
+    },
+    "fields": {
+      "id": "ID",
+      "key": "Ключ",
+      "name": "Название",
+      "description": "Описание",
+      "type": "Тип",
+      "status": "Статус",
+      "category": "Категория",
+      "priority": "Приоритет",
+      "templateId": "ID шаблона",
+      "templateKey": "Ключ шаблона",
+      "registryKey": "Ключ реестра",
+      "defaultChannels": "Каналы по умолчанию",
+      "tags": "Теги",
+      "version": "Версия",
+      "createdAt": "Создано",
+      "updatedAt": "Обновлено",
+      "deprecatedAt": "Устарело",
+      "publishedAt": "Опубликовано",
+      "expiresAt": "Истекает",
+      "scheduledAt": "Запланировано",
+      "dispatchedAt": "Отправлено",
+      "deliveredAt": "Доставлено",
+      "completedAt": "Завершено",
+      "failedAt": "Неудачно",
+      "cancelledAt": "Отменено",
+      "pinnedAt": "Закреплено",
+      "archivedAt": "В архиве",
+      "dismissedAt": "Отклонено",
+      "readAt": "Прочитано",
+      "expiredAt": "Истекло",
+      "deletedAt": "Удалено",
+      "locales": "Локали",
+      "title": "Заголовок",
+      "body": "Текст",
+      "summary": "Сводка",
+      "iconKey": "Ключ иконки",
+      "variables": "Переменные",
+      "actions": "Действия",
+      "defaultDeepLink": "Deep Link по умолчанию",
+      "deepLink": "Deep Link",
+      "expirationSeconds": "Срок истечения (сек)",
+      "label": "Метка",
+      "actionType": "Тип действия",
+      "channelId": "ID канала",
+      "channels": "Каналы",
+      "supportedLocales": "Поддерживаемые локали",
+      "maxRatePerUserPerHour": "Макс. ставка на пользователя в час",
+      "supportsRichContent": "Поддерживает расширенный контент",
+      "supportsActions": "Поддерживает действия",
+      "supportsDeepLinks": "Поддерживает deep links",
+      "requiresApproval": "Требует одобрения",
+      "providerReference": "Ссылка на провайдера",
+      "userId": "ID пользователя",
+      "organizationId": "ID организации",
+      "language": "Язык",
+      "digest": "Дайджест",
+      "optedIn": "Согласен",
+      "organizationOverrides": "Переопределения организации",
+      "parentControls": "Родительский контроль",
+      "teacherControls": "Контроль учителя",
+      "enabled": "Включено",
+      "classroomOnly": "Только класс",
+      "maxDailyNotifications": "Макс. в день",
+      "quietHours": "Тихие часы",
+      "startHour": "Час начала",
+      "endHour": "Час окончания",
+      "timezone": "Часовой пояс",
+      "mutePeriods": "Периоды тишины",
+      "mutedCategories": "Заглушенные категории",
+      "mutedChannels": "Заглушенные каналы",
+      "minPriority": "Мин. приоритет",
+      "notificationId": "ID уведомления",
+      "messageId": "ID сообщения",
+      "announcementId": "ID объявления",
+      "scope": "Область",
+      "targetId": "ID цели",
+      "createdBy": "Создано",
+      "approvedBy": "Одобрено",
+      "approvedAt": "Одобрено (дата)",
+      "approvalReference": "Ссылка одобрения",
+      "rejectionReason": "Причина отказа",
+      "locale": "Локаль",
+      "sourceEvent": "Исходное событие",
+      "conditions": "Условия",
+      "targetTemplateKey": "Целевой ключ шаблона",
+      "targetChannels": "Целевые каналы",
+      "priorityOverride": "Переопределение приоритета",
+      "order": "Порядок",
+      "active": "Активно",
+      "field": "Поле",
+      "operator": "Оператор",
+      "value": "Значение",
+      "defaultValue": "Значение по умолчанию",
+      "required": "Обязательно",
+      "scheduleType": "Тип расписания",
+      "recurrenceRule": "Правило повторения",
+      "retryCount": "Счётчик повторов",
+      "maxRetries": "Макс. повторов",
+      "correlationId": "ID корреляции",
+      "payload": "Полезная нагрузка",
+      "deduplicationKey": "Ключ дедупликации",
+      "groupKey": "Ключ группы",
+      "queuedAt": "В очереди",
+      "attemptCount": "Счётчик попыток",
+      "collapseCount": "Счётчик сворачивания",
+      "failureReason": "Причина неудачи",
+      "metadata": "Метаданные"
+    },
+    "messages": {
+      "registryCreated": "Запись реестра успешно создана",
+      "registryActivated": "Запись реестра активирована",
+      "registryDeprecated": "Запись реестра устарела",
+      "registryRetired": "Запись реестра снята",
+      "templateCreated": "Шаблон успешно создан",
+      "templateDeactivated": "Шаблон деактивирован",
+      "templateLocaleAdded": "Локаль шаблона добавлена",
+      "templateVariableAdded": "Переменная шаблона добавлена",
+      "templateActionAdded": "Действие шаблона добавлено",
+      "templateRendered": "Шаблон успешно отрендерен",
+      "channelRegistered": "Канал доставки зарегистрирован",
+      "channelStatusUpdated": "Статус канала обновлен",
+      "preferencesCreated": "Пользовательские настройки созданы",
+      "preferencesUpdated": "Пользовательские настройки обновлены",
+      "quietHoursSet": "Тихие часы установлены",
+      "mutePeriodAdded": "Период тишины добавлен",
+      "mutePeriodRemoved": "Период тишины удален",
+      "languagePreferenceSet": "Языковые настройки установлены",
+      "digestPreferenceSet": "Настройки дайджеста установлены",
+      "optInUpdated": "Согласие обновлено",
+      "organizationOverrideSet": "Переопределение организации установлено",
+      "parentControlsSet": "Родительский контроль установлен",
+      "teacherControlsSet": "Контроль учителя установлен",
+      "inboxItemDelivered": "Уведомление доставлено во входящие",
+      "inboxItemRead": "Элемент входящих отмечен прочитанным",
+      "inboxItemArchived": "Элемент входящих архивирован",
+      "inboxItemDismissed": "Элемент входящих отклонен",
+      "inboxItemPinned": "Элемент входящих закреплен",
+      "inboxItemDeleted": "Элемент входящих удален",
+      "allMarkedRead": "Все элементы отмечены прочитанными",
+      "inboxCleared": "Входящие очищены",
+      "oldItemsExpired": "Старые элементы истекли",
+      "realtimeEnqueued": "Уведомление добавлено в очередь",
+      "realtimeDispatched": "Уведомление отправлено",
+      "realtimeDelivered": "Уведомление доставлено",
+      "realtimeFailed": "Уведомление не доставлено",
+      "realtimeDropped": "Уведомление отброшено",
+      "realtimeRetried": "Повторная попытка отправки",
+      "groupCollapsed": "Группа уведомлений свернута",
+      "announcementCreated": "Объявление создано",
+      "announcementSubmitted": "Объявление отправлено на одобрение",
+      "announcementApproved": "Объявление одобрено",
+      "announcementRejected": "Объявление отклонено",
+      "announcementPublished": "Объявление опубликовано",
+      "announcementExpired": "Объявление истекло",
+      "announcementRetired": "Объявление снято",
+      "systemMessageCreated": "Системное сообщение создано",
+      "systemMessageDelivered": "Системное сообщение доставлено",
+      "digestGenerated": "Дайджест создан",
+      "routingRuleCreated": "Правило маршрутизации создано",
+      "routingRuleDeactivated": "Правило маршрутизации деактивировано",
+      "routingConditionAdded": "Условие маршрутизации добавлено",
+      "eventRouted": "Событие маршрутизировано к шаблону",
+      "scheduleCreated": "Расписание создано",
+      "scheduleDispatched": "Расписание отправлено",
+      "scheduleCompleted": "Расписание завершено",
+      "scheduleFailed": "Расписание не удалось",
+      "scheduleCancelled": "Расписание отменено",
+      "scheduleExpired": "Расписание истекло",
+      "bridgeSubscribed": "Мост шины событий подписан",
+      "bridgeUnsubscribed": "Мост шины событий отписан",
+      "eventPublished": "Событие уведомления опубликовано",
+      "documentationGenerated": "Документация сгенерирована"
+    },
+    "errors": {
+      "unauthorized": "Требуется аутентификация",
+      "forbidden": "Недостаточно прав",
+      "notFound": "Ресурс не найден",
+      "badRequest": "Неверный запрос",
+      "conflict": "Конфликт ресурсов",
+      "validation": "Ошибка валидации",
+      "duplicateKey": "Ключ уже существует",
+      "duplicateSku": "SKU уже существует",
+      "duplicateChannel": "Канал уже зарегистрирован",
+      "duplicatePreferences": "Настройки уже существуют для пользователя",
+      "noLocales": "Шаблон должен иметь хотя бы одну локаль",
+      "negativeExpiration": "Срок должен быть неотрицательным",
+      "invalidHour": "Час должен быть 0-23",
+      "invalidTransition": "Недопустимый переход статуса",
+      "muteEndBeforeStart": "Окончание периода тишины должно быть после начала",
+      "templateNotFound": "Шаблон не найден",
+      "registryNotFound": "Запись реестра не найдена",
+      "channelNotFound": "Канал не найден",
+      "preferencesNotFound": "Настройки пользователя не найдены",
+      "inboxItemNotFound": "Элемент входящих не найден",
+      "announcementNotFound": "Объявление не найдено",
+      "messageNotFound": "Системное сообщение не найдено",
+      "routingRuleNotFound": "Правило маршрутизации не найдено",
+      "scheduleNotFound": "Расписание не найдено",
+      "realtimeNotFound": "Уведомление не найдено",
+      "noPreferences": "Настройки для пользователя не найдены",
+      "optedOut": "Пользователь отписался",
+      "quietHours": "Доставка в тихие часы",
+      "mutedCategory": "Категория заглушена",
+      "noEffectiveChannels": "Нет эффективных каналов доставки",
+      "maxRetriesReached": "Достигнуто макс. повторов",
+      "alreadyDelivered": "Уже доставлено",
+      "alreadyRevoked": "Уже отозвано",
+      "doubleDeliver": "Сообщение уже доставлено"
+    },
+    "placeholders": {
+      "title": "Введите заголовок",
+      "body": "Введите текст",
+      "key": "Введите ключ",
+      "name": "Введите название",
+      "description": "Введите описание",
+      "reason": "Введите причину",
+      "deepLink": "Введите deep link",
+      "locale": "Введите код локали"
+    },
+    "dashboard": {
+      "title": "Панель уведомлений",
+      "pending": "Ожидает",
+      "delivered24h": "Доставлено (24ч)",
+      "failed24h": "Неудачно (24ч)",
+      "queued": "В очереди",
+      "scheduled": "Запланировано",
+      "templates": "Шаблоны",
+      "channels": "Каналы",
+      "health": "Состояние",
+      "bridge": "Мост шины событий",
+      "queue": "Очередь",
+      "scheduler": "Планировщик",
+      "subscribed": "Подписан",
+      "processedCount": "Обработано событий",
+      "queueSize": "Размер очереди",
+      "oldestItemAge": "Возраст старейшего элемента",
+      "pendingSchedules": "Ожидает расписаний",
+      "overdue": "Просрочено",
+      "topCategories": "Топ категории",
+      "topFailures": "Топ отказы",
+      "active": "Активно",
+      "draft": "Черновик"
+    },
+    "analytics": {
+      "title": "Аналитика уведомлений",
+      "delivery": "Доставка",
+      "engagement": "Вовлечённость",
+      "latency": "Задержка",
+      "byChannel": "По каналам",
+      "byCategory": "По категориям",
+      "byPriority": "По приоритетам",
+      "failures": "Отказы",
+      "digest": "Дайджест",
+      "total": "Всего",
+      "delivered": "Доставлено",
+      "failed": "Неудачно",
+      "pending": "Ожидает",
+      "deliveryRate": "Коэффициент доставки",
+      "readCount": "Прочитано",
+      "readRate": "Коэффициент чтения",
+      "clickCount": "Кликов",
+      "clickRate": "Коэффициент кликов",
+      "dismissCount": "Отклонено",
+      "dismissRate": "Коэффициент отклонений",
+      "archiveCount": "Архивировано",
+      "pinCount": "Закреплено",
+      "avgDispatchMs": "Средняя отправка (мс)",
+      "avgDeliveryMs": "Средняя доставка (мс)",
+      "p50Ms": "P50 (мс)",
+      "p95Ms": "P95 (мс)",
+      "p99Ms": "P99 (мс)",
+      "sent": "Отправлено",
+      "byReason": "По причине",
+      "generated": "Создано",
+      "opened": "Открыто"
+    },
+    "documentation": {
+      "title": "Документация платформы уведомлений",
+      "version": "Версия",
+      "generated": "Сгенерировано",
+      "overview": "Обзор",
+      "systems": "Системы",
+      "events": "События",
+      "ownership": "Владение",
+      "owns": "Владеет",
+      "doesNotOwn": "Не владеет",
+      "endpoints": "Конечные точки",
+      "payload": "Полезная нагрузка",
+      "description": "Описание",
+      "capabilities": "Возможности",
+      "webhooks": "Вебхуки",
+      "extensionHooks": "Хуки расширений",
+      "sdkMetadata": "Метаданные SDK",
+      "publicAPIs": "Публичные API"
+    },
+    "bridge": {
+      "title": "Мост шины событий",
+      "subscribed": "Подписан на шину событий",
+      "unsubscribed": "Отписан от шины событий",
+      "processed": "Событий обработано",
+      "published": "Событий опубликовано",
+      "consumes": "Потребляет события из",
+      "produces": "Производит события уведомлений"
+    },
+    "subtitle": "Viktorinalar, yangiliklar va yutuqlaringizdan doimo xabardor bo'ling.",
+    "total": "Jami",
+    "read": "O'qilgan",
+    "pinned": "Biriktirilgan",
+    "archived": "Arxivlangan",
+    "dismissed": "Yopilgan",
+    "markRead": "Прочитать",
+    "pin": "Закрепить",
+    "archive": "Архив",
+    "delete": "Удалить",
+    "emptyDesc": "Нет уведомлений для отображения.",
+    "emptyTitle": "Bildirishnomalar yo'q",
+    "emptyDescription": "Hozircha yangi bildirishnomalar mavjud emas. Viktorinalar va yutuqlar haqidagi xabarlar shu yerda aks etadi."
   },
   "identity": {
     "title": "Identity, Access Management & Federation Platform",
@@ -33251,7 +34320,11 @@
       "hasAccount": "Hisobingiz bormi?",
       "signInLink": "Kirish",
       "failed": "Ro'yxatdan o'tish amalga oshmadi.",
-      "networkError": "Tarmoq xatosi. Aloqani tekshiring."
+      "networkError": "Tarmoq xatosi. Aloqani tekshiring.",
+      "passwordHint": "Kamida 8 ta belgi, bitta katta harf va bitta raqamdan iborat bo'lishi kerak.",
+      "confirmLabel": "Parolni tasdiqlang",
+      "haveAccount": "Hisobingiz bormi?",
+      "termsNotice": "Hisob yaratish orqali siz EduBek xizmat ko'rsatish shartlariga rozilik bildirasiz."
     },
     "forgot": {
       "title": "Parolni tiklash",
@@ -33285,7 +34358,51 @@
     "recentActivity": "So'nggi faollik",
     "myQuizzes": "Mening viktorinalarim",
     "myCourses": "Mening kurslarim",
-    "continueLearning": "O'qishni davom ettirish"
+    "continueLearning": "O'qishni davom ettirish",
+    "libraryDesc": "Saqlangan resurslar, viktorinalar va o'quv qo'llanmalaringiz.",
+    "wallet": "Hamyon",
+    "notifications": "So'nggi bildirishnomalar",
+    "viewAll": "Barchasini ko'rish",
+    "noNotifications": "Hozircha bildirishnomalar mavjud emas.",
+    "quickActions": {
+      "discover": "Kashf eting",
+      "discoverDesc": "Bepul viktorinalar va darsliklarni ko'ring.",
+      "liveQuiz": "Jonli viktorina",
+      "liveQuizDesc": "O'yinga qo'shiling yoki o'zingiz boshlang.",
+      "marketplace": "Bozor",
+      "marketplaceDesc": "Materiallarni xarid qiling va soting.",
+      "library": "Kutubxona",
+      "libraryDesc": "Saqlangan materiallaringiz.",
+      "aiWorkspace": "AI studiyasi",
+      "aiWorkspaceDesc": "AI yordamida yangi ta'lim kontenti yarating.",
+      "wallet": "Hamyon",
+      "walletDesc": "EduToken balansingizni tekshiring."
+    },
+    "teacherError": "O'qituvchi boshqaruv panelini yuklab bo'lmadi",
+    "teacher": {
+      "classrooms": "Sinflar",
+      "totalStudents": "O'quvchilar",
+      "recommendations": "Tavsiyalar",
+      "classroomInsights": "Sinf tahlili",
+      "students": "o'quvchilar",
+      "mastery": "O'zlashtirish",
+      "engagement": "Faollik",
+      "weak": "Qiyin mavzular",
+      "atRisk": "E'tibor talab o'quvchilar",
+      "noInsight": "Ushbu sinf uchun hozircha tahliliy ma'lumotlar yo'q."
+    },
+    "creatorError": "Muallif panelini yuklab bo'lmadi",
+    "creator": {
+      "earnings": "Umumiy daromad",
+      "sales": "Sotuvlar",
+      "downloads": "Yuklab olishlar",
+      "avgRating": "O'rtacha baho",
+      "topResources": "Eng ommabop resurslar"
+    },
+    "admin": {
+      "title": "Administrator uskunalari",
+      "desc": "Platformani boshqarish va nazorat qilish admin bo'limida amalga oshiriladi."
+    }
   },
   "wallet": {
     "title": "EduToken Hamyoni",
@@ -33298,7 +34415,13 @@
     "historyCount": "{count} ta o'tkazma",
     "balance": "Balans",
     "transactions": "O'tkazmalar",
-    "emptyHistory": "Hozircha hech qanday o'tkazma yo'q"
+    "emptyHistory": "Hozircha hech qanday o'tkazma yo'q",
+    "balanceAfter": "Xariddan so'ng balans",
+    "emptyTitle": "Tranzaksiyalar mavjud emas",
+    "emptyDescription": "EduToken harakatlari xarid qilganingizda yoki mukofot olganingizda shu yerda ko'rinadi.",
+    "goToMarketplace": "Bozorni ko'rish",
+    "signInRequired": "Hamyonni ko'rish uchun tizimga kiring",
+    "signInRequiredDesc": "Hamyoningizda viktorinalar va sotuvlardan olingan EduTokenlar saqlanadi."
   },
   "library": {
     "title": "Kutubxona",
@@ -33312,7 +34435,10 @@
       "lesson_plan": "Dars rejasi",
       "presentation": "Taqdimot",
       "flashcards": "Lug'at kartalari",
-      "notes": "Konspektlar"
+      "notes": "Konspektlar",
+      "exam": "Imtihon",
+      "homework": "Uyga vazifa",
+      "practice_material": "Mashq materiali"
     },
     "emptyTitle": "Hozircha saqlangan materiallar yo'q",
     "emptyDescription": "Kashf qilish bo'limidan materiallarni saqlang yoki yangi viktorina yarating.",
@@ -33322,7 +34448,22 @@
     "notFoundBody": "Qidirilayotgan material topilmadi.",
     "backToLibrary": "Kutubxonaga qaytish",
     "unfavorite": "Sevimlilardan o'chirish",
-    "favorite": "Sevimlilarga qo'shish"
+    "favorite": "Sevimlilarga qo'shish",
+    "statusReady": "Tayyor",
+    "statusDraft": "Qoralama",
+    "statusArchived": "Arxivlangan",
+    "status_ready": "tayyor",
+    "status_draft": "qoralama",
+    "status_archived": "arxivlangan",
+    "resultCount": "{count} ta resurs",
+    "goToMarketplace": "Bozorni ko'rish",
+    "loadFailed": "Resursni yuklab bo'lmadi",
+    "contentPreview": "Materialni oldindan ko'rish",
+    "versionHistory": "Tahrirlar tarixi",
+    "version": "{n}-versiya",
+    "noVersions": "Tahrirlar tarixi yo'q",
+    "noVersionsDesc": "Ushbu resurs uchun o'zgarishlar tarixi mavjud emas.",
+    "moreByCreator": "Muallifning boshqa materiallari"
   },
   "discover": {
     "title": "Kashf qilish",
@@ -33338,7 +34479,18 @@
     "recommended": "Tavsiya etilgan",
     "trending": "Ommabop",
     "playNow": "O'ynash",
-    "viewResource": "Ko'rish"
+    "viewResource": "Ko'rish",
+    "feedLabel": "Shaxsiy tavsiyalar",
+    "forYou": "Siz uchun",
+    "feedError": "Tavsiyalarni yuklab bo'lmadi",
+    "feedEmpty": "Tavsiyalar tasmasi bo'sh",
+    "feedEmptyDesc": "Tavsiyalar shakllanishi uchun test yeching yoki resurslarni sevimlilarga qo'shing.",
+    "topicsLabel": "Mavzular daraxti",
+    "topics": "Mavzular",
+    "topicsEmpty": "Hozircha mavzular yo'q",
+    "topicsEmptyDesc": "Bilimlar bazasi to'ldirilgach, mavzular bu yerda aks etadi.",
+    "subtopics": "kichik mavzular",
+    "noItems": "Ushbu bo'limda hozircha materiallar yo'q."
   },
   "profile": {
     "title": "Profil",
@@ -33357,7 +34509,17 @@
     "stats": "Statistika",
     "quizzesPlayed": "O'ynalgan viktorinalar",
     "accuracy": "O'rtacha aniqlik",
-    "eduTokensEarned": "Yutilgan EduTokenlar"
+    "eduTokensEarned": "Yutilgan EduTokenlar",
+    "countryLabel": "Mamlakat",
+    "avatarUrlLabel": "Avatar havolasi (URL)",
+    "avatarUrlHint": "Rasm havolasini kiriting. Tez kunda fayl yuklash imkoniyati ham qo'shiladi.",
+    "roles": "Rollar va huquqlar",
+    "rolesDesc": "Sizning hisobingizga biriktirilgan platforma rollari.",
+    "defaultRole": "foydalanuvchi",
+    "achievements": "Yutuqlar",
+    "achievementsDesc": "Qo'lga kiritilgan nishonlar va marralar.",
+    "achievementsEmpty": "Hozircha yutuqlar yo'q — testlar yeching va jonli o'yinlarda qatnashib nishonlar yuting!",
+    "joined": "Qo'shilgan vaqti"
   },
   "settings": {
     "title": "Sozlamalar",
@@ -33379,12 +34541,24 @@
     "appearance": {
       "title": "Ko'rinish",
       "desc": "Mavzuni (yorug', qorong'i yoki tizim) tanlang.",
-      "theme": "Mavzu"
+      "theme": "Mavzu",
+      "light": "Yorug'",
+      "dark": "Qorong'i",
+      "system": "Tizim standarti"
     },
     "security": {
       "title": "Xavfsizlik",
       "desc": "Parol va hisob xavfsizligi.",
-      "changePassword": "Parolni o'zgartirish"
+      "changePassword": "Parolni o'zgartirish",
+      "currentPassword": "Joriy parol",
+      "newPassword": "Yangi parol",
+      "changePasswordUnavailable": "Parolni o'zgartirish tez orada ishga tushadi",
+      "changePasswordDesc": "Agar parolni tiklash zarur bo'lsa, administratorga murojaat qiling."
+    },
+    "notifications": {
+      "title": "Bildirishnomalar",
+      "desc": "Xabarlar qutisi va bildirishnoma sozlamalarini boshqaring.",
+      "openInbox": "Xabarlar qutisini ochish"
     }
   },
   "aiWorkspace": {
@@ -33424,7 +34598,8 @@
     "tip2Title": "Jonli viktorinalar o'tkazish",
     "tip2Desc": "Dars oxirida o'quvchilar bilimini sinash uchun Jonli viktorinadan foydalaning.",
     "tip3Title": "Natijalarni tahlil qilish",
-    "tip3Desc": "O'quvchilarning kuchli va zaif tomonlarini tahlil qiling."
+    "tip3Desc": "O'quvchilarning kuchli va zaif tomonlarini tahlil qiling.",
+    "loading": "Sinflar yuklanmoqda..."
   },
   "admin": {
     "title": "Admin Boshqaruv Markazi",

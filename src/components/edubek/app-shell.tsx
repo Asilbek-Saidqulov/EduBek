@@ -107,6 +107,25 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
     return pathname.startsWith(href);
   };
 
+  const getRouteTitle = (path: string) => {
+    const clean = path.replace(/^\//, "").split("/")[0];
+    switch (clean) {
+      case "dashboard": return tNav("dashboard");
+      case "discover": return tNav("discover");
+      case "library": return tNav("library");
+      case "marketplace": return tNav("marketplace");
+      case "live-quiz": return tNav("liveQuiz");
+      case "ai-workspace": return tNav("aiWorkspace");
+      case "classrooms": return tNav("classrooms");
+      case "wallet": return tNav("wallet");
+      case "notifications": return tNav("notifications");
+      case "settings": return tNav("settings");
+      case "profile": return tNav("profile");
+      case "admin": return tNav("admin");
+      default: return clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : tNav("dashboard");
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-background antialiased">
       {/* Global Search Dialog */}
@@ -157,7 +176,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
           >
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>Search EduBek...</span>}
+              {!collapsed && <span>{tNav("search")}</span>}
             </div>
             {!collapsed && (
               <kbd className="rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
@@ -173,7 +192,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
           <div>
             {!collapsed && (
               <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
-                Ecosystem
+                {tNav("ecosystem")}
               </p>
             )}
             <div className="space-y-1">
@@ -203,7 +222,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
           <div>
             {!collapsed && (
               <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
-                Workspace & Tools
+                {tNav("workspaceAndTools")}
               </p>
             )}
             <div className="space-y-1">
@@ -242,7 +261,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                 </Avatar>
                 <div className="truncate text-xs">
                   <div className="font-semibold text-foreground truncate">
-                    {user?.name || user?.username || "Student"}
+                    {user?.name || user?.username || tNav("profile")}
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground font-mono text-[11px]">
                     <Coins className="h-3 w-3 text-amber-500" />
@@ -262,7 +281,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
             </div>
           ) : (
             <div className="flex flex-col items-center gap-2">
-              <Link href="/profile" title={user?.name || "Profile"}>
+              <Link href="/profile" title={user?.name || tNav("profile")}>
                 <Avatar className="h-8 w-8 border">
                   <AvatarFallback className="text-xs bg-primary/10 text-primary font-bold">
                     {getInitials(user?.name || user?.username)}
@@ -303,8 +322,8 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                 EduBek
               </Link>
               <span className="text-muted-foreground/40">/</span>
-              <span className="font-semibold text-foreground capitalize">
-                {pathname.replace("/", "") || "Launchpad"}
+              <span className="font-semibold text-foreground">
+                {getRouteTitle(pathname)}
               </span>
             </div>
           </div>
@@ -316,7 +335,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
               className="hidden md:flex items-center gap-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Search className="h-3.5 w-3.5" />
-              <span>Search platform...</span>
+              <span>{tNav("search")}</span>
               <kbd className="rounded border bg-background px-1 font-mono text-[10px]">
                 /
               </kbd>

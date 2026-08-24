@@ -10,33 +10,26 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { withErrorHandler } from "@/lib/errors";
-import { env } from "@/config/env";
 import {
   REFRESH_COOKIE_NAME,
   SESSION_COOKIE_NAME,
   clearCookieOptions,
-  serializeCookie,
 } from "@/features/auth/auth.cookies";
 import { logout } from "@/features/auth/auth.service";
-import { USER_ID_HEADER } from "@/features/auth/auth.context";
 
 export const POST = withErrorHandler(async (req: NextRequest) => {
   const body = await req.json().catch(() => ({}));
   const refreshToken =
     (body as { refreshToken?: string } | null)?.refreshToken ??
-    req.cookies.get(env.auth.refreshCookieName)?.value;
-  const actorId = req.headers.get(USER_ID_HEADER) ?? undefined;
+    req.cookies.get(REFRESH_COOKIE_NAME)?.value;
 
-  await logout(refreshToken, actorId);
+  await logout(refreshToken, undefined);
 
   const response = NextResponse.json({ ok: true });
-  response.headers.append(
-    "Set-Cookie",
-    serializeCookie(clearCookieOptions(SESSION_COOKIE_NAME)),
-  );
-  response.headers.append(
-    "Set-Cookie",
-    serializeCookie(clearCookieOptions(REFRESH_COOKIE_NAME)),
-  );
+  
+  // Clear cookies via NextResponse.cookies.set for better Next.js 16 compatibility
+  response.cookies.set(SESSION_COOKIE_NAME, "", clearCookieOptions());
+  response.cookies.set(REFRESH_COOKIE_NAME, "", clearCookieOptions());
+  
   return response;
 });

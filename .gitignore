@@ -45,3 +45,7 @@ Thumbs.db
 # Prisma local/generated artifacts if applicable
 prisma/*.db
 prisma/*.db-journal
+
+tsconfig.tsbuildinfo
+temp_migration.sql
+AUTHENTICATION_AUDIT_REPORT.md
