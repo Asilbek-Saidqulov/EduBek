@@ -1,136 +1,241 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getGeminiClient } from "@/lib/gemini";
-import { Type } from "@google/genai";
+import { z } from "zod";
+import { generateStructuredJson, AiError } from "@/lib/ai";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { getAuthContext } from "@/features/auth";
+import { db } from "@/lib/db";
+
+const requestSchema = z.object({
+  topic: z
+    .string()
+    .trim()
+    .min(2, "Topic must be at least 2 characters")
+    .max(1000, "Topic is too long"),
+  count: z.coerce.number().int().min(1).max(10).default(5),
+  difficulty: z.enum(["beginner", "intermediate", "advanced"]).default("intermediate"),
+  locale: z.enum(["uz", "en", "ru"]).optional(),
+});
+
+const quizOutputSchema = z.object({
+  topic: z.string(),
+  difficulty: z.string(),
+  questions: z.array(
+    z.object({
+      question: z.string().min(5, "Question must be at least 5 characters"),
+      options: z
+        .array(z.string().min(1, "Option cannot be empty"))
+        .length(4, "Must have exactly 4 options"),
+      correctIndex: z.number().int().min(0).max(3),
+      explanation: z.string().min(5, "Explanation must be at least 5 characters"),
+    })
+  ).min(1, "At least one question must be generated"),
+});
+
+const EDU_TOKENS_PER_GENERATION = 10;
 
 export async function POST(req: NextRequest) {
   try {
-    const { topic, count = 5, difficulty = "intermediate" } = await req.json();
-
-    if (!topic || typeof topic !== "string") {
-      return NextResponse.json({ error: "Topic is required" }, { status: 400 });
-    }
-
-    const ai = getGeminiClient();
-    if (ai) {
-      const prompt = `You are an expert educator and curriculum specialist. Create a multiple-choice quiz about "${topic}".
-Difficulty level: ${difficulty}.
-Total questions: ${Math.min(10, Math.max(1, count))}.
-
-Return high quality, educational, syllabus-aligned multiple choice questions. Each question must have exactly 4 plausible options, a correct option index (0, 1, 2, or 3), and a clear step-by-step explanation.`;
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3.7-flash",
-        contents: prompt,
-        config: {
-          systemInstruction: "You are an expert academic curriculum creator. Generate clean, precise multiple choice quizzes with accurate answers and clear educational explanations.",
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: Type.OBJECT,
-            properties: {
-              topic: { type: Type.STRING },
-              difficulty: { type: Type.STRING },
-              questions: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    question: { type: Type.STRING, description: "The question text" },
-                    options: {
-                      type: Type.ARRAY,
-                      items: { type: Type.STRING },
-                      description: "List of exactly 4 choices",
-                    },
-                    correctIndex: {
-                      type: Type.INTEGER,
-                      description: "0-based index of the correct option (0 to 3)",
-                    },
-                    explanation: {
-                      type: Type.STRING,
-                      description: "Brief educational explanation of why the answer is correct",
-                    },
-                  },
-                  required: ["question", "options", "correctIndex", "explanation"],
-                },
-              },
-            },
-            required: ["questions"],
+    // 1. Rate Limiting
+    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "anonymous";
+    const rateLimit = checkRateLimit(`ai:generate-quiz:${ip}`, 12, 60 * 1000);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "RATE_LIMITED",
+            message: "Too many quiz generation requests. Please wait a minute before trying again.",
           },
         },
+        { status: 429 }
+      );
+    }
+
+    // 2. Validate input payload
+    const body = await req.json().catch(() => null);
+    const parsedInput = requestSchema.safeParse(body);
+    if (!parsedInput.success) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "VALIDATION_ERROR",
+            message: "Invalid quiz generation parameters",
+            issues: parsedInput.error.issues,
+          },
+        },
+        { status: 400 }
+      );
+    }
+
+    const { topic, count, difficulty, locale: reqLocale } = parsedInput.data;
+
+    // 3. User & Token check
+    const authContext = await getAuthContext().catch(() => null);
+    const userId = authContext?.userId;
+    const locale = reqLocale || authContext?.locale || "uz";
+
+    let userWallet = null;
+    if (userId) {
+      userWallet = await db.wallet.findUnique({
+        where: { userId },
       });
 
-      if (response.text) {
-        const parsed = JSON.parse(response.text);
-        if (parsed.questions && parsed.questions.length > 0) {
-          return NextResponse.json({
-            success: true,
-            topic: parsed.topic || topic,
-            difficulty: parsed.difficulty || difficulty,
-            questions: parsed.questions,
-          });
-        }
+      // If user has wallet and insufficient tokens
+      if (userWallet && userWallet.eduTokensBalance < EDU_TOKENS_PER_GENERATION) {
+        return NextResponse.json(
+          {
+            error: {
+              code: "INSUFFICIENT_TOKENS",
+              message: `Insufficient EduTokens. Quiz generation requires ${EDU_TOKENS_PER_GENERATION} EDU. Your balance is ${userWallet.eduTokensBalance} EDU.`,
+            },
+          },
+          { status: 402 }
+        );
       }
     }
 
-    // Fallback if AI key is missing or prompt fails
-    const fallbackQuestions = [
-      {
-        question: `What is the fundamental concept behind ${topic}?`,
-        options: [
-          `Conservation of state and symmetry principles in ${topic}`,
-          `Linear relational behavior across standard parameter domains`,
-          `Empirical equilibrium conditions under standard observation`,
-          `Boundary constraint conditions and discrete transformations`,
-        ],
-        correctIndex: 1,
-        explanation: `In standard curriculum studies of ${topic}, linear relational behavior governs the primary behavior across foundational frameworks.`,
-      },
-      {
-        question: `Which analytical method is most commonly employed when solving problems in ${topic}?`,
-        options: [
-          "Stepwise algebraic reduction and boundary testing",
-          "Randomized numerical approximation only",
-          "Pure qualitative estimation without metrics",
-          "Inverse matrix exponential modeling without baseline",
-        ],
-        correctIndex: 0,
-        explanation: "Stepwise algebraic reduction allows rigorous verification of domain conditions and boundary constraints.",
-      },
-      {
-        question: `When the core variables in a ${topic} system are adjusted by a scale factor of 2, what is the expected outcome?`,
-        options: [
-          "System ceases to function",
-          "Direct proportional scaling according to the foundational governing equation",
-          "No measurable alteration in output magnitude",
-          "Exponential divergence into chaotic oscillation",
-        ],
-        correctIndex: 1,
-        explanation: `Standard governing equations in ${topic} exhibit direct proportionality under homogeneous boundary states.`,
-      },
-      {
-        question: `Which practical application best illustrates the real-world utility of ${topic}?`,
-        options: [
-          "Predictive modeling and precision optimization in modern technology",
-          "Static historical cataloging without contemporary usage",
-          "Pure abstract terminology without experimental validity",
-          "Single-instance non-replicable phenomena",
-        ],
-        correctIndex: 0,
-        explanation: `Predictive modeling and applied problem solving form the primary practical application of ${topic} in science and engineering.`,
-      },
-    ].slice(0, count);
+    // 4. Construct AI Prompt with language instructions
+    const languageInstruction =
+      locale === "uz"
+        ? "MUHIM: Barcha savollar, variantlar va tushuntirishlarni o'zbek tilida (lotin yozuvida) yarating."
+        : locale === "ru"
+        ? "ВАЖНО: Создайте все вопросы, варианты ответов и объяснения на русском языке."
+        : "IMPORTANT: Create all questions, options, and explanations in English.";
+
+    const systemPrompt = `You are an expert curriculum developer, educator, and assessment creator for the EduBek platform.
+Your task is to generate high quality, syllabus-aligned multiple choice questions.
+${languageInstruction}
+
+Rules:
+1. Each question must test genuine conceptual understanding or problem-solving.
+2. Every question must have exactly 4 plausible, mutually exclusive options.
+3. correctIndex MUST accurately correspond to the single correct option (0, 1, 2, or 3).
+4. Provide a clear, educational, step-by-step explanation for why the correct option is true and how to derive it.
+5. Difficulty: ${difficulty}.
+6. Total questions: ${count}.`;
+
+    const userPrompt = `Generate a ${count}-question multiple choice quiz on the topic: "${topic}".
+Difficulty level: ${difficulty}.
+Return valid JSON with the structure:
+{
+  "topic": "${topic}",
+  "difficulty": "${difficulty}",
+  "questions": [
+    {
+      "question": "Question text...",
+      "options": ["Option A", "Option B", "Option C", "Option D"],
+      "correctIndex": 0,
+      "explanation": "Step-by-step reasoning..."
+    }
+  ]
+}`;
+
+    // 5. Generate structured JSON with OpenRouter
+    const result = await generateStructuredJson({
+      prompt: userPrompt,
+      systemPrompt,
+      schema: quizOutputSchema,
+      temperature: 0.4,
+    });
+
+    // 6. Deduct EduTokens and log usage atomically upon success
+    if (userId) {
+      try {
+        await db.$transaction(async (tx) => {
+          let wallet = userWallet;
+          if (!wallet) {
+            wallet = await tx.wallet.create({
+              data: {
+                userId,
+                eduTokensBalance: 1250,
+                fiatBalance: 0,
+              },
+            });
+          }
+
+          const newBalance = Math.max(0, wallet.eduTokensBalance - EDU_TOKENS_PER_GENERATION);
+
+          await tx.wallet.update({
+            where: { id: wallet.id },
+            data: { eduTokensBalance: newBalance },
+          });
+
+          await tx.eduTokenLedger.create({
+            data: {
+              walletId: wallet.id,
+              delta: -EDU_TOKENS_PER_GENERATION,
+              balanceAfter: newBalance,
+              reason: "purchase",
+              referenceType: "ai_quiz_generation",
+              metadata: JSON.stringify({ topic, count, difficulty }),
+            },
+          });
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          await tx.aiUsageLog.upsert({
+            where: {
+              userId_day_model_feature: {
+                userId,
+                day: today,
+                model: result.meta.model,
+                feature: "quiz_generate",
+              },
+            },
+            update: {
+              requests: { increment: 1 },
+              tokensIn: { increment: result.meta.tokensIn || 0 },
+              tokensOut: { increment: result.meta.tokensOut || 0 },
+            },
+            create: {
+              userId,
+              day: today,
+              model: result.meta.model,
+              feature: "quiz_generate",
+              requests: 1,
+              tokensIn: result.meta.tokensIn || 0,
+              tokensOut: result.meta.tokensOut || 0,
+            },
+          });
+        });
+      } catch (ledgerError) {
+        console.error("Failed to deduct tokens / log usage:", ledgerError);
+        // Do not fail the user request if ledger fails after AI generation succeeded
+      }
+    }
 
     return NextResponse.json({
       success: true,
-      topic,
-      difficulty,
-      questions: fallbackQuestions,
+      topic: result.data.topic || topic,
+      difficulty: result.data.difficulty || difficulty,
+      questions: result.data.questions,
+      tokensDeducted: userId ? EDU_TOKENS_PER_GENERATION : 0,
+      meta: {
+        model: result.meta.model,
+        latencyMs: result.meta.latencyMs,
+      },
     });
   } catch (error: any) {
-    console.error("AI Quiz generation error:", error);
+    console.error("AI Quiz Generation Error:", error);
+
+    if (error instanceof AiError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: error.code,
+            message: error.message,
+          },
+        },
+        { status: error.statusCode }
+      );
+    }
+
     return NextResponse.json(
       {
-        error: "Failed to generate quiz",
-        message: error?.message || "Internal server error",
+        error: {
+          code: "INTERNAL_ERROR",
+          message: "Failed to generate quiz with AI. Please try again in a few moments.",
+        },
       },
       { status: 500 }
     );

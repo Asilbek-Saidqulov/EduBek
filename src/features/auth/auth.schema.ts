@@ -39,6 +39,7 @@ export const updateProfileBodySchema = z.object({
 });
 
 export type LoginInput = z.infer<typeof loginBodySchema>;
-export type RegisterInput = z.infer<typeof registerBodySchema>;
+export type RegisterInput = z.input<typeof registerBodySchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileBodySchema>;
+
 

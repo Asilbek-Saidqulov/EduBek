@@ -21,7 +21,10 @@ import {
   Crown,
   Eye,
   Crosshair,
+  Brain,
+  Loader2,
 } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -103,7 +106,8 @@ export function GuestQuizPlayer({
   const [isAnswered, setIsAnswered] = React.useState(false);
   const [isFinished, setIsFinished] = React.useState(false);
   const [timeLeft, setTimeLeft] = React.useState(mode === "heist" ? 15 : 20);
-  const [mistakes, setMistakes] = React.useState<Array<{ q: string; selected: string; correct: string; exp?: string }>>([]);
+  const [mistakes, setMistakes] = React.useState<Array<{ q: string; selected: string; correct: string; exp?: string; options?: string[]; topic?: string }>>([]);
+  const [aiExplanations, setAiExplanations] = React.useState<Record<number, { text?: string; loading?: boolean; error?: string }>>({});
 
   // Game Mode States
   // Royale State
@@ -165,6 +169,8 @@ export function GuestQuizPlayer({
             selected: idx >= 0 ? currentQ.options[idx] : "Time Expired",
             correct: currentQ.options[currentQ.correctIndex],
             exp: currentQ.explanation,
+            options: currentQ.options,
+            topic: currentQ.topic || quizTitle,
           },
         ]);
 
@@ -191,8 +197,47 @@ export function GuestQuizPlayer({
         }
       }
     },
-    [isAnswered, currentQ, timeLeft, mode, streakCombo, shields]
+    [isAnswered, currentQ, timeLeft, mode, streakCombo, shields, quizTitle]
   );
+
+  const handleExplainMistake = async (index: number) => {
+    const mistake = mistakes[index];
+    if (!mistake || aiExplanations[index]?.loading) return;
+
+    setAiExplanations((prev) => ({
+      ...prev,
+      [index]: { loading: true, error: undefined },
+    }));
+
+    try {
+      const res = await fetch("/api/ai-workspace/explain-question", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          question: mistake.q,
+          options: mistake.options || [mistake.selected, mistake.correct],
+          selectedOption: mistake.selected,
+          correctOption: mistake.correct,
+          topic: mistake.topic,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error?.message || "Failed to generate AI explanation");
+      }
+
+      setAiExplanations((prev) => ({
+        ...prev,
+        [index]: { loading: false, text: data.explanation },
+      }));
+    } catch (err: any) {
+      setAiExplanations((prev) => ({
+        ...prev,
+        [index]: { loading: false, error: err?.message || "Could not load AI explanation" },
+      }));
+    }
+  };
 
   const handleNext = React.useCallback(() => {
     if (currentIndex + 1 < activeQuestions.length) {
@@ -214,6 +259,7 @@ export function GuestQuizPlayer({
     setScore(0);
     setTimeLeft(mode === "heist" ? 15 : 20);
     setMistakes([]);
+    setAiExplanations({});
     setHp(100);
     setShields(50);
     setAlivePlayers(24);
@@ -224,6 +270,7 @@ export function GuestQuizPlayer({
     setHiddenOptions([]);
     setPowerupUsedFiftyFifty(false);
   }, [mode]);
+
 
   // Heist 50:50 Powerup
   const useFiftyFifty = () => {
@@ -395,20 +442,69 @@ export function GuestQuizPlayer({
             <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Review Questions to Improve ({mistakes.length})
             </h4>
-            <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
-              {mistakes.map((m, i) => (
-                <div key={i} className="p-3.5 rounded-lg border border-border/80 bg-card space-y-1.5 text-xs">
-                  <p className="font-semibold text-foreground">{m.q}</p>
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="text-rose-600 dark:text-rose-400 font-medium">Your answer: {m.selected}</span>
-                    <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Correct: {m.correct}</span>
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+              {mistakes.map((m, i) => {
+                const aiState = aiExplanations[i];
+                return (
+                  <div key={i} className="p-3.5 rounded-xl border border-border/80 bg-card space-y-2.5 text-xs">
+                    <p className="font-semibold text-foreground">{m.q}</p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="text-rose-600 dark:text-rose-400 font-medium">Your answer: {m.selected}</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Correct: {m.correct}</span>
+                    </div>
+
+                    {m.exp && !aiState?.text && (
+                      <p className="text-[11px] text-muted-foreground bg-muted/40 p-2 rounded-lg leading-relaxed">
+                        {m.exp}
+                      </p>
+                    )}
+
+                    {/* AI Breakdown Section */}
+                    {aiState?.text ? (
+                      <div className="p-3 rounded-lg border border-violet-500/30 bg-violet-500/5 text-xs space-y-1.5 animate-in fade-in-50">
+                        <div className="flex items-center gap-1.5 font-bold text-violet-600 dark:text-violet-400 text-[11px]">
+                          <Brain className="size-3.5" />
+                          <span>AI Tutor Deep Breakdown</span>
+                        </div>
+                        <p className="text-foreground/90 whitespace-pre-line leading-relaxed text-[11px]">
+                          {aiState.text}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                        <span className="text-[10px] text-muted-foreground">Need a deeper explanation?</span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          disabled={aiState?.loading}
+                          onClick={() => handleExplainMistake(i)}
+                          className="h-7 text-[11px] px-2.5 gap-1.5 text-violet-600 hover:text-violet-700 hover:bg-violet-500/10 font-semibold"
+                        >
+                          {aiState?.loading ? (
+                            <>
+                              <Loader2 className="size-3 animate-spin" />
+                              <span>Thinking...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="size-3" />
+                              <span>Ask AI Tutor Why</span>
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+
+                    {aiState?.error && (
+                      <p className="text-[10px] text-rose-500">{aiState.error}</p>
+                    )}
                   </div>
-                  {m.exp && <p className="text-[11px] text-muted-foreground bg-muted/40 p-2 rounded">{m.exp}</p>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         ) : (
+
           <div className="flex items-center gap-2.5 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-xs">
             <CheckCircle2 className="size-5 shrink-0" />
             <span>Flawless score! You answered every question correctly on the first attempt.</span>

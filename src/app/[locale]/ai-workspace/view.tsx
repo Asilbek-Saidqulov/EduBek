@@ -2,7 +2,7 @@
  * AI Workspace — EduBek Contextual AI Assistant
  *
  * Provides:
- * - AI Quiz Generator (powered by Gemini with live game mode testing)
+ * - AI Quiz Generator (powered by server-side OpenRouter with live game mode testing)
  * - Contextual AI Tutor (step-by-step problem solver & concept explainer)
  * - Interactive game mode launcher for generated sets
  */
@@ -19,7 +19,7 @@ import {
   Coins,
   FileQuestion,
   MessageSquare,
-  ArrowRight,
+  AlertCircle,
   Play,
   Swords,
   Castle,
@@ -43,12 +43,14 @@ interface GeneratedQuestion {
 export function AiWorkspaceClient() {
   const { user } = useCurrentUser();
   const [activeTab, setActiveTab] = React.useState<"generator" | "tutor">("generator");
+  const [tokenBalance, setTokenBalance] = React.useState<number>(user?.balanceEduTokens ?? 1250);
 
   // Generator State
   const [topic, setTopic] = React.useState("");
   const [questionCount, setQuestionCount] = React.useState(5);
   const [difficulty, setDifficulty] = React.useState("intermediate");
   const [isGenerating, setIsGenerating] = React.useState(false);
+  const [generatorError, setGeneratorError] = React.useState<string | null>(null);
   const [generatedQuestions, setGeneratedQuestions] = React.useState<GeneratedQuestion[] | null>(null);
   const [isSaved, setIsSaved] = React.useState(false);
   const [playingMode, setPlayingMode] = React.useState<GameModeType | null>(null);
@@ -62,6 +64,7 @@ export function AiWorkspaceClient() {
   ]);
   const [chatInput, setChatInput] = React.useState("");
   const [isThinking, setIsThinking] = React.useState(false);
+  const [chatError, setChatError] = React.useState<string | null>(null);
 
   const promptStarters = [
     "Explain how to solve quadratic equations using the quadratic formula.",
@@ -70,11 +73,18 @@ export function AiWorkspaceClient() {
     "What is the difference between synchronous and asynchronous code?",
   ];
 
+  React.useEffect(() => {
+    if (user?.balanceEduTokens !== undefined) {
+      setTokenBalance(user.balanceEduTokens);
+    }
+  }, [user?.balanceEduTokens]);
+
   const handleGenerateQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
 
     setIsGenerating(true);
+    setGeneratorError(null);
     setIsSaved(false);
 
     try {
@@ -84,12 +94,23 @@ export function AiWorkspaceClient() {
         body: JSON.stringify({ topic, count: questionCount, difficulty }),
       });
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error?.message || "Failed to generate quiz. Please try again."
+        );
+      }
+
       if (data.questions && data.questions.length > 0) {
         setGeneratedQuestions(data.questions);
+        if (data.tokensDeducted) {
+          setTokenBalance((prev) => Math.max(0, prev - data.tokensDeducted));
+        }
       } else {
-        setGeneratedQuestions(null);
+        throw new Error("No questions were returned. Please try rephrasing the topic.");
       }
-    } catch {
+    } catch (err: any) {
+      setGeneratorError(err?.message || "An unexpected error occurred while generating the quiz.");
       setGeneratedQuestions(null);
     } finally {
       setIsGenerating(false);
@@ -98,36 +119,48 @@ export function AiWorkspaceClient() {
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = textToSend || chatInput;
-    if (!text.trim()) return;
+    if (!text.trim() || isThinking) return;
+
+    const currentHistory = messages.map((m) => ({
+      role: m.role,
+      text: m.text,
+    }));
 
     setMessages((prev) => [...prev, { role: "user", text }]);
     setChatInput("");
     setIsThinking(true);
+    setChatError(null);
 
     try {
       const res = await fetch("/api/ai-workspace/tutor-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({
+          message: text,
+          history: currentHistory,
+        }),
       });
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error?.message || "AI Tutor is temporarily unavailable."
+        );
+      }
+
       if (data.reply) {
         setMessages((prev) => [...prev, { role: "assistant", text: data.reply }]);
       } else {
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: "assistant",
-            text: "Sorry, I could not generate a response for this question right now. Please try rephrasing your topic or asking again in a moment.",
-          },
-        ]);
+        throw new Error("Empty response received from AI service.");
       }
-    } catch {
+    } catch (err: any) {
+      const msg = err?.message || "We could not connect to the AI tutor service. Please check your connection and try again.";
+      setChatError(msg);
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          text: "We could not connect to the AI tutor service. Please check your connection and try again.",
+          text: `⚠️ ${msg}`,
         },
       ]);
     } finally {
@@ -185,14 +218,14 @@ export function AiWorkspaceClient() {
             Contextual AI Assistant
           </h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Generate custom practice quizzes from any topic using Gemini, or learn with your personal step-by-step AI tutor.
+            Generate custom practice quizzes from any syllabus topic, or learn with your personal step-by-step AI tutor.
           </p>
         </div>
 
         <div className="flex items-center gap-3 shrink-0 rounded-xl border border-border/80 bg-card p-3 shadow-xs">
           <Coins className="size-5 text-amber-500" />
           <div className="text-xs">
-            <div className="font-bold text-foreground">{user?.balanceEduTokens ?? 1250} EDU</div>
+            <div className="font-bold text-foreground">{tokenBalance} EDU</div>
             <div className="text-muted-foreground text-[10px]">~10 EDU per generation</div>
           </div>
         </div>
@@ -272,6 +305,13 @@ export function AiWorkspaceClient() {
                 </div>
               </div>
 
+              {generatorError && (
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 text-xs">
+                  <AlertCircle className="size-4 shrink-0" />
+                  <span>{generatorError}</span>
+                </div>
+              )}
+
               <div className="pt-2 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Lock className="size-3.5 text-emerald-600" />
@@ -286,7 +326,7 @@ export function AiWorkspaceClient() {
                   {isGenerating ? (
                     <>
                       <Loader2 className="size-4 animate-spin" />
-                      <span>Generating with Gemini...</span>
+                      <span>Generating with AI...</span>
                     </>
                   ) : (
                     <>
@@ -404,7 +444,7 @@ export function AiWorkspaceClient() {
                     </div>
 
                     {q.explanation && (
-                      <p className="text-[11px] text-muted-foreground bg-muted/50 p-2.5 rounded-lg">
+                      <p className="text-[11px] text-muted-foreground bg-muted/50 p-2.5 rounded-lg leading-relaxed">
                         <strong>Explanation:</strong> {q.explanation}
                       </p>
                     )}
@@ -423,7 +463,7 @@ export function AiWorkspaceClient() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <Brain className="size-4 text-violet-500" />
-                AI Study Companion (Gemini)
+                AI Study Companion
               </CardTitle>
               <Badge variant="secondary" className="text-[10px] text-violet-600 bg-violet-500/10">
                 Syllabus-Aligned
@@ -457,7 +497,7 @@ export function AiWorkspaceClient() {
             {isThinking && (
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Loader2 className="size-4 animate-spin text-violet-500" />
-                <span>Thinking & analyzing curriculum with Gemini...</span>
+                <span>Thinking & analyzing curriculum with AI...</span>
               </div>
             )}
           </CardContent>
@@ -490,13 +530,14 @@ export function AiWorkspaceClient() {
                 onChange={(e) => setChatInput(e.target.value)}
                 placeholder="Ask anything about your coursework, equations, or concepts..."
                 className="flex-1 h-10 border-border/80 bg-card text-xs"
+                disabled={isThinking}
               />
               <Button
                 type="submit"
                 disabled={isThinking || !chatInput.trim()}
                 className="bg-violet-600 hover:bg-violet-700 text-white h-10 px-4"
               >
-                <Send className="size-4" />
+                {isThinking ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </Button>
             </form>
           </div>
