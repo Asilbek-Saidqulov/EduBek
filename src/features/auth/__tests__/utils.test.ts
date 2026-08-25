@@ -9,6 +9,9 @@ import {
   isSessionExpired,
   isSessionRevoked,
   isUserBanned,
+  normalizeEmail,
+  normalizeUsername,
+  generateUsernameCandidate,
 } from '../auth.utils';
 
 describe('Auth Utilities', () => {
@@ -103,9 +106,8 @@ describe('Auth Utilities', () => {
       expect(hash).toMatch(/^[a-f0-9]{64}$/);
     });
 
-    it('should throw error if salt is missing', () => {
+    it('should throw error if empty salt is explicitly provided and no fallback', () => {
       const ip = '192.168.1.1';
-
       expect(() => hashIp(ip, '')).toThrow('IP_SALT environment variable is required');
     });
 
@@ -126,7 +128,6 @@ describe('Auth Utilities', () => {
       const now = new Date();
       const diffMs = expiration.getTime() - now.getTime();
       const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      // Allow for 6 or 7 days due to timezone/day boundary
       expect(diffDays).toBeGreaterThanOrEqual(6);
       expect(diffDays).toBeLessThanOrEqual(7);
     });
@@ -173,6 +174,21 @@ describe('Auth Utilities', () => {
     it('should not detect non-banned user', () => {
       expect(isUserBanned(false, null)).toBe(false);
       expect(isUserBanned(false, new Date())).toBe(false);
+    });
+  });
+
+  describe('Normalization and Candidate Helpers', () => {
+    it('should normalize email to lowercase and trim', () => {
+      expect(normalizeEmail('  Test.User@Example.COM  ')).toBe('test.user@example.com');
+    });
+
+    it('should normalize username by trimming', () => {
+      expect(normalizeUsername('  cool_coder  ')).toBe('cool_coder');
+    });
+
+    it('should generate valid username candidate from email or name', () => {
+      const candidate = generateUsernameCandidate('john.doe@example.com');
+      expect(candidate).toMatch(/^[a-z0-9_]{3,30}$/);
     });
   });
 });

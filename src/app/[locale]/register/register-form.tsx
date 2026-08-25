@@ -32,7 +32,7 @@ const registerSchema = z
     name: z
       .string()
       .trim()
-      .min(1, { message: "Name is required" })
+      .min(2, { message: "Name must be at least 2 characters" })
       .max(100, { message: "Name is too long" }),
     email: z
       .string()
@@ -55,6 +55,7 @@ const registerSchema = z
     path: ["confirmPassword"],
     message: "Passwords do not match",
   });
+
 
 type RegisterValues = z.infer<typeof registerSchema>;
 

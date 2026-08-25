@@ -1,6 +1,6 @@
 import { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
-import { conflict, unauthorized, internalError } from "@/lib/errors";
+import { conflict, unauthorized, internalError, ApiError } from "@/lib/errors";
 import { type LoginInput, type RegisterInput, type UpdateProfileInput } from "./auth.schema";
 import {
   hashPassword,
@@ -131,7 +131,13 @@ export async function loginUser(input: LoginInput & {
       },
     };
   } catch (error) {
-    if (error instanceof Error && error.message === "Invalid credentials") {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    if (
+      error instanceof Error &&
+      (error.message === "Invalid credentials" || error.message === "Account is banned")
+    ) {
       throw error;
     }
     console.error("Login error:", error);
@@ -139,16 +145,15 @@ export async function loginUser(input: LoginInput & {
   }
 }
 
+
 export async function registerUser(input: RegisterInput & {
   userAgent?: string;
   ipAddress?: string;
 }): Promise<RegisterResult> {
   const normalizedEmail = normalizeEmail(input.email);
-  const normalizedUsername = normalizeUsername(input.username);
 
   try {
-    // These checks improve UX, but database unique constraints remain
-    // the final protection against concurrent registrations.
+    // 1. Email uniqueness check
     const existingEmail = await db.user.findUnique({
       where: { email: normalizedEmail },
     });
@@ -157,12 +162,34 @@ export async function registerUser(input: RegisterInput & {
       throw conflict("User with this email already exists");
     }
 
-    const existingUsername = await db.user.findUnique({
-      where: { username: normalizedUsername },
-    });
+    // 2. Determine and validate username
+    let normalizedUsername: string;
+    if (input.username && input.username.trim().length > 0) {
+      normalizedUsername = normalizeUsername(input.username);
+      const existingUsername = await db.user.findUnique({
+        where: { username: normalizedUsername },
+      });
 
-    if (existingUsername) {
-      throw conflict("Username already taken");
+      if (existingUsername) {
+        throw conflict("Username already taken");
+      }
+    } else {
+      // Safely generate a unique username candidate from name/email
+      const baseCandidate = (input.name || input.email.split("@")[0])
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, "")
+        .slice(0, 18);
+      const prefix = baseCandidate.length >= 3 ? baseCandidate : `user_${baseCandidate || "edu"}`;
+
+      let candidate = `${prefix.slice(0, 20)}_${Math.floor(1000 + Math.random() * 9000)}`;
+      for (let i = 0; i < 5; i++) {
+        const existing = await db.user.findUnique({
+          where: { username: candidate },
+        });
+        if (!existing) break;
+        candidate = `${prefix.slice(0, 18)}_${Math.floor(10000 + Math.random() * 90000)}`;
+      }
+      normalizedUsername = candidate;
     }
 
     // Password hashing happens before the transaction so expensive bcrypt
@@ -284,6 +311,7 @@ export async function registerUser(input: RegisterInput & {
   }
 }
 
+
 export async function getCurrentUser(userId: string) {
   try {
     const user = await db.user.findUnique({
@@ -326,9 +354,14 @@ export async function getCurrentUser(userId: string) {
 
 export async function updateMyProfile(userId: string, input: UpdateProfileInput) {
   try {
+    const updateData: UpdateProfileInput = { ...input };
+    if (updateData.username) {
+      updateData.username = normalizeUsername(updateData.username);
+    }
+
     const updated = await db.user.update({
       where: { id: userId },
-      data: input,
+      data: updateData,
       include: {
         roles: true,
       },
@@ -350,6 +383,12 @@ export async function updateMyProfile(userId: string, input: UpdateProfileInput)
       platformRoles: platformRoles.length > 0 ? platformRoles : ["STUDENT"],
     };
   } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw conflict("Username already taken");
+    }
     console.error("Update profile error:", error);
     throw internalError("Profile update failed");
   }
@@ -449,8 +488,6 @@ export async function refreshSession(
       throw unauthorized("Invalid or expired refresh token");
     }
 
-
-
     // Generate the replacement token pair.
     const newSessionToken = generateSecureToken();
     const newRefreshToken = generateSecureToken();
@@ -460,27 +497,7 @@ export async function refreshSession(
 
     const sessionExpiresAt = calculateExpiration(7);
     const refreshExpiresAt = calculateExpiration(30);
-    
-    const updated = await db.userSession.updateMany({
-      where: {
-        id: session.id,
-        refreshTokenHash,
-        revokedAt: null,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      data: {
-        sessionTokenHash: newSessionTokenHash,
-        refreshTokenHash: newRefreshTokenHash,
-        expiresAt: refreshExpiresAt,
-        lastUsedAt: new Date(),
-      },
-    });
 
-    if (updated.count !== 1) {
-      throw unauthorized("Invalid or expired refresh token");
-    }
     /*
      * Atomic compare-and-swap.
      *
@@ -559,4 +576,5 @@ export async function refreshSession(
     throw unauthorized("Session refresh failed");
   }
 }
+
 

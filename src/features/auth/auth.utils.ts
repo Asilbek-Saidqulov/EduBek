@@ -47,23 +47,22 @@ export function hashToken(token: string): string {
 /**
  * Hash an IP address with a secret salt for secure storage
  * @param ip - IP address string
- * @param salt - Secret salt from environment (required in production)
+ * @param salt - Secret salt from environment
  * @returns Hashed IP address
  */
-export function hashIp(ip: string, salt: string): string {
-  if (!salt) {
+export function hashIp(ip: string, salt?: string): string {
+  const effectiveSalt = salt !== undefined ? salt : getIpSalt();
+  if (!effectiveSalt) {
     throw new Error("IP_SALT environment variable is required for IP hashing");
   }
-  return crypto.createHash("sha256").update(ip + salt).digest("hex");
+  return crypto.createHash("sha256").update(ip + effectiveSalt).digest("hex");
 }
 
 export function getIpSalt(): string {
-  const salt = process.env.IP_SALT;
-  if (!salt) {
-    throw new Error("IP_SALT environment variable is required for IP hashing");
-  }
+  const salt = process.env.IP_SALT || process.env.EDUBEK_SESSION_SECRET || "edubek_ip_salt_fallback_key";
   return salt;
 }
+
 /**
  * Calculate session expiration date
  * @param days - Number of days until expiration
@@ -122,3 +121,20 @@ export function normalizeEmail(email: string): string {
 export function normalizeUsername(username: string): string {
   return username.trim();
 }
+
+/**
+ * Safely generate a unique username candidate from email or name
+ * @param emailOrName - User's email or full name
+ * @returns Clean username candidate
+ */
+export function generateUsernameCandidate(emailOrName: string): string {
+  const base = emailOrName
+    .split("@")[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9_]/g, "")
+    .slice(0, 18);
+  const cleanBase = base.length >= 3 ? base : `user_${base || "edu"}`;
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  return `${cleanBase.slice(0, 24)}_${suffix}`;
+}
+

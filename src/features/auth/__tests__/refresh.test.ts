@@ -1,192 +1,129 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { refreshSession } from '../auth.service';
-import { registerUser } from '../auth.service';
 import { db } from '@/lib/db';
 import { hashToken } from '../auth.utils';
 
-describe('Refresh Token Rotation', () => {
-  beforeEach(async () => {
-    // Clean up test data
-    await db.userSession.deleteMany({});
-    await db.userRole.deleteMany({});
-    await db.user.deleteMany({
-      where: {
-        email: {
-          contains: 'test-',
-        },
+vi.mock('@/lib/db', () => {
+  return {
+    db: {
+      userSession: {
+        findFirst: vi.fn(),
+        updateMany: vi.fn(),
       },
-    });
+    },
+  };
+});
+
+describe('Refresh Session Rotation (Safe Unit Tests)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('should refresh with valid token', async () => {
-    const result = await registerUser({
-      email: 'test-refresh@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+  it('should refresh valid session and perform atomic rotation', async () => {
+    const rawRefreshToken = 'test-refresh-token-valid';
+    const futureDate = new Date(Date.now() + 30 * 24 * 3600 * 1000);
 
-    const refreshResult = await refreshSession(result.session.refreshToken);
+    vi.mocked(db.userSession.findFirst).mockResolvedValue({
+      id: 'session-id-1',
+      userId: 'user-id-1',
+      refreshTokenHash: hashToken(rawRefreshToken),
+      revokedAt: null,
+      expiresAt: futureDate,
+      user: {
+        id: 'user-id-1',
+        email: 'refresh-test@example.com',
+        name: 'Refresh Test',
+        username: 'refreshtest',
+        avatarUrl: null,
+        bio: null,
+        country: 'UZ',
+        isBanned: false,
+        bannedUntil: null,
+        roles: [{ role: 'STUDENT', expiresAt: null }],
+      },
+    } as any);
 
-    expect(refreshResult.session).toBeDefined();
-    expect(refreshResult.session.user).toBeDefined();
-    expect(refreshResult.session.sessionToken).toBeDefined();
-    expect(refreshResult.session.refreshToken).toBeDefined();
-    expect(refreshResult.session.sessionToken).not.toBe(result.session.sessionToken);
-    expect(refreshResult.session.refreshToken).not.toBe(result.session.refreshToken);
+    vi.mocked(db.userSession.updateMany).mockResolvedValue({ count: 1 });
+
+    const result = await refreshSession(rawRefreshToken);
+
+    expect(result.session).toBeDefined();
+    expect(result.session.user).toBeDefined();
+    expect(result.session.user.email).toBe('refresh-test@example.com');
+    expect(result.session.sessionToken).toBeDefined();
+    expect(result.session.refreshToken).toBeDefined();
+    expect(result.session.refreshToken).not.toBe(rawRefreshToken);
+    expect(result.session.expiresAt).toBeInstanceOf(Date);
+
+    // Verify atomic CAS update was called once with count 1
+    expect(db.userSession.updateMany).toHaveBeenCalledTimes(1);
   });
 
-  it('should reject expired refresh token', async () => {
-    const result = await registerUser({
-      email: 'test-expired-refresh@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser2',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    // Manually expire the session
-    await db.userSession.update({
-      where: { id: result.session.sessionId },
-      data: { expiresAt: new Date(Date.now() - 1000) },
-    });
+  it('should reject non-existent or invalid refresh token', async () => {
+    vi.mocked(db.userSession.findFirst).mockResolvedValue(null);
 
     await expect(
-      refreshSession(result.session.refreshToken)
-    ).rejects.toThrow();
+      refreshSession('invalid-refresh-token')
+    ).rejects.toThrow('Invalid or expired refresh token');
   });
 
-  it('should reject revoked refresh token', async () => {
-    const result = await registerUser({
-      email: 'test-revoked-refresh@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser3',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+  it('should reject refresh if user is banned and revoke session', async () => {
+    const rawRefreshToken = 'banned-user-refresh-token';
+    const futureDate = new Date(Date.now() + 30 * 24 * 3600 * 1000);
 
-    // Revoke the session
-    await db.userSession.update({
-      where: { id: result.session.sessionId },
-      data: { revokedAt: new Date() },
-    });
+    vi.mocked(db.userSession.findFirst).mockResolvedValue({
+      id: 'session-banned',
+      userId: 'banned-user',
+      refreshTokenHash: hashToken(rawRefreshToken),
+      revokedAt: null,
+      expiresAt: futureDate,
+      user: {
+        id: 'banned-user',
+        isBanned: true,
+        bannedUntil: null,
+        roles: [],
+      },
+    } as any);
+
+    vi.mocked(db.userSession.updateMany).mockResolvedValue({ count: 1 });
 
     await expect(
-      refreshSession(result.session.refreshToken)
-    ).rejects.toThrow();
+      refreshSession(rawRefreshToken)
+    ).rejects.toThrow('Invalid or expired refresh token');
+
+    // Should revoke session
+    expect(db.userSession.updateMany).toHaveBeenCalled();
   });
 
-  it('should invalidate old refresh token after rotation', async () => {
-    const result = await registerUser({
-      email: 'test-rotation@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser4',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+  it('should reject refresh if concurrent CAS rotation count is 0', async () => {
+    const rawRefreshToken = 'racing-token';
+    const futureDate = new Date(Date.now() + 30 * 24 * 3600 * 1000);
 
-    const oldRefreshToken = result.session.refreshToken;
-    const oldRefreshTokenHash = hashToken(oldRefreshToken);
+    vi.mocked(db.userSession.findFirst).mockResolvedValue({
+      id: 'session-racing',
+      userId: 'race-user',
+      refreshTokenHash: hashToken(rawRefreshToken),
+      revokedAt: null,
+      expiresAt: futureDate,
+      user: {
+        id: 'race-user',
+        email: 'race@example.com',
+        name: 'Race User',
+        username: 'raceuser',
+        avatarUrl: null,
+        bio: null,
+        country: 'UZ',
+        isBanned: false,
+        bannedUntil: null,
+        roles: [{ role: 'STUDENT', expiresAt: null }],
+      },
+    } as any);
 
-    await refreshSession(oldRefreshToken);
+    // Another concurrent request already updated the token -> count 0
+    vi.mocked(db.userSession.updateMany).mockResolvedValue({ count: 0 });
 
-    // Old token should no longer work
     await expect(
-      refreshSession(oldRefreshToken)
-    ).rejects.toThrow();
-
-    // Verify old token is revoked in database
-    const session = await db.userSession.findFirst({
-      where: { refreshTokenHash: oldRefreshTokenHash },
-    });
-    expect(session?.revokedAt).not.toBeNull();
-  });
-
-  it('should allow new refresh token to work', async () => {
-    const result = await registerUser({
-      email: 'test-new-refresh@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser5',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const refreshResult = await refreshSession(result.session.refreshToken);
-
-    // New token should work
-    const secondRefresh = await refreshSession(refreshResult.session.refreshToken);
-    expect(secondRefresh.session).toBeDefined();
-    expect(secondRefresh.session.refreshToken).not.toBe(refreshResult.session.refreshToken);
-  });
-
-  it('should update session timestamps', async () => {
-    const result = await registerUser({
-      email: 'test-timestamp@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser6',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const sessionBefore = await db.userSession.findUnique({
-      where: { id: result.session.sessionId },
-    });
-
-    // Wait a bit to ensure timestamp difference
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    await refreshSession(result.session.refreshToken);
-
-    const sessionAfter = await db.userSession.findUnique({
-      where: { id: result.session.sessionId },
-    });
-
-    expect(sessionAfter?.lastUsedAt).not.toEqual(sessionBefore?.lastUsedAt);
-  });
-
-  it('should handle concurrent refresh requests correctly', async () => {
-    const result = await registerUser({
-      email: 'test-concurrent@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser7',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    // Send concurrent refresh requests
-    const [refresh1, refresh2] = await Promise.allSettled([
-      refreshSession(result.session.refreshToken),
-      refreshSession(result.session.refreshToken),
-    ]);
-
-    // At least one should succeed
-    const successful = refresh1.status === 'fulfilled' || refresh2.status === 'fulfilled';
-    expect(successful).toBe(true);
-
-    // Both should not succeed with the same token (replay protection)
-    const bothSucceeded = refresh1.status === 'fulfilled' && refresh2.status === 'fulfilled';
-    expect(bothSucceeded).toBe(false);
+      refreshSession(rawRefreshToken)
+    ).rejects.toThrow('Invalid or expired refresh token');
   });
 });

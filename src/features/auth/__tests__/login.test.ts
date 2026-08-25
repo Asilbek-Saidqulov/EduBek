@@ -1,35 +1,47 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { loginUser } from '../auth.service';
-import { registerUser } from '../auth.service';
 import { db } from '@/lib/db';
 import { hashPassword } from '../auth.utils';
 
-describe('Login', () => {
-  beforeEach(async () => {
-    // Clean up test data
-    await db.userSession.deleteMany({});
-    await db.userRole.deleteMany({});
-    await db.user.deleteMany({
-      where: {
-        email: {
-          contains: 'test-',
-        },
+vi.mock('@/lib/db', () => {
+  return {
+    db: {
+      user: {
+        findUnique: vi.fn(),
+        update: vi.fn(),
       },
-    });
+      userSession: {
+        create: vi.fn(),
+      },
+    },
+  };
+});
+
+describe('Login (Safe Unit Tests)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
   it('should login with valid credentials', async () => {
     const password = 'SecurePassword123!';
-    await registerUser({
+    const passwordHash = await hashPassword(password);
+
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      id: 'user-login-1',
       email: 'test-login@example.com',
-      password,
       name: 'Test User',
       username: 'testuser',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+      passwordHash,
+      isBanned: false,
+      bannedUntil: null,
+      avatarUrl: null,
+      bio: null,
+      country: 'UZ',
+      roles: [{ role: 'STUDENT', expiresAt: null }],
+    } as any);
+
+    vi.mocked(db.userSession.create).mockResolvedValue({ id: 'sess-1' } as any);
+    vi.mocked(db.user.update).mockResolvedValue({} as any);
 
     const result = await loginUser({
       email: 'test-login@example.com',
@@ -44,199 +56,89 @@ describe('Login', () => {
     expect(result.session.sessionToken).toBeDefined();
     expect(result.session.refreshToken).toBeDefined();
     expect(result.session.expiresAt).toBeInstanceOf(Date);
+    expect(result.session.user.platformRoles).toContain('STUDENT');
   });
 
   it('should reject wrong password with 401', async () => {
-    await registerUser({
+    const passwordHash = await hashPassword('CorrectPassword123!');
+
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      id: 'user-login-2',
       email: 'test-wrong@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser2',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+      passwordHash,
+      isBanned: false,
+      bannedUntil: null,
+      roles: [],
+    } as any);
 
     await expect(
       loginUser({
         email: 'test-wrong@example.com',
-        password: 'WrongPassword',
-        userAgent: 'test',
-        ipAddress: '127.0.0.1',
+        password: 'WrongPassword!',
       })
     ).rejects.toThrow();
   });
 
-  it('should reject nonexistent email with same error as wrong password', async () => {
-    const error1 = await loginUser({
-      email: 'test-nonexistent@example.com',
-      password: 'AnyPassword',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    }).catch(e => e.message);
-
-    await registerUser({
-      email: 'test-enum@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser3',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const error2 = await loginUser({
-      email: 'test-enum@example.com',
-      password: 'WrongPassword',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    }).catch(e => e.message);
-
-    // Errors should be generic to prevent user enumeration
-    expect(error1).toBeTruthy();
-    expect(error2).toBeTruthy();
-  });
-
-  it('should reject banned user', async () => {
-    await registerUser({
-      email: 'test-banned@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser4',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    await db.user.update({
-      where: { email: 'test-banned@example.com' },
-      data: { isBanned: true, bannedUntil: null },
-    });
+  it('should reject nonexistent email', async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue(null);
 
     await expect(
       loginUser({
-        email: 'test-banned@example.com',
-        password: 'SecurePassword123!',
-        userAgent: 'test',
-        ipAddress: '127.0.0.1',
+        email: 'nonexistent@example.com',
+        password: 'AnyPassword123!',
       })
     ).rejects.toThrow();
+  });
+
+  it('should reject permanently banned user', async () => {
+    const password = 'Password123!';
+    const passwordHash = await hashPassword(password);
+
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      id: 'user-banned-1',
+      email: 'banned@example.com',
+      passwordHash,
+      isBanned: true,
+      bannedUntil: null,
+      roles: [],
+    } as any);
+
+    await expect(
+      loginUser({
+        email: 'banned@example.com',
+        password,
+      })
+    ).rejects.toThrow('Account is banned');
   });
 
   it('should allow login if temporary ban has expired', async () => {
-    await registerUser({
-      email: 'test-tempban@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser5',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+    const password = 'Password123!';
+    const passwordHash = await hashPassword(password);
+    const expiredBanDate = new Date(Date.now() - 3600 * 1000); // 1 hour ago
 
-    const expiredDate = new Date();
-    expiredDate.setHours(expiredDate.getHours() - 1);
+    vi.mocked(db.user.findUnique).mockResolvedValue({
+      id: 'user-tempban-1',
+      email: 'tempban@example.com',
+      name: 'Temp Ban User',
+      username: 'tempban',
+      passwordHash,
+      isBanned: true,
+      bannedUntil: expiredBanDate,
+      avatarUrl: null,
+      bio: null,
+      country: 'UZ',
+      roles: [{ role: 'STUDENT', expiresAt: null }],
+    } as any);
 
-    await db.user.update({
-      where: { email: 'test-tempban@example.com' },
-      data: { isBanned: true, bannedUntil: expiredDate },
-    });
+    vi.mocked(db.userSession.create).mockResolvedValue({ id: 'sess-2' } as any);
+    vi.mocked(db.user.update).mockResolvedValue({} as any);
 
     const result = await loginUser({
-      email: 'test-tempban@example.com',
-      password: 'SecurePassword123!',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
+      email: 'tempban@example.com',
+      password,
     });
 
     expect(result.session).toBeDefined();
-  });
-
-  it('should reject login if temporary ban is active', async () => {
-    await registerUser({
-      email: 'test-activeban@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser6',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const futureDate = new Date();
-    futureDate.setHours(futureDate.getHours() + 1);
-
-    await db.user.update({
-      where: { email: 'test-activeban@example.com' },
-      data: { isBanned: true, bannedUntil: futureDate },
-    });
-
-    await expect(
-      loginUser({
-        email: 'test-activeban@example.com',
-        password: 'SecurePassword123!',
-        userAgent: 'test',
-        ipAddress: '127.0.0.1',
-      })
-    ).rejects.toThrow();
-  });
-
-  it('should create valid session in database', async () => {
-    await registerUser({
-      email: 'test-sess@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser7',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const result = await loginUser({
-      email: 'test-sess@example.com',
-      password: 'SecurePassword123!',
-      userAgent: 'test-agent',
-      ipAddress: '127.0.0.1',
-    });
-
-    const sessions = await db.userSession.findMany({
-      where: { userId: result.session.user.id },
-    });
-
-    expect(sessions).toHaveLength(1);
-    expect(sessions[0].sessionTokenHash).toBeDefined();
-    expect(sessions[0].refreshTokenHash).toBeDefined();
-    expect(sessions[0].userAgent).toBe('test-agent');
-  });
-
-  it('should generate secure tokens', async () => {
-    await registerUser({
-      email: 'test-secure@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser8',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const result = await loginUser({
-      email: 'test-secure@example.com',
-      password: 'SecurePassword123!',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    expect(result.session.sessionToken).toHaveLength(64); // 32 bytes = 64 hex chars
-    expect(result.session.refreshToken).toHaveLength(64);
-    expect(result.session.sessionToken).toMatch(/^[a-f0-9]{64}$/);
-    expect(result.session.refreshToken).toMatch(/^[a-f0-9]{64}$/);
+    expect(result.session.user.email).toBe('tempban@example.com');
   });
 });

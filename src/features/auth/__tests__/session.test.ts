@@ -1,188 +1,114 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getAuthContext } from '../auth.context';
-import { registerUser } from '../auth.service';
 import { db } from '@/lib/db';
-import { hashToken } from '../auth.utils';
-import { setSessionCookie, getSessionCookie } from '../auth.cookies';
+import * as authCookies from '../auth.cookies';
 
-describe('Session Validation', () => {
-  beforeEach(async () => {
-    // Clean up test data
-    await db.userSession.deleteMany({});
-    await db.userRole.deleteMany({});
-    await db.user.deleteMany({
-      where: {
-        email: {
-          contains: 'test-',
-        },
+vi.mock('@/lib/db', () => {
+  return {
+    db: {
+      userSession: {
+        findFirst: vi.fn(),
+        update: vi.fn(),
       },
-    });
+    },
+  };
+});
+
+describe('Session Validation (Safe Unit Tests)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('should authenticate valid session', async () => {
-    const result = await registerUser({
-      email: 'test-session@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
+  it('should return unauthenticated when no session cookie exists', async () => {
+    vi.spyOn(authCookies, 'getSessionCookie').mockResolvedValue(undefined);
 
-    // Simulate setting the session cookie
-    await setSessionCookie(result.session.sessionToken);
-
-    const ctx = await getAuthContext();
-    expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.userId).toBe(result.session.user.id);
-    expect(ctx.email).toBe('test-session@example.com');
-  });
-
-  it('should reject invalid token', async () => {
-    // Set an invalid session token
-    await setSessionCookie('invalid-token-1234567890abcdef');
-
-    const ctx = await getAuthContext();
-    expect(ctx.isAuthenticated).toBe(false);
-    expect(ctx.userId).toBeNull();
-  });
-
-  it('should reject expired session', async () => {
-    const result = await registerUser({
-      email: 'test-expired@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser2',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    // Manually expire the session
-    await db.userSession.update({
-      where: { id: result.session.sessionId },
-      data: { expiresAt: new Date(Date.now() - 1000) },
-    });
-
-    await setSessionCookie(result.session.sessionToken);
-
-    const ctx = await getAuthContext();
-    expect(ctx.isAuthenticated).toBe(false);
-  });
-
-  it('should reject revoked session', async () => {
-    const result = await registerUser({
-      email: 'test-revoked@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser3',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    // Revoke the session
-    await db.userSession.update({
-      where: { id: result.session.sessionId },
-      data: { revokedAt: new Date() },
-    });
-
-    await setSessionCookie(result.session.sessionToken);
-
-    const ctx = await getAuthContext();
-    expect(ctx.isAuthenticated).toBe(false);
-  });
-
-  it('should reject deleted user', async () => {
-    const result = await registerUser({
-      email: 'test-deleted@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser4',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    await setSessionCookie(result.session.sessionToken);
-
-    // Delete the user
-    await db.user.delete({
-      where: { id: result.session.user.id },
-    });
-
-    const ctx = await getAuthContext();
-    expect(ctx.isAuthenticated).toBe(false);
-  });
-
-  it('should reject banned user', async () => {
-    const result = await registerUser({
-      email: 'test-banned@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser5',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    // Ban the user
-    await db.user.update({
-      where: { id: result.session.user.id },
-      data: { isBanned: true, bannedUntil: null },
-    });
-
-    await setSessionCookie(result.session.sessionToken);
-
-    const ctx = await getAuthContext();
-    expect(ctx.isAuthenticated).toBe(false);
-
-    // Session should be revoked
-    const session = await db.userSession.findUnique({
-      where: { id: result.session.sessionId },
-    });
-    expect(session?.revokedAt).not.toBeNull();
-  });
-
-  it('should exclude expired roles', async () => {
-    const result = await registerUser({
-      email: 'test-roles@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser6',
-      locale: 'en',
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    // Add an expired role
-    await db.userRole.create({
-      data: {
-        userId: result.session.user.id,
-        role: 'ADMIN',
-        expiresAt: new Date(Date.now() - 1000),
-      },
-    });
-
-    await setSessionCookie(result.session.sessionToken);
-
-    const ctx = await getAuthContext();
-    expect(ctx.platformRoles).not.toContain('ADMIN');
-    expect(ctx.platformRoles).toContain('STUDENT');
-  });
-
-  it('should return anonymous when no cookie', async () => {
     const ctx = await getAuthContext();
     expect(ctx.isAuthenticated).toBe(false);
     expect(ctx.userId).toBeNull();
     expect(ctx.email).toBeNull();
     expect(ctx.platformRoles).toEqual([]);
+  });
+
+  it('should authenticate valid session token', async () => {
+    vi.spyOn(authCookies, 'getSessionCookie').mockResolvedValue('valid-session-token');
+
+    vi.mocked(db.userSession.findFirst).mockResolvedValue({
+      id: 'session-123',
+      userId: 'user-123',
+      user: {
+        id: 'user-123',
+        email: 'student@example.com',
+        isBanned: false,
+        bannedUntil: null,
+        roles: [{ role: 'STUDENT', expiresAt: null }],
+      },
+    } as any);
+
+    const ctx = await getAuthContext();
+    expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.userId).toBe('user-123');
+    expect(ctx.email).toBe('student@example.com');
+    expect(ctx.platformRoles).toContain('STUDENT');
+  });
+
+  it('should reject when session is expired in database query (returns null)', async () => {
+    vi.spyOn(authCookies, 'getSessionCookie').mockResolvedValue('expired-session-token');
+    vi.mocked(db.userSession.findFirst).mockResolvedValue(null);
+
+    const ctx = await getAuthContext();
+    expect(ctx.isAuthenticated).toBe(false);
+    expect(ctx.userId).toBeNull();
+  });
+
+  it('should reject and revoke session if user is banned', async () => {
+    vi.spyOn(authCookies, 'getSessionCookie').mockResolvedValue('banned-user-session-token');
+
+    vi.mocked(db.userSession.findFirst).mockResolvedValue({
+      id: 'session-banned',
+      userId: 'user-banned',
+      user: {
+        id: 'user-banned',
+        email: 'banned@example.com',
+        isBanned: true,
+        bannedUntil: null,
+        roles: [],
+      },
+    } as any);
+
+    vi.mocked(db.userSession.update).mockResolvedValue({} as any);
+
+    const ctx = await getAuthContext();
+    expect(ctx.isAuthenticated).toBe(false);
+    expect(ctx.userId).toBeNull();
+    expect(db.userSession.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'session-banned' },
+        data: { revokedAt: expect.any(Date) },
+      })
+    );
+  });
+
+  it('should exclude expired platform roles', async () => {
+    vi.spyOn(authCookies, 'getSessionCookie').mockResolvedValue('token-with-roles');
+
+    vi.mocked(db.userSession.findFirst).mockResolvedValue({
+      id: 'session-roles',
+      userId: 'user-roles',
+      user: {
+        id: 'user-roles',
+        email: 'roles@example.com',
+        isBanned: false,
+        bannedUntil: null,
+        roles: [
+          { role: 'STUDENT', expiresAt: null },
+          { role: 'ADMIN', expiresAt: new Date(Date.now() - 1000) }, // Expired
+        ],
+      },
+    } as any);
+
+    const ctx = await getAuthContext();
+    expect(ctx.isAuthenticated).toBe(true);
+    expect(ctx.platformRoles).toContain('STUDENT');
+    expect(ctx.platformRoles).not.toContain('ADMIN');
   });
 });

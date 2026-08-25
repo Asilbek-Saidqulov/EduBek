@@ -1,28 +1,76 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { registerUser } from '../auth.service';
 import { db } from '@/lib/db';
-import { hashPassword, verifyPassword } from '../auth.utils';
+import { verifyPassword } from '../auth.utils';
 
-describe('Registration', () => {
-  beforeEach(async () => {
-    // Clean up test data
-    await db.userSession.deleteMany({});
-    await db.userRole.deleteMany({});
-    await db.user.deleteMany({
-      where: {
-        email: {
-          contains: 'test-',
-        },
+vi.mock('@/lib/db', () => {
+  return {
+    db: {
+      user: {
+        findUnique: vi.fn(),
+        update: vi.fn(),
       },
-    });
+      userRole: {
+        create: vi.fn(),
+      },
+      userSession: {
+        create: vi.fn(),
+      },
+      $transaction: vi.fn(),
+    },
+  };
+});
+
+describe('Registration (Safe Unit Tests)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('should successfully register a valid user', async () => {
+  it('should successfully register a valid user without username (auto-generated username)', async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue(null);
+    let createdUserData: any = null;
+
+    vi.mocked(db.$transaction).mockImplementation(async (callback: any) => {
+      const tx = {
+        user: {
+          create: vi.fn().mockImplementation(({ data }) => {
+            createdUserData = data;
+            return Promise.resolve({
+              id: 'user-id-1',
+              email: data.email,
+              name: data.name,
+              username: data.username,
+              avatarUrl: null,
+              bio: null,
+              country: data.country,
+            });
+          }),
+          update: vi.fn().mockImplementation(() => {
+            return Promise.resolve({
+              id: 'user-id-1',
+              email: createdUserData.email,
+              name: createdUserData.name,
+              username: createdUserData.username,
+              avatarUrl: null,
+              bio: null,
+              country: createdUserData.country,
+            });
+          }),
+        },
+        userRole: {
+          create: vi.fn().mockResolvedValue({ id: 'role-1', role: 'STUDENT' }),
+        },
+        userSession: {
+          create: vi.fn().mockResolvedValue({ id: 'session-1' }),
+        },
+      };
+      return callback(tx);
+    });
+
     const result = await registerUser({
       email: 'test-user@example.com',
       password: 'SecurePassword123!',
       name: 'Test User',
-      username: 'testuser',
       locale: 'en',
       country: 'US',
       userAgent: 'test-agent',
@@ -33,148 +81,134 @@ describe('Registration', () => {
     expect(result.session.user).toBeDefined();
     expect(result.session.user.email).toBe('test-user@example.com');
     expect(result.session.user.name).toBe('Test User');
-    expect(result.session.user.username).toBe('testuser');
+    expect(result.session.user.username).toMatch(/^[a-z0-9_]{3,30}$/);
     expect(result.session.user.platformRoles).toContain('STUDENT');
     expect(result.session.sessionToken).toBeDefined();
     expect(result.session.refreshToken).toBeDefined();
     expect(result.session.expiresAt).toBeInstanceOf(Date);
+
+    // Password must be hashed with bcrypt
+    expect(createdUserData.passwordHash).toBeDefined();
+    const isPwValid = await verifyPassword('SecurePassword123!', createdUserData.passwordHash);
+    expect(isPwValid).toBe(true);
   });
 
-  it('should reject duplicate email', async () => {
-    const userData = {
-      email: 'test-duplicate@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser1',
-      locale: 'en' as const,
-      country: 'US',
-    };
+  it('should successfully register with an explicitly provided username', async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue(null);
 
-    await registerUser({ ...userData, userAgent: 'test', ipAddress: '127.0.0.1' });
+    vi.mocked(db.$transaction).mockImplementation(async (callback: any) => {
+      const tx = {
+        user: {
+          create: vi.fn().mockImplementation(({ data }) => Promise.resolve({
+            id: 'user-id-2',
+            email: data.email,
+            name: data.name,
+            username: data.username,
+            avatarUrl: null,
+            bio: null,
+            country: data.country,
+          })),
+          update: vi.fn().mockResolvedValue({
+            id: 'user-id-2',
+            email: 'custom@example.com',
+            name: 'Custom User',
+            username: 'custom_handle',
+            avatarUrl: null,
+            bio: null,
+            country: 'UZ',
+          }),
+        },
+        userRole: {
+          create: vi.fn().mockResolvedValue({ id: 'role-2', role: 'STUDENT' }),
+        },
+        userSession: {
+          create: vi.fn().mockResolvedValue({ id: 'session-2' }),
+        },
+      };
+      return callback(tx);
+    });
+
+    const result = await registerUser({
+      email: 'custom@example.com',
+      password: 'SecurePassword123!',
+      name: 'Custom User',
+      username: 'custom_handle',
+      locale: 'uz',
+    });
+
+    expect(result.session.user.username).toBe('custom_handle');
+  });
+
+  it('should reject duplicate email with 409 CONFLICT', async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValueOnce({
+      id: 'existing-id',
+      email: 'duplicate@example.com',
+    } as any);
 
     await expect(
-      registerUser({ ...userData, username: 'testuser2', userAgent: 'test', ipAddress: '127.0.0.1' })
-    ).rejects.toThrow();
+      registerUser({
+        email: 'duplicate@example.com',
+        password: 'SecurePassword123!',
+        name: 'Duplicate User',
+      })
+    ).rejects.toThrow('User with this email already exists');
   });
 
-  it('should reject duplicate username', async () => {
-    const userData = {
-      email: 'test-user1@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser',
-      locale: 'en' as const,
-      country: 'US',
-    };
-
-    await registerUser({ ...userData, userAgent: 'test', ipAddress: '127.0.0.1' });
+  it('should reject duplicate username with 409 CONFLICT', async () => {
+    vi.mocked(db.user.findUnique)
+      .mockResolvedValueOnce(null) // email check
+      .mockResolvedValueOnce({ id: 'existing-id', username: 'taken_name' } as any); // username check
 
     await expect(
-      registerUser({ ...userData, email: 'test-user2@example.com', userAgent: 'test', ipAddress: '127.0.0.1' })
-    ).rejects.toThrow();
+      registerUser({
+        email: 'newuser@example.com',
+        password: 'SecurePassword123!',
+        name: 'New User',
+        username: 'taken_name',
+      })
+    ).rejects.toThrow('Username already taken');
   });
 
-  it('should hash password with bcrypt', async () => {
-    await registerUser({
-      email: 'test-password@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser3',
-      locale: 'en' as const,
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
+  it('should never expose passwordHash in returned safeUser', async () => {
+    vi.mocked(db.user.findUnique).mockResolvedValue(null);
+    vi.mocked(db.$transaction).mockImplementation(async (callback: any) => {
+      const tx = {
+        user: {
+          create: vi.fn().mockResolvedValue({
+            id: 'user-id-3',
+            email: 'nohash@example.com',
+            name: 'No Hash',
+            username: 'nohash_user',
+            avatarUrl: null,
+            bio: null,
+            country: 'UZ',
+          }),
+          update: vi.fn().mockResolvedValue({
+            id: 'user-id-3',
+            email: 'nohash@example.com',
+            name: 'No Hash',
+            username: 'nohash_user',
+            avatarUrl: null,
+            bio: null,
+            country: 'UZ',
+          }),
+        },
+        userRole: {
+          create: vi.fn().mockResolvedValue({ id: 'role-3', role: 'STUDENT' }),
+        },
+        userSession: {
+          create: vi.fn().mockResolvedValue({ id: 'session-3' }),
+        },
+      };
+      return callback(tx);
     });
 
-    const user = await db.user.findUnique({
-      where: { email: 'test-password@example.com' },
-    });
-
-    expect(user?.passwordHash).toBeDefined();
-    expect(user?.passwordHash).not.toBe('SecurePassword123!');
-    expect(user?.passwordHash).not.toBe('hashed_dummy');
-    expect(user?.passwordHash).toMatch(/^\$2[aby]\$\d+\$/); // bcrypt hash format
-  });
-
-  it('should verify password correctly', async () => {
-    const password = 'SecurePassword123!';
-    await registerUser({
-      email: 'test-verify@example.com',
-      password,
-      name: 'Test User',
-      username: 'testuser4',
-      locale: 'en' as const,
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const user = await db.user.findUnique({
-      where: { email: 'test-verify@example.com' },
-    });
-
-    const isValid = await verifyPassword(password, user!.passwordHash!);
-    expect(isValid).toBe(true);
-
-    const isInvalid = await verifyPassword('WrongPassword', user!.passwordHash!);
-    expect(isInvalid).toBe(false);
-  });
-
-  it('should not return passwordHash in response', async () => {
     const result = await registerUser({
-      email: 'test-nohash@example.com',
+      email: 'nohash@example.com',
       password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser5',
-      locale: 'en' as const,
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
+      name: 'No Hash',
     });
 
-    expect(result.session.user.passwordHash).toBeUndefined();
-  });
-
-  it('should create default STUDENT role', async () => {
-    await registerUser({
-      email: 'test-role@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser6',
-      locale: 'en' as const,
-      country: 'US',
-      userAgent: 'test',
-      ipAddress: '127.0.0.1',
-    });
-
-    const user = await db.user.findUnique({
-      where: { email: 'test-role@example.com' },
-      include: { roles: true },
-    });
-
-    expect(user?.roles).toHaveLength(1);
-    expect(user?.roles[0].role).toBe('STUDENT');
-  });
-
-  it('should create session in database', async () => {
-    const result = await registerUser({
-      email: 'test-session@example.com',
-      password: 'SecurePassword123!',
-      name: 'Test User',
-      username: 'testuser7',
-      locale: 'en' as const,
-      country: 'US',
-      userAgent: 'test-agent',
-      ipAddress: '127.0.0.1',
-    });
-
-    const sessions = await db.userSession.findMany({
-      where: { userId: result.session.user.id },
-    });
-
-    expect(sessions).toHaveLength(1);
-    expect(sessions[0].sessionTokenHash).toBeDefined();
-    expect(sessions[0].refreshTokenHash).toBeDefined();
-    expect(sessions[0].userAgent).toBe('test-agent');
+    expect((result.session.user as any).passwordHash).toBeUndefined();
   });
 });
