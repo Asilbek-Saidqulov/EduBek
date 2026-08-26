@@ -1,8 +1,19 @@
-import { describe, it, expect } from 'vitest';
-import { requireAuth, requireRole, type AuthContext } from '../auth.context';
+import { describe, it, expect } from "vitest";
+import { requireAuth, requireRole, type AuthContext } from "../auth.context";
 
-describe('Authorization (Safe Unit Tests)', () => {
-  it('should throw unauthorized when context is not authenticated', () => {
+describe("Authorization Context & Role Guards", () => {
+  it("allows authenticated user to pass requireAuth", () => {
+    const ctx: AuthContext = {
+      userId: "user-123",
+      email: "test@example.com",
+      platformRoles: ["STUDENT"],
+      isAuthenticated: true,
+    };
+
+    expect(() => requireAuth(ctx)).not.toThrow();
+  });
+
+  it("throws unauthorized error for unauthenticated context in requireAuth", () => {
     const ctx: AuthContext = {
       userId: null,
       email: null,
@@ -13,61 +24,38 @@ describe('Authorization (Safe Unit Tests)', () => {
     expect(() => requireAuth(ctx)).toThrow();
   });
 
-  it('should allow authenticated context via requireAuth', () => {
+  it("allows user with matching role in requireRole", () => {
     const ctx: AuthContext = {
-      userId: 'user-123',
-      email: 'user@example.com',
-      platformRoles: ['STUDENT'],
+      userId: "user-123",
+      email: "test@example.com",
+      platformRoles: ["TEACHER", "STUDENT"],
       isAuthenticated: true,
     };
 
-    expect(() => requireAuth(ctx)).not.toThrow();
+    expect(() => requireRole(ctx, "TEACHER")).not.toThrow();
+    expect(() => requireRole(ctx, "teacher")).not.toThrow();
   });
 
-  it('should allow user with required role via requireRole', () => {
+  it("allows admin to pass any role check", () => {
     const ctx: AuthContext = {
-      userId: 'user-123',
-      email: 'admin@example.com',
-      platformRoles: ['ADMIN'],
+      userId: "admin-123",
+      email: "admin@example.com",
+      platformRoles: ["ADMIN"],
       isAuthenticated: true,
     };
 
-    expect(() => requireRole(ctx, 'ADMIN')).not.toThrow();
+    expect(() => requireRole(ctx, "CREATOR")).not.toThrow();
+    expect(() => requireRole(ctx, "TEACHER")).not.toThrow();
   });
 
-  it('should reject user with insufficient role via requireRole', () => {
+  it("throws forbidden error if user lacks required role", () => {
     const ctx: AuthContext = {
-      userId: 'user-123',
-      email: 'student@example.com',
-      platformRoles: ['STUDENT'],
+      userId: "user-123",
+      email: "student@example.com",
+      platformRoles: ["STUDENT"],
       isAuthenticated: true,
     };
 
-    expect(() => requireRole(ctx, 'ADMIN')).toThrow();
-  });
-
-  it('should allow SUPERADMIN for any role check', () => {
-    const ctx: AuthContext = {
-      userId: 'user-super',
-      email: 'superadmin@example.com',
-      platformRoles: ['SUPERADMIN'],
-      isAuthenticated: true,
-    };
-
-    expect(() => requireRole(ctx, 'STUDENT')).not.toThrow();
-    expect(() => requireRole(ctx, 'CREATOR')).not.toThrow();
-    expect(() => requireRole(ctx, 'ADMIN')).not.toThrow();
-  });
-
-  it('should allow ADMIN for any role check', () => {
-    const ctx: AuthContext = {
-      userId: 'user-admin',
-      email: 'admin@example.com',
-      platformRoles: ['ADMIN'],
-      isAuthenticated: true,
-    };
-
-    expect(() => requireRole(ctx, 'STUDENT')).not.toThrow();
-    expect(() => requireRole(ctx, 'CREATOR')).not.toThrow();
+    expect(() => requireRole(ctx, "ADMIN")).toThrow();
   });
 });

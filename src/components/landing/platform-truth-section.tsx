@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import {
   ShieldCheck,
   Zap,
@@ -12,42 +13,44 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export function PlatformTruthSection() {
+  const t = useTranslations("landing.platformTruth");
+
   const highlights = [
     {
       icon: Zap,
-      title: "Real-Time Game Synchronization",
+      title: t("highlights.sync.title"),
       color: "text-amber-500",
-      description: "Live pin joins, sub-second answer evaluations, and synchronous multi-student classroom arenas.",
+      description: t("highlights.sync.description"),
     },
     {
       icon: Globe2,
-      title: "Full Multilingual Engine",
+      title: t("highlights.multilingual.title"),
       color: "text-blue-500",
-      description: "Complete first-class localization across English, Uzbek (Latin & Cyrillic), and Russian.",
+      description: t("highlights.multilingual.description"),
     },
     {
       icon: Cpu,
-      title: "Contextual Gemini 3.7 AI",
+      title: t("highlights.ai.title"),
       color: "text-violet-500",
-      description: "Embedded directly into lessons and quizzes for step-by-step problem explanations and auto-generation.",
+      description: t("highlights.ai.description"),
     },
     {
       icon: ShieldCheck,
-      title: "Verified Educational Content",
+      title: t("highlights.verified.title"),
       color: "text-emerald-500",
-      description: "Curated syllabi with transparent author attributions, quality ratings, and syllabus alignment.",
+      description: t("highlights.verified.description"),
     },
     {
       icon: Lock,
-      title: "Privacy & Classroom Control",
+      title: t("highlights.privacy.title"),
       color: "text-rose-500",
-      description: "Strict educator role boundaries, student progress privacy, and secure session management.",
+      description: t("highlights.privacy.description"),
     },
     {
       icon: Layers,
-      title: "Accessible Everywhere",
+      title: t("highlights.accessible.title"),
       color: "text-cyan-500",
-      description: "Optimized for mobile phones, tablets, smartboards, and desktop browsers with dark and light themes.",
+      description: t("highlights.accessible.description"),
     },
   ];
 
@@ -57,13 +60,13 @@ export function PlatformTruthSection() {
         
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-4">
           <Badge variant="outline" className="text-xs font-semibold text-primary border-primary/20 bg-primary/5">
-            Platform Capabilities
+            {t("badge")}
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground text-balance">
-            Engineered for high reliability in active classrooms
+            {t("title")}
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-            Every feature on EduBek is built with intentional engineering to ensure zero distraction during tests and seamless lesson delivery.
+            {t("subtitle")}
           </p>
         </div>
 

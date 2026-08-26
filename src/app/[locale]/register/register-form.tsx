@@ -92,16 +92,11 @@ export function RegisterForm() {
           name: values.name,
           email: values.email,
           password: values.password,
-          // The page's own locale (e.g. "/uz/register" → "uz") so the
-          // account is created with the language the user actually
-          // registered in, instead of always defaulting server-side.
           locale,
         }),
         credentials: "same-origin",
       });
       if (res.ok) {
-        // The API sets the session cookie. Refresh so middleware sees
-        // it, then go to the dashboard.
         router.refresh();
         router.replace("/dashboard");
         return;

@@ -8,8 +8,7 @@ import { ThemeToggle } from "@/components/edubek/theme-toggle";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 
 export function LandingFooter() {
-  const tNav = useTranslations("nav");
-  const tLanding = useTranslations("landing");
+  const t = useTranslations("landing.footer");
 
   return (
     <footer className="border-t border-border bg-card/60 text-muted-foreground" id="landing-footer">
@@ -25,7 +24,7 @@ export function LandingFooter() {
               <span className="font-semibold text-foreground">EduBek</span>
             </Link>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-sm">
-              {tLanding("hero.subtitle")}
+              {t("brandDescription")}
             </p>
             <div className="flex items-center gap-3 pt-2">
               <LanguageSwitcher />
@@ -36,27 +35,27 @@ export function LandingFooter() {
           {/* Col 2: Core Learning */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              {tNav("ecosystem")}
+              {t("ecosystemTitle")}
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <Link href="/discover" className="hover:text-foreground transition-colors">
-                  {tNav("discover")}
+                  {t("links.knowledgeDiscovery")}
                 </Link>
               </li>
               <li>
                 <Link href="/live-quiz" className="hover:text-foreground transition-colors">
-                  {tNav("liveQuiz")}
+                  {t("links.liveQuizArena")}
                 </Link>
               </li>
               <li>
                 <Link href="/ai-workspace" className="hover:text-foreground transition-colors">
-                  {tNav("aiWorkspace")}
+                  {t("links.contextualAi")}
                 </Link>
               </li>
               <li>
                 <Link href="/marketplace" className="hover:text-foreground transition-colors">
-                  {tNav("marketplace")}
+                  {t("links.creatorMarketplace")}
                 </Link>
               </li>
             </ul>
@@ -65,27 +64,27 @@ export function LandingFooter() {
           {/* Col 3: For Educators & Roles */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              {tNav("workspaceAndTools")}
+              {t("workspacesTitle")}
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <Link href="/classrooms" className="hover:text-foreground transition-colors">
-                  {tNav("classrooms")}
+                  {t("links.teacherClassrooms")}
                 </Link>
               </li>
               <li>
                 <Link href="/dashboard" className="hover:text-foreground transition-colors">
-                  {tNav("dashboard")}
+                  {t("links.studentDashboard")}
                 </Link>
               </li>
               <li>
                 <Link href="/library" className="hover:text-foreground transition-colors">
-                  {tNav("library")}
+                  {t("links.personalLibrary")}
                 </Link>
               </li>
               <li>
                 <Link href="/wallet" className="hover:text-foreground transition-colors">
-                  {tNav("wallet")}
+                  {t("links.tokenWallet")}
                 </Link>
               </li>
             </ul>
@@ -94,27 +93,27 @@ export function LandingFooter() {
           {/* Col 4: Account & Access */}
           <div className="space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-foreground">
-              {tNav("profile")}
+              {t("accountTitle")}
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
                 <Link href="/login" className="hover:text-foreground transition-colors">
-                  {tNav("login")}
+                  {t("links.signIn")}
                 </Link>
               </li>
               <li>
                 <Link href="/register" className="hover:text-foreground transition-colors">
-                  {tNav("register")}
+                  {t("links.createAccount")}
                 </Link>
               </li>
               <li>
                 <Link href="/settings" className="hover:text-foreground transition-colors">
-                  {tNav("settings")}
+                  {t("links.settingsProfile")}
                 </Link>
               </li>
               <li>
                 <Link href="/notifications" className="hover:text-foreground transition-colors">
-                  {tNav("notifications")}
+                  {t("links.notifications")}
                 </Link>
               </li>
             </ul>
@@ -124,10 +123,10 @@ export function LandingFooter() {
 
         {/* Bottom Bar */}
         <div className="pt-8 mt-8 border-t border-border/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} EduBek Learning OS. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} EduBek {t("allRightsReserved")}</p>
           <div className="flex items-center gap-6">
-            <span>O&apos;zbekiston Ta&apos;lim Standartlari</span>
-            <span>Multilingual • UZ • EN • RU</span>
+            <span>{t("curriculumStandards")}</span>
+            <span>{t("multilingualPill")}</span>
           </div>
         </div>
 
@@ -135,4 +134,3 @@ export function LandingFooter() {
     </footer>
   );
 }
-

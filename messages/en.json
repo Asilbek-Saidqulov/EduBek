@@ -13,6 +13,7 @@
     "library": "Library",
     "liveQuiz": "Live Quiz",
     "aiWorkspace": "AI Workspace",
+    "tutor": "AI Tutor",
     "classrooms": "Classrooms",
     "settings": "Settings",
     "profile": "Profile",
@@ -31,6 +32,74 @@
     "workspaceAndTools": "Workspace & Tools",
     "search": "Search EduBek...",
     "forEducators": "For Educators"
+  },
+  "tutor": {
+    "title": "EduBek AI Tutor",
+    "subtitle": "Document-First Interactive Learning Assistant",
+    "blackboardSubtitle": "Living digital lesson notebook",
+    "untitledLesson": "Untitled Lesson",
+    "topic": "Topic",
+    "listening": "Listening...",
+    "thinking": "Thinking...",
+    "writing": "Writing on blackboard...",
+    "speaking": "Explaining...",
+    "idle": "Ready to teach",
+    "error": "Attention required",
+    "save": "Save Lesson",
+    "saving": "Saving...",
+    "savedSuccess": "Lesson notebook saved to your library!",
+    "savedLocalSuccess": "Lesson notebook preserved locally.",
+    "clear": "Clear Blackboard",
+    "undo": "Undo",
+    "redo": "Redo",
+    "checkpoint": "Concept Check",
+    "checkpointPrompt": "Quick Mastery Check",
+    "continue": "Continue",
+    "correct": "Correct! Great job",
+    "incorrect": "Not quite. Here is why",
+    "explanation": "Explanation",
+    "mastered": "Mastered",
+    "needsReview": "Needs Review",
+    "start": "Start",
+    "stop": "Stop",
+    "empty": "No content yet",
+    "emptyTitle": "Your Living Digital Blackboard",
+    "emptyDescription": "Ask a concept question or choose a topic below. The AI Tutor will guide you by constructing step-by-step notes, mathematical formulas, and interactive diagrams.",
+    "quickStartTopics": "Explore Topics",
+    "startLesson": "Start lesson",
+    "starter1Title": "Newton's Second Law",
+    "starter1Desc": "Derive $F = ma$ and explore force vector diagrams.",
+    "starter1Prompt": "Teach me Newton's Second Law of Motion with step-by-step derivation, formula breakdown, and an interactive checkpoint.",
+    "starter2Title": "Quadratic Formula Proof",
+    "starter2Desc": "Step-by-step derivation by completing the square.",
+    "starter2Prompt": "Derive the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ step-by-step with LaTeX equations and concept checks.",
+    "starter3Title": "Sorting Algorithms",
+    "starter3Desc": "Compare time complexities with visual diagrams.",
+    "starter3Prompt": "Explain QuickSort vs MergeSort with time complexity breakdown, visual flowchart, and a concept check.",
+    "sectionConcept": "Core Concept",
+    "sectionExplanation": "Explanation",
+    "sectionDerivation": "Mathematical Derivation",
+    "sectionExample": "Worked Example",
+    "sectionDiagram": "Visual Diagram",
+    "sectionCheckpoint": "Mastery Checkpoint",
+    "sectionSummary": "Lesson Summary",
+    "transcriptHeader": "Tutor Dialogue",
+    "dialogueTurns": "turns",
+    "transcriptEmpty": "Conversational notes and explanations will appear here as your lesson progresses.",
+    "inputPlaceholder": "Ask the tutor a question or request an example...",
+    "send": "Send",
+    "companionSub": "Document-first AI teaching companion",
+    "micActive": "Mic Active",
+    "micDisabled": "Text & Blackboard Mode",
+    "blackboardTab": "Blackboard",
+    "companionTab": "Tutor Dialogue",
+    "quickStepExample": "Worked Example",
+    "quickStepExamplePrompt": "Please add a concrete worked example with step-by-step numbers to the blackboard.",
+    "quickAddQuiz": "Concept Quiz",
+    "quickAddQuizPrompt": "Add an interactive checkpoint quiz on the blackboard to test what we just covered.",
+    "quickAddDiagram": "Visual Diagram",
+    "quickAddDiagramPrompt": "Draw an educational SVG diagram on the blackboard illustrating this concept.",
+    "errorGeneric": "Could not connect to AI Tutor. Please try again."
   },
   "common": {
     "loading": "Loading...",
@@ -17532,5 +17601,674 @@
     "generating": "Generating...",
     "askTutor": "Ask a question...",
     "send": "Send"
+  },
+  "landing": {
+    "hero": {
+      "pill": "The Connected Learning Ecosystem",
+      "titlePart1": "Where learning",
+      "titleConnects": "connects.",
+      "subtitle": "A unified platform for students, educators, and creators to discover syllabus knowledge, practice with interactive quizzes, get contextual AI help, and share verified educational materials.",
+      "getStarted": "Get Started Free",
+      "exploreDiscover": "Explore Discover",
+      "pinPlaceholder": "Have a Game PIN? (e.g. 749210)",
+      "joinLive": "Join Live",
+      "badgeModes": "4 Interactive Quiz Modes",
+      "badgeAi": "Contextual AI Explanations",
+      "badgeMarketplace": "Educator Classrooms & Marketplace",
+      "practiceUrl": "edubek.app/live-quiz/practice",
+      "streak": "Streak 7d",
+      "score": "Score: 1,420",
+      "sampleSubject": "Biology • Cell Energetics",
+      "sampleQuestion": "Which organelle generates the majority of cellular ATP via oxidative phosphorylation?",
+      "sampleOption0": "Ribosome",
+      "sampleOption1": "Mitochondria",
+      "sampleOption2": "Endoplasmic Reticulum",
+      "sampleOption3": "Golgi Apparatus",
+      "aiExplanationTitle": "Contextual AI Explanation",
+      "aiModel": "Gemini 3.7 Flash",
+      "aiExplanation": "Mitochondria produce ~90% of cellular ATP using the electron transport chain across their inner membrane folds (cristae).",
+      "askAiTutor": "Ask AI Tutor for deeper breakdown",
+      "connectedSyllabus": "Connected to:",
+      "syllabusName": "Grade 10 Biology Syllabus",
+      "xpBonus": "+15 Mastery XP"
+    },
+    "ecosystem": {
+      "badge": "The Interconnected Architecture",
+      "title": "Not isolated tools. One connected ecosystem.",
+      "subtitle": "Every part of EduBek feeds directly into the next: discovering a topic leads to active quiz practice, mistakes trigger contextual AI explanations, and educators publish verified study sets.",
+      "connectsInside": "How it connects inside the ecosystem:",
+      "feedsInto": "Feeds into",
+      "readyToExplore": "Ready to explore this component?",
+      "discover": {
+        "title": "Discover",
+        "badge": "Knowledge Graph",
+        "tagline": "Explore topics, curated quizzes, and structured learning paths.",
+        "description": "Instead of fragmented files, search topics organized by curriculum standards. Discover related quizzes, study guides, and flashcard sets in one click.",
+        "cta": "Explore Knowledge Graph"
+      },
+      "practice": {
+        "title": "Practice",
+        "badge": "4 Arena Modes",
+        "tagline": "Master concepts through competitive and solo interactive quizzes.",
+        "description": "Engage in Classic Arena, Quiz Royale (100 HP shield), Treasure Heist (streak multipliers), or Empire Builder. Get instant feedback on every question.",
+        "cta": "Launch Quiz Arena"
+      },
+      "ai": {
+        "title": "Contextual AI",
+        "badge": "Built-In Tutor",
+        "tagline": "Instant step-by-step explanations, summarization, and question generation.",
+        "description": "AI is embedded right into your learning flow. When you miss a quiz question or review complex notes, get instant step-by-step guidance without switching apps.",
+        "cta": "Open AI Workspace"
+      },
+      "learn": {
+        "title": "Learn & Track",
+        "badge": "Progress Intelligence",
+        "tagline": "Organize notes, maintain daily streaks, and target weak areas.",
+        "description": "Your personal dashboard aggregates practice accuracy, daily streaks, assigned class homework, and weak-topic diagnostics to guide your daily study plan.",
+        "cta": "View Student Dashboard"
+      },
+      "create": {
+        "title": "Create",
+        "badge": "Educator Studio",
+        "tagline": "Build quizzes, study guides, and interactive lessons in minutes.",
+        "description": "Generate multi-format questions manually or with AI assistance from your syllabus outlines, export them for live classroom games, or publish them.",
+        "cta": "Educator Classroom Studio"
+      },
+      "marketplace": {
+        "title": "Marketplace",
+        "badge": "Creator Economy",
+        "tagline": "Access and monetize high-yield study materials from verified educators.",
+        "description": "Support educational creators. Buy premium exam preparation packs, verified school curricula, or earn revenue by publishing your own top-rated materials.",
+        "cta": "Browse Marketplace"
+      }
+    },
+    "howItWorks": {
+      "badge": "The Continuous Learning Cycle",
+      "title": "How learning progresses on EduBek",
+      "subtitle": "A natural four-stage loop designed to turn passive reading into active, permanent mastery.",
+      "stage": "Stage 0{num} of 04",
+      "realtimeLoop": "Real-time adaptive loop",
+      "seeNext": "See Next Stage ({next})",
+      "steps": {
+        "1": {
+          "title": "1. Discover",
+          "subtitle": "Find connected knowledge",
+          "description": "Select your subject, curriculum standard, or topic. Instantly access verified study notes, creator decks, and related quiz sets.",
+          "previewTitle": "Discover: Organic Chemistry • Alkene Reactions",
+          "item1": "Curriculum: Grade 11 Chemistry",
+          "item2": "12 Verified Quizzes available",
+          "item3": "4 Study summaries by top educators"
+        },
+        "2": {
+          "title": "2. Learn",
+          "subtitle": "Understand core concepts",
+          "description": "Read structured chapter breakdowns, flashcards, or ask the contextual AI tutor to explain tricky formulas step-by-step.",
+          "previewTitle": "Learning Module: Electrophilic Addition",
+          "item1": "Markovnikov's Rule illustrated",
+          "item2": "AI Summary: 3 key reaction steps generated",
+          "item3": "Saved to personal revision folder"
+        },
+        "3": {
+          "title": "3. Practice",
+          "subtitle": "Test in interactive arenas",
+          "description": "Join a live class session with a PIN or practice solo in Quiz Royale, Treasure Heist, or Classic timed challenge modes.",
+          "previewTitle": "Practice Arena: 10 Rapid Questions",
+          "item1": "Timed answers with streak multiplier",
+          "item2": "Live leaderboard calculation",
+          "item3": "Immediate right/wrong feedback"
+        },
+        "4": {
+          "title": "4. Improve",
+          "subtitle": "Understand mistakes & master",
+          "description": "EduBek breaks down every wrong answer with detailed explanations and builds a custom revision queue targeting your weak spots.",
+          "previewTitle": "Mistake Diagnostic & Revision Queue",
+          "item1": "Accuracy: 85% (+12% improvement)",
+          "item2": "Weak area identified: Carbocation stability",
+          "item3": "3 targeted remedial questions queued"
+        }
+      }
+    },
+    "showcase": {
+      "badge": "Interface Preview",
+      "title": "Explore the EduBek product experience",
+      "subtitle": "A cohesive design system engineered for high-focus studying, rapid assessment, and seamless teaching.",
+      "tabs": {
+        "quiz": "Quiz Arena",
+        "discover": "Knowledge Discovery",
+        "ai": "Contextual AI",
+        "teacher": "Teacher Workspace",
+        "marketplace": "Marketplace"
+      },
+      "activeSession": "Active session: live-sync",
+      "openScreen": "Open Screen",
+      "quiz": {
+        "badge": "Quiz Royale Mode (100 HP Shield)",
+        "pin": "Pin: 849-201",
+        "title": "Physics: Newton's Laws & Momentum",
+        "streak": "Streak x3",
+        "timeLeft": "12s remaining",
+        "questionCount": "Question 6 of 12",
+        "question": "An astronaut in deep space throws a 2 kg wrench at 10 m/s. If the astronaut has a mass of 80 kg, what is their recoil speed?",
+        "optA": "A) 0.50 m/s",
+        "optB": "B) 0.25 m/s",
+        "optC": "C) 2.00 m/s",
+        "optD": "D) 0.10 m/s",
+        "reward": "Reward: +35 EDU Tokens for perfect accuracy",
+        "cta": "Join Live Practice Session"
+      },
+      "discover": {
+        "title": "Explore Connected Syllabus Knowledge",
+        "subtitle": "Search by national curriculum, grade level, or specific sub-topic.",
+        "searchPlaceholder": "Calculus Derivatives",
+        "card1Badge": "Mathematics",
+        "card1Quizzes": "18 Quizzes",
+        "card1Title": "Chain Rule & Product Rule",
+        "card1Desc": "Step-by-step visual proofs, 40 practice problems, and interactive differentiation tests.",
+        "card1Cta": "Explore 14 resources →",
+        "card2Badge": "Physics",
+        "card2Quizzes": "24 Quizzes",
+        "card2Title": "Electromagnetism & Induction",
+        "card2Desc": "Faraday's Law, Lenz's Law, magnetic flux equations with 3D diagram references.",
+        "card2Cta": "Explore 21 resources →",
+        "card3Badge": "Computer Science",
+        "card3Quizzes": "15 Quizzes",
+        "card3Title": "Binary Search Trees & Graphs",
+        "card3Desc": "Traversal algorithms, balance rotation guides, and interactive time complexity drills.",
+        "card3Cta": "Explore 19 resources →",
+        "cta": "Open Full Discovery Catalog"
+      },
+      "ai": {
+        "title": "Contextual AI Assistant",
+        "subtitle": "Embedded tools that explain, summarize, and generate targeted exercises.",
+        "modelBadge": "Gemini 3.7 Pro Tutor",
+        "you": "YOU",
+        "userQuery": "Explain why sound waves travel faster in water than in air with a formula.",
+        "tutorLabel": "EduBek AI Tutor",
+        "tutorResponse": "Sound speed is determined by v = √(B / ρ), where B is the Bulk Modulus (elastic stiffness) and ρ is density. Although water is ~800x denser than air, its bulk modulus is over 15,000x greater! Because water particles are closely bound, elastic restoring forces dominate, causing sound to travel at ~1,480 m/s in water versus ~343 m/s in air.",
+        "chip1": "✨ Generate 3 Quiz Questions on this",
+        "chip2": "📝 Add formula to Revision Flashcards",
+        "cta": "Launch AI Workspace"
+      },
+      "teacher": {
+        "title": "Classroom & Teacher Studio",
+        "subtitle": "Manage classes, assign interactive quizzes, and inspect student performance.",
+        "classBadge": "Class: Grade 10-A Science",
+        "stat1Label": "Enrolled Students",
+        "stat1Value": "32 Active",
+        "stat1Note": "100% Submission rate",
+        "stat2Label": "Class Average Accuracy",
+        "stat2Value": "84.2%",
+        "stat2Note": "+6.4% from last unit",
+        "stat3Label": "Identified Weak Topic",
+        "stat3Value": "Thermodynamics Law 2",
+        "stat3Note": "AI Remedial Quiz generated",
+        "cta": "Open Educator Portal"
+      },
+      "marketplace": {
+        "title": "Educational Marketplace",
+        "subtitle": "Verified lesson materials, exam preparation packs, and creator revenue sharing.",
+        "badge": "Syllabus-Aligned",
+        "pack1Category": "National Olympiad Prep",
+        "pack1Rating": "4.9 (128 reviews)",
+        "pack1Title": "Complete High School Olympiad Math Bundle",
+        "pack1Desc": "Includes 15 full interactive quiz simulations with video solution breakdowns by Master Educator Alimov.",
+        "pack1Price": "40 EDU ($8.00)",
+        "pack2Category": "Medical School Biology",
+        "pack2Rating": "5.0 (94 reviews)",
+        "pack2Title": "Human Anatomy & Physiology Mastery Deck",
+        "pack2Desc": "Over 350 illustrated flashcards and 20 timed arena tests covering the cardiovascular and nervous systems.",
+        "pack2Price": "25 EDU ($5.00)",
+        "viewPack": "View Pack",
+        "cta": "Explore All Marketplace Items"
+      }
+    },
+    "quizFocus": {
+      "badge": "Interactive Quiz Platform",
+      "title": "Practice is most useful when you understand your mistakes.",
+      "subtitle": "Take interactive quizzes, compete live with your class, inspect comprehensive explanations for every error, and automatically turn weak topics into targeted review sets.",
+      "modesHeader": "4 Specialized Arena Game Modes:",
+      "modesHeading": "4 Specialized Arena Game Modes:",
+      "cta": "Enter Quiz Arena",
+      "enterArena": "Enter Quiz Arena",
+      "modes": {
+        "classic": {
+          "name": "Classic Arena",
+          "tag": "Solo & Class",
+          "description": "Fast-paced timed questions with streak bonuses and live real-time scoreboards."
+        },
+        "royale": {
+          "name": "Quiz Royale",
+          "tag": "Competitive",
+          "description": "Start with a 100 HP shield. Wrong answers deal damage until the last student stands."
+        },
+        "heist": {
+          "name": "Treasure Heist",
+          "tag": "Token Rewards",
+          "description": "Chain streaks to open vault chests and earn EDU tokens with team multipliers."
+        },
+        "empire": {
+          "name": "Empire Builder",
+          "tag": "Collaborative",
+          "description": "Turn correct answers into architectural wonders and expand your team's civilization."
+        }
+      },
+      "shieldStatus": "Shield: 75 / 100 HP",
+      "roundStatus": "Round 3 of 8",
+      "comboStatus": "Combo 4x",
+      "reviewingMistake": "Reviewing Question Mistake",
+      "sampleQuestion": "Which constitutional amendment established the direct popular election of United States senators?",
+      "yourAnswer": "Your Answer: 15th Amendment",
+      "incorrectBadge": "Incorrect",
+      "correctAnswer": "Correct Answer: 17th Amendment (1913)",
+      "remedialBreakdown": "Instant Remedial Breakdown",
+      "remedialText": "The 15th Amendment granted voting rights regardless of race. The 17th Amendment (passed in 1913) replaced state legislature appointment with direct popular vote for U.S. Senators.",
+      "addedToTargeted": "Added to personal \"Targeted Weak Areas\" set",
+      "drillAdded": "+1 Remedial Drill",
+      "preview": {
+        "shield": "Shield: 75 / 100 HP",
+        "round": "Round 3 of 8",
+        "combo": "Combo 4x",
+        "reviewTitle": "Reviewing Question Mistake",
+        "question": "Which constitutional amendment established the direct popular election of United States senators?",
+        "yourAnswer": "Your Answer: 15th Amendment",
+        "incorrect": "Incorrect",
+        "correctAnswer": "Correct Answer: 17th Amendment (1913)",
+        "remedialTitle": "Instant Remedial Breakdown",
+        "remedialBody": "The 15th Amendment granted voting rights regardless of race. The 17th Amendment (passed in 1913) replaced state legislature appointment with direct popular vote for U.S. Senators.",
+        "addedToWeak": "Added to personal \"Targeted Weak Areas\" set",
+        "remedialDrill": "+1 Remedial Drill"
+      }
+    },
+    "knowledgeDiscovery": {
+      "badge": "Structured Knowledge Discovery",
+      "title": "Explore interconnected knowledge, not just isolated files.",
+      "subtitle": "EduBek organizes learning around connected subjects and curriculum topics. Discovering a topic links you directly to teacher-created study guides, practice quizzes, and prerequisite roadmaps.",
+      "subjects": {
+        "physics": {
+          "name": "Physics",
+          "topic1": "Kinematics & Newtonian Mechanics",
+          "topic2": "Thermodynamics & Ideal Gases",
+          "topic3": "Electromagnetism & Waves",
+          "topic4": "Quantum & Nuclear Physics"
+        },
+        "math": {
+          "name": "Mathematics",
+          "topic1": "Derivatives & Calculus",
+          "topic2": "Integrals & Area Under Curves",
+          "topic3": "Vectors & Linear Algebra",
+          "topic4": "Probability & Statistics"
+        },
+        "cs": {
+          "name": "Computer Science",
+          "topic1": "Algorithms & Data Structures",
+          "topic2": "Object-Oriented Programming",
+          "topic3": "Databases & SQL Queries",
+          "topic4": "Web Development & Networks"
+        },
+        "biology": {
+          "name": "Biology",
+          "topic1": "Cellular Structure & Energetics",
+          "topic2": "Genetics & Inheritance Laws",
+          "topic3": "Human Physiology & Anatomy",
+          "topic4": "Ecology & Evolutionary Biology"
+        }
+      },
+      "curriculumHubBadge": "Curriculum Hub",
+      "connectedKnowledgeHub": "Connected Knowledge Hub",
+      "masterStandard": "Master Curriculum Standard",
+      "hubDescription": "Structured learning path with prerequisites, verified educator lesson plans, and aligned practice banks.",
+      "quizzesUnit": "Quizzes",
+      "guidesUnit": "Guides",
+      "crossLinked": "Cross-linked with National Standards",
+      "browseAllTopics": "Browse all topics",
+      "bullet1Title": "Syllabus-Aligned Paths",
+      "bullet1Desc": "Follow sequenced chapter tracks with clear milestones and concept checkpoints.",
+      "bullet2Title": "Cross-Topic Links",
+      "bullet2Desc": "Instantly see how calculus connects to physics mechanics, or how chemistry relates to cellular biology.",
+      "cta": "Start Discovering Topics"
+    },
+    "discovery": {
+      "badge": "Structured Knowledge Discovery",
+      "title": "Explore interconnected knowledge, not just isolated files.",
+      "subtitle": "EduBek organizes learning around connected subjects and curriculum topics. Discovering a topic links you directly to teacher-created study guides, practice quizzes, and prerequisite roadmaps.",
+      "point1Title": "Syllabus-Aligned Paths:",
+      "point1Desc": "Follow sequenced chapter tracks with clear milestones and concept checkpoints.",
+      "point2Title": "Cross-Topic Links:",
+      "point2Desc": "Instantly see how calculus connects to physics mechanics, or how chemistry relates to cellular biology.",
+      "startDiscovering": "Start Discovering Topics",
+      "curriculumHub": "Curriculum Hub",
+      "connectedHub": "Connected Knowledge Hub",
+      "curriculumStandard": "Master Curriculum Standard",
+      "curriculumDesc": "Structured learning path with prerequisites, verified educator lesson plans, and aligned practice banks.",
+      "quizzes": "Quizzes",
+      "guides": "Guides",
+      "crossLinked": "Cross-linked with National Standards",
+      "browseAll": "Browse all topics",
+      "subjects": {
+        "physics": "Physics",
+        "math": "Mathematics",
+        "cs": "Computer Science",
+        "biology": "Biology"
+      }
+    },
+    "aiContextual": {
+      "badge": "Contextual AI Assistance",
+      "title": "AI, where it actually helps.",
+      "subtitle": "Not a detached chatbot or gimmick. EduBek embeds intelligent tools directly into your study material, quiz questions, and teacher assignments.",
+      "btnExplain": "Explain Complex Concepts",
+      "btnQuiz": "Generate Practice Sets",
+      "btnSummarize": "Extract Formulas & Summaries",
+      "btnMistake": "Diagnose Mistakes Step-by-Step",
+      "cta": "Open Contextual AI Workspace",
+      "actionExplain": "Explain Complex Concepts",
+      "actionQuiz": "Generate Practice Sets",
+      "actionSummarize": "Extract Formulas & Summaries",
+      "actionMistake": "Diagnose Mistakes Step-by-Step",
+      "openWorkspace": "Open Contextual AI Workspace",
+      "poweredBy": "Powered by server-side Gemini 3.7",
+      "userContextLabel": "User Context Query:",
+      "userQueryLabel": "User Context Query:",
+      "tutorResponseLabel": "EduBek AI Tutor Response",
+      "tutorResponse": "EduBek AI Tutor Response",
+      "responseTime": "Response time: 0.4s",
+      "integratedNotes": "Integrated with your syllabus notes",
+      "tryOwnMaterials": "Try with your own materials →",
+      "tryMaterials": "Try with your own materials →",
+      "actions": {
+        "explain": {
+          "title": "Contextual Explanation",
+          "inputPrompt": "Explain Quantum Superposition simply without heavy mathematical jargon.",
+          "output": "Imagine a spinning coin on a table. While it's spinning, it isn't purely 'Heads' or 'Tails'—it has a probability of landing on either until you stop it (measure it). Superposition means a quantum particle exists in a combination of multiple possible states simultaneously until observed.",
+          "badge": "Concept Simplifier"
+        },
+        "quiz": {
+          "title": "1-Click Practice Generation",
+          "inputPrompt": "Generate 2 active recall questions from my photosynthesis study notes.",
+          "output": "1. What is the primary role of chlorophyll pigments during the light-dependent reactions?\n2. Where do the light-independent (Calvin Cycle) reactions take place within the chloroplast organelle?",
+          "badge": "Instant Quiz Creator"
+        },
+        "summarize": {
+          "title": "Key Formula & Takeaway Extractor",
+          "inputPrompt": "Extract core equations and units for Thermodynamics Unit 1.",
+          "output": "• ΔU = Q - W (First Law: Change in internal energy = heat added minus work done)\n• Work by gas: W = P·ΔV (Constant pressure)\n• Units: Energy (Joules), Pressure (Pascals), Volume (m³)",
+          "badge": "Executive Summary"
+        },
+        "mistake": {
+          "title": "Step-by-Step Error Diagnostic",
+          "inputPrompt": "I calculated integral ∫ 2x·e^(x²) dx and answered 2e^(x²) + C. Why is that wrong?",
+          "output": "You forgot the derivative of the exponent: let u = x², then du = 2x dx. The integral simplifies directly to ∫ e^u du = e^u + C = e^(x²) + C. You didn't need the leading 2 because it was absorbed into du.",
+          "badge": "Mistake Breakdown"
+        }
+      }
+    },
+    "roleSwitcher": {
+      "badge": "Built for Everyone in Education",
+      "title": "Tailored experiences for students, teachers, and creators",
+      "subtitle": "Switch between roles to see how EduBek adapts its tools for your unique educational goals.",
+      "activeViewLabel": "Active Interface View",
+      "liveDemoBadge": "Live Demo",
+      "syncedBadge": "Synced",
+      "roles": {
+        "student": {
+          "label": "For Students",
+          "badge": "Self-Paced Mastery",
+          "headline": "Practice with purpose, eliminate weak spots, and earn rewards.",
+          "description": "EduBek gives you structured topic roads, live game arenas to test yourself against peers, instant step-by-step AI hints when you are stuck, and streak rewards that keep you motivated.",
+          "benefit1": "Interactive Quiz Arenas with 4 distinct game modes",
+          "benefit2": "Automated diagnostic review of every missed question",
+          "benefit3": "Contextual AI Tutor ready to explain complex steps",
+          "benefit4": "Earn EDU tokens and maintain daily practice streaks",
+          "ctaText": "Start Learning as Student",
+          "preview": {
+            "title": "Student Progress & Mastery",
+            "stat1Label": "Weekly Accuracy",
+            "stat2Label": "Current Streak",
+            "stat3Label": "EDU Token Balance",
+            "daysStreak": "day streak",
+            "detail": "Next recommended practice: Organic Chemistry (3 weak topics detected)"
+          }
+        },
+        "teacher": {
+          "label": "For Teachers & Schools",
+          "badge": "Educator Workspace",
+          "headline": "Engage your classroom in seconds and understand student gaps instantly.",
+          "description": "Host live multi-player quiz sessions with a simple 6-digit PIN, distribute homework sets, automate grading, and get instant item-level analytics identifying where students struggle.",
+          "benefit1": "Host live classroom games (Classic, Royale, Heist, Empire)",
+          "benefit2": "Generate multi-choice quizzes with AI from your syllabus",
+          "benefit3": "Real-time class accuracy heatmaps & student breakdowns",
+          "benefit4": "Export grades, assign homework, and manage multiple classes",
+          "ctaText": "Launch Teacher Workspace",
+          "preview": {
+            "title": "Grade 10 Biology • Live Class 10-A",
+            "stat1Label": "Active Students",
+            "stat2Label": "Class Average",
+            "stat3Label": "Quizzes Hosted",
+            "online": "Online",
+            "completed": "Completed",
+            "detail": "Live Game PIN: 849-201 • Round 4 of 10 in progress"
+          }
+        },
+        "creator": {
+          "label": "For Content Creators",
+          "badge": "Creator Economy",
+          "headline": "Turn your subject expertise into verified study sets and direct revenue.",
+          "description": "Publish high-yield exam preparation guides, comprehensive quiz banks, and curated video courses. Set your prices in EDU tokens or fiat and earn reliable royalties from eager students.",
+          "benefit1": "Monetize study decks, Olympiad packs, and syllabus guides",
+          "benefit2": "Keep up to 85% of marketplace sales royalties",
+          "benefit3": "Detailed performance analytics: downloads, ratings, and views",
+          "benefit4": "Build a verified educator profile with follower updates",
+          "ctaText": "Become an EduBek Creator",
+          "preview": {
+            "title": "Creator Studio Dashboard",
+            "stat1Label": "Monthly Royalties",
+            "stat2Label": "Active Buyers",
+            "stat3Label": "Avg Material Rating",
+            "students": "Students",
+            "detail": "Top item: 'Complete High School Olympiad Math Bundle' (128 sales)"
+          }
+        }
+      }
+    },
+    "roles": {
+      "badge": "Built for Everyone in Education",
+      "title": "Tailored experiences for students, teachers, and creators",
+      "subtitle": "Switch between roles to see how EduBek adapts its tools for your unique educational goals.",
+      "activeView": "Active Interface View",
+      "liveDemo": "Live Demo",
+      "synced": "Synced",
+      "student": {
+        "label": "For Students",
+        "badge": "Self-Paced Mastery",
+        "headline": "Practice with purpose, eliminate weak spots, and earn rewards.",
+        "description": "EduBek gives you structured topic roads, live game arenas to test yourself against peers, instant step-by-step AI hints when you are stuck, and streak rewards that keep you motivated.",
+        "benefit1": "Interactive Quiz Arenas with 4 distinct game modes",
+        "benefit2": "Automated diagnostic review of every missed question",
+        "benefit3": "Contextual AI Tutor ready to explain complex steps",
+        "benefit4": "Earn EDU tokens and maintain daily practice streaks",
+        "cta": "Start Learning as Student",
+        "previewTitle": "Student Progress & Mastery",
+        "stat1Label": "Weekly Accuracy",
+        "stat2Label": "Current Streak",
+        "stat3Label": "EDU Token Balance",
+        "detail": "Next recommended practice: Organic Chemistry (3 weak topics detected)"
+      },
+      "teacher": {
+        "label": "For Teachers & Schools",
+        "badge": "Educator Workspace",
+        "headline": "Engage your classroom in seconds and understand student gaps instantly.",
+        "description": "Host live multi-player quiz sessions with a simple 6-digit PIN, distribute homework sets, automate grading, and get instant item-level analytics identifying where students struggle.",
+        "benefit1": "Host live classroom games (Classic, Royale, Heist, Empire)",
+        "benefit2": "Generate multi-choice quizzes with AI from your syllabus",
+        "benefit3": "Real-time class accuracy heatmaps & student breakdowns",
+        "benefit4": "Export grades, assign homework, and manage multiple classes",
+        "cta": "Launch Teacher Workspace",
+        "previewTitle": "Grade 10 Biology • Live Class 10-A",
+        "stat1Label": "Active Students",
+        "stat1Value": "32 Online",
+        "stat2Label": "Class Average",
+        "stat3Label": "Quizzes Hosted",
+        "stat3Value": "28 Completed",
+        "detail": "Live Game PIN: 849-201 • Round 4 of 10 in progress"
+      },
+      "creator": {
+        "label": "For Content Creators",
+        "badge": "Creator Economy",
+        "headline": "Turn your subject expertise into verified study sets and direct revenue.",
+        "description": "Publish high-yield exam preparation guides, comprehensive quiz banks, and curated video courses. Set your prices in EDU tokens or fiat and earn reliable royalties from eager students.",
+        "benefit1": "Monetize study decks, Olympiad packs, and syllabus guides",
+        "benefit2": "Keep up to 85% of marketplace sales royalties",
+        "benefit3": "Detailed performance analytics: downloads, ratings, and views",
+        "benefit4": "Build a verified educator profile with follower updates",
+        "cta": "Become an EduBek Creator",
+        "previewTitle": "Creator Studio Dashboard",
+        "stat1Label": "Monthly Royalties",
+        "stat2Label": "Active Buyers",
+        "stat2Value": "312 Students",
+        "stat3Label": "Avg Material Rating",
+        "detail": "Top item: 'Complete High School Olympiad Math Bundle' (128 sales)"
+      }
+    },
+    "marketplacePreview": {
+      "badge": "Verified Creator Marketplace",
+      "title": "Find materials worth learning from.",
+      "subtitle": "Curated, peer-reviewed study packages, flashcards, and quiz banks crafted by subject educators who teach the curriculum every day.",
+      "browseAll": "Browse All Materials",
+      "previewBtn": "Preview",
+      "materials": {
+        "mat1": {
+          "category": "National Examination Prep",
+          "title": "State University Entrance Exam (DTM) • Ultimate Physics 500",
+          "author": "Anvar Alimov",
+          "authorRole": "Senior Physics Lecturer",
+          "description": "500 high-yield physics questions with detailed step-by-step vector mechanics and thermodynamics solutions.",
+          "badge": "Best Seller"
+        },
+        "mat2": {
+          "category": "High School Olympiad",
+          "title": "Advanced Organic Chemistry & Synthesis Reaction Maps",
+          "author": "Dilnoza Rahimova",
+          "authorRole": "Olimpiad Coach",
+          "description": "Color-coded reaction flowcharts, resonance mechanism cards, and 12 interactive mock quiz simulations.",
+          "badge": "Verified Expert"
+        },
+        "mat3": {
+          "category": "Computer Science",
+          "title": "Data Structures & Algorithms Interview Mastery Deck",
+          "author": "Sardor Yusupov",
+          "authorRole": "Software Engineer & Educator",
+          "description": "200 flashcards on Big-O, Trees, DP patterns, plus 8 timed speed-coding quiz modules.",
+          "badge": "Top Rated"
+        }
+      }
+    },
+    "marketplace": {
+      "badge": "Verified Creator Marketplace",
+      "title": "Find materials worth learning from.",
+      "subtitle": "Curated, peer-reviewed study packages, flashcards, and quiz banks crafted by subject educators who teach the curriculum every day.",
+      "browseAll": "Browse All Materials",
+      "preview": "Preview",
+      "bestSeller": "Best Seller",
+      "verifiedExpert": "Verified Expert",
+      "topRated": "Top Rated",
+      "item1Category": "National Examination Prep",
+      "item1Title": "State University Entrance Exam (DTM) • Ultimate Physics 500",
+      "item1Role": "Senior Physics Lecturer",
+      "item1Desc": "500 high-yield physics questions with detailed step-by-step vector mechanics and thermodynamics solutions.",
+      "item2Category": "High School Olympiad",
+      "item2Title": "Advanced Organic Chemistry & Synthesis Reaction Maps",
+      "item2Role": "Olympiad Coach",
+      "item2Desc": "Color-coded reaction flowcharts, resonance mechanism cards, and 12 interactive mock quiz simulations.",
+      "item3Category": "Computer Science",
+      "item3Title": "Data Structures & Algorithms Interview Mastery Deck",
+      "item3Role": "Software Engineer & Educator",
+      "item3Desc": "200 flashcards on Big-O, Trees, DP patterns, plus 8 timed speed-coding quiz modules."
+    },
+    "platformTruth": {
+      "badge": "Platform Capabilities",
+      "title": "Engineered for high reliability in active classrooms",
+      "subtitle": "Every feature on EduBek is built with intentional engineering to ensure zero distraction during tests and seamless lesson delivery.",
+      "syncTitle": "Real-Time Game Synchronization",
+      "syncDesc": "Live pin joins, sub-second answer evaluations, and synchronous multi-student classroom arenas.",
+      "multilingualTitle": "Full Multilingual Engine",
+      "multilingualDesc": "Complete first-class localization across English, Uzbek (Latin & Cyrillic), and Russian.",
+      "aiTitle": "Contextual Gemini 3.7 AI",
+      "aiDesc": "Embedded directly into lessons and quizzes for step-by-step problem explanations and auto-generation.",
+      "contentTitle": "Verified Educational Content",
+      "contentDesc": "Curated syllabi with transparent author attributions, quality ratings, and syllabus alignment.",
+      "privacyTitle": "Privacy & Classroom Control",
+      "privacyDesc": "Strict educator role boundaries, student progress privacy, and secure session management.",
+      "accessibleTitle": "Accessible Everywhere",
+      "accessibleDesc": "Optimized for mobile phones, tablets, smartboards, and desktop browsers with dark and light themes.",
+      "highlights": {
+        "sync": {
+          "title": "Real-Time Game Synchronization",
+          "description": "Live pin joins, sub-second answer evaluations, and synchronous multi-student classroom arenas."
+        },
+        "multilingual": {
+          "title": "Full Multilingual Engine",
+          "description": "Complete first-class localization across English, Uzbek, and Russian."
+        },
+        "ai": {
+          "title": "Contextual Gemini 3.7 AI",
+          "description": "Embedded directly into lessons and quizzes for step-by-step problem explanations and auto-generation."
+        },
+        "verified": {
+          "title": "Verified Educational Content",
+          "description": "Curated syllabi with transparent author attributions, quality ratings, and syllabus alignment."
+        },
+        "privacy": {
+          "title": "Privacy & Classroom Control",
+          "description": "Strict educator role boundaries, student progress privacy, and secure session management."
+        },
+        "accessible": {
+          "title": "Accessible Everywhere",
+          "description": "Optimized for mobile phones, tablets, smartboards, and desktop browsers with dark and light themes."
+        }
+      }
+    },
+    "finalCta": {
+      "badge": "Join the EduBek Ecosystem",
+      "title": "Start exploring EduBek today.",
+      "subtitle": "Discover structured knowledge, practice what you learn with interactive quizzes, get contextual AI help, and create educational value in one unified platform.",
+      "getStarted": "Get Started Free",
+      "explore": "Explore Discover",
+      "exploreDiscover": "Explore Discover",
+      "freeIndividual": "Free for individual learners",
+      "noCard": "No credit card required",
+      "instantPin": "Instant classroom PIN access",
+      "pill1": "Free for individual learners",
+      "pill2": "No credit card required",
+      "pill3": "Instant classroom PIN access"
+    },
+    "footer": {
+      "brandDescription": "The connected learning ecosystem uniting interactive quizzes, syllabus knowledge discovery, contextual AI assistance, and educator marketplaces.",
+      "ecosystemTitle": "Ecosystem",
+      "workspacesTitle": "Workspaces",
+      "accountTitle": "Account",
+      "links": {
+        "knowledgeDiscovery": "Knowledge Discovery",
+        "liveQuizArena": "Live Quiz Arena",
+        "contextualAi": "Contextual AI",
+        "creatorMarketplace": "Creator Marketplace",
+        "teacherClassrooms": "Teacher Classrooms",
+        "studentDashboard": "Student Dashboard",
+        "personalLibrary": "Personal Library",
+        "tokenWallet": "Token Wallet",
+        "signIn": "Sign In",
+        "createAccount": "Create Account",
+        "settingsProfile": "Settings & Profile",
+        "notifications": "Notifications"
+      },
+      "tagline": "The connected learning ecosystem uniting interactive quizzes, syllabus knowledge discovery, contextual AI assistance, and educator marketplaces.",
+      "ecosystem": "Ecosystem",
+      "workspaces": "Workspaces",
+      "account": "Account",
+      "rights": "EduBek Learning Ecosystem. All rights reserved.",
+      "allRightsReserved": "Learning Ecosystem. All rights reserved.",
+      "standards": "Universal Curriculum Standards",
+      "curriculumStandards": "Universal Curriculum Standards",
+      "multilingual": "Multilingual (EN • UZ • RU)",
+      "multilingualPill": "Multilingual (EN • UZ • RU)"
+    }
   }
 }

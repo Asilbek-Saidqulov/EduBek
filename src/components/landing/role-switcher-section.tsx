@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   GraduationCap,
   School,
@@ -19,85 +20,83 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function RoleSwitcherSection() {
+  const t = useTranslations("landing.roleSwitcher");
   const [activeRole, setActiveRole] = React.useState<"student" | "teacher" | "creator">("student");
 
   const roles = {
     student: {
       id: "student",
-      label: "For Students",
+      label: t("roles.student.label"),
       icon: GraduationCap,
       color: "text-blue-500",
       accentBg: "bg-blue-500/10",
-      badge: "Self-Paced Mastery",
-      headline: "Practice with purpose, eliminate weak spots, and earn rewards.",
-      description:
-        "EduBek gives you structured topic roads, live game arenas to test yourself against peers, instant step-by-step AI hints when you are stuck, and streak rewards that keep you motivated.",
+      badge: t("roles.student.badge"),
+      headline: t("roles.student.headline"),
+      description: t("roles.student.description"),
       benefits: [
-        "Interactive Quiz Arenas with 4 distinct game modes",
-        "Automated diagnostic review of every missed question",
-        "Contextual AI Tutor ready to explain complex steps",
-        "Earn EDU tokens and maintain daily practice streaks",
+        t("roles.student.benefit1"),
+        t("roles.student.benefit2"),
+        t("roles.student.benefit3"),
+        t("roles.student.benefit4"),
       ],
-      ctaText: "Start Learning as Student",
+      ctaText: t("roles.student.ctaText"),
       ctaLink: "/register?role=student",
       preview: {
-        title: "Student Progress & Mastery",
-        stat1: { label: "Weekly Accuracy", value: "88.4%", icon: TrendingUp, color: "text-emerald-500" },
-        stat2: { label: "Current Streak", value: "7 Days 🔥", icon: Award, color: "text-amber-500" },
-        stat3: { label: "EDU Token Balance", value: "145 EDU", icon: Coins, color: "text-primary" },
-        detail: "Next recommended practice: Organic Chemistry (3 weak topics detected)",
+        title: t("roles.student.preview.title"),
+        stat1: { label: t("roles.student.preview.stat1Label"), value: "88.4%", icon: TrendingUp, color: "text-emerald-500" },
+        stat2: { label: t("roles.student.preview.stat2Label"), value: `7 ${t("roles.student.preview.daysStreak")}`, icon: Award, color: "text-amber-500" },
+        stat3: { label: t("roles.student.preview.stat3Label"), value: "145 EDU", icon: Coins, color: "text-primary" },
+        detail: t("roles.student.preview.detail"),
       },
     },
     teacher: {
       id: "teacher",
-      label: "For Teachers & Schools",
+      label: t("roles.teacher.label"),
       icon: School,
       color: "text-indigo-500",
       accentBg: "bg-indigo-500/10",
-      badge: "Educator Workspace",
-      headline: "Engage your classroom in seconds and understand student gaps instantly.",
-      description:
-        "Host live multi-player quiz sessions with a simple 6-digit PIN, distribute homework sets, automate grading, and get instant item-level analytics identifying where students struggle.",
+      badge: t("roles.teacher.badge"),
+      headline: t("roles.teacher.headline"),
+      description: t("roles.teacher.description"),
       benefits: [
-        "Host live classroom games (Classic, Royale, Heist, Empire)",
-        "Generate multi-choice quizzes with AI from your syllabus",
-        "Real-time class accuracy heatmaps & student breakdowns",
-        "Export grades, assign homework, and manage multiple classes",
+        t("roles.teacher.benefit1"),
+        t("roles.teacher.benefit2"),
+        t("roles.teacher.benefit3"),
+        t("roles.teacher.benefit4"),
       ],
-      ctaText: "Launch Teacher Workspace",
+      ctaText: t("roles.teacher.ctaText"),
       ctaLink: "/classrooms",
       preview: {
-        title: "Grade 10 Biology • Live Class 10-A",
-        stat1: { label: "Active Students", value: "32 Online", icon: Users, color: "text-blue-500" },
-        stat2: { label: "Class Average", value: "84.2%", icon: BarChart, color: "text-emerald-500" },
-        stat3: { label: "Quizzes Hosted", value: "28 Completed", icon: Award, color: "text-indigo-500" },
-        detail: "Live Game PIN: 849-201 • Round 4 of 10 in progress",
+        title: t("roles.teacher.preview.title"),
+        stat1: { label: t("roles.teacher.preview.stat1Label"), value: `32 ${t("roles.teacher.preview.online")}`, icon: Users, color: "text-blue-500" },
+        stat2: { label: t("roles.teacher.preview.stat2Label"), value: "84.2%", icon: BarChart, color: "text-emerald-500" },
+        stat3: { label: t("roles.teacher.preview.stat3Label"), value: `28 ${t("roles.teacher.preview.completed")}`, icon: Award, color: "text-indigo-500" },
+        detail: t("roles.teacher.preview.detail"),
       },
     },
     creator: {
       id: "creator",
-      label: "For Content Creators",
+      label: t("roles.creator.label"),
       icon: Sparkles,
       color: "text-emerald-500",
       accentBg: "bg-emerald-500/10",
-      badge: "Creator Economy",
-      headline: "Turn your subject expertise into verified study sets and direct revenue.",
-      description:
-        "Publish high-yield exam preparation guides, comprehensive quiz banks, and curated video courses. Set your prices in EDU tokens or fiat and earn reliable royalties from eager students.",
+      badge: t("roles.creator.badge"),
+      headline: t("roles.creator.headline"),
+      description: t("roles.creator.description"),
       benefits: [
-        "Monetize study decks, Olympiad packs, and syllabus guides",
-        "Keep up to 85% of marketplace sales royalties",
-        "Detailed performance analytics: downloads, ratings, and views",
-        "Build a verified educator profile with follower updates",
+        t("roles.creator.benefit1"),
+        t("roles.creator.benefit2"),
+        t("roles.creator.benefit3"),
+        t("roles.creator.benefit4"),
       ],
-      ctaText: "Become an EduBek Creator",
+      ctaText: t("roles.creator.ctaText"),
       ctaLink: "/marketplace",
       preview: {
-        title: "Creator Studio Dashboard",
-        stat1: { label: "Monthly Royalties", value: "$480.00", icon: DollarSign, color: "text-emerald-500" },
-        stat2: { label: "Active Buyers", value: "312 Students", icon: Users, color: "text-blue-500" },
-        stat3: { label: "Avg Material Rating", value: "4.9 ★", icon: Award, color: "text-amber-500" },
-        detail: "Top item: 'Complete High School Olympiad Math Bundle' (128 sales)",
+        title: t("roles.creator.preview.title"),
+        stat1: { label: t("roles.creator.preview.stat1Label"), value: "$480.00", icon: DollarSign, color: "text-emerald-500" },
+        stat2: { label: t("roles.creator.preview.stat2Label"), value: `312 ${t("roles.creator.preview.students")}`, icon: Users, color: "text-blue-500" },
+        stat3: { label: t("roles.creator.preview.stat3Label"), value: "4.9 ★", icon: Award, color: "text-amber-500" },
+        detail: t("roles.creator.preview.detail"),
       },
     },
   };
@@ -112,13 +111,13 @@ export function RoleSwitcherSection() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 space-y-4">
           <Badge variant="outline" className="text-xs font-semibold text-primary border-primary/20 bg-primary/5">
-            Built for Everyone in Education
+            {t("badge")}
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground text-balance">
-            Tailored experiences for students, teachers, and creators
+            {t("title")}
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-            Switch between roles to see how EduBek adapts its tools for your unique educational goals.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -196,10 +195,10 @@ export function RoleSwitcherSection() {
               
               <div className="flex items-center justify-between pb-4 border-b border-border/80">
                 <div>
-                  <span className="text-[11px] font-mono uppercase text-muted-foreground">Active Interface View</span>
+                  <span className="text-[11px] font-mono uppercase text-muted-foreground">{t("activeViewLabel")}</span>
                   <h4 className="text-base sm:text-lg font-bold text-foreground">{current.preview.title}</h4>
                 </div>
-                <Badge variant="secondary" className="text-xs font-mono">Live Demo</Badge>
+                <Badge variant="secondary" className="text-xs font-mono">{t("liveDemoBadge")}</Badge>
               </div>
 
               {/* 3 Metric cards */}
@@ -221,7 +220,7 @@ export function RoleSwitcherSection() {
               {/* Detail notification */}
               <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 text-xs text-foreground/90 flex items-center justify-between">
                 <span>{current.preview.detail}</span>
-                <span className="font-semibold text-primary shrink-0 ml-2">Synced</span>
+                <span className="font-semibold text-primary shrink-0 ml-2">{t("syncedBadge")}</span>
               </div>
 
             </div>

@@ -1,8 +1,16 @@
-import { beforeAll } from 'vitest';
+/**
+ * Test setup file for Vitest.
+ * 
+ * IMPORTANT: This setup does NOT run any destructive database operations
+ * (such as deleteMany, drop table, etc.) to ensure production data is never lost.
+ */
+import { beforeAll, afterAll } from "vitest";
 
 beforeAll(async () => {
-  // Set required environment variables for tests (safe, isolated in memory)
-  process.env.IP_SALT = process.env.IP_SALT || 'test-salt-for-testing-only';
-  process.env.EDUBEK_SESSION_SECRET = process.env.EDUBEK_SESSION_SECRET || 'test-session-secret-key-32charslong!';
-  process.env.EDUBEK_REFRESH_SECRET = process.env.EDUBEK_REFRESH_SECRET || 'test-refresh-secret-key-32charslong!';
+  // Safe environment setup - no destructive DB calls
+  (process.env as Record<string, string | undefined>).NODE_ENV = "test";
+});
+
+afterAll(async () => {
+  // Safe teardown
 });

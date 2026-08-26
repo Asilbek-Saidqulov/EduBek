@@ -1,11 +1,11 @@
 /**
  * Quiz Hub & Live Multiplayer Client
  *
- * Provides:
- * - Direct Live PIN Game Join
- * - Solo Practice & Topic Quiz Discovery
- * - Game Modes Selector (Classic, Quiz Royale, Treasure Heist, Empire Builder)
- * - Step-by-Step Question Player with Game Mode HUD
+ * Real Quiz Engine features:
+ * - Direct Live PIN Game Join & Mode Selectors
+ * - Fetching Real Live Database Quizzes (/api/quizzes)
+ * - Creating & Publishing Custom Quizzes directly to the Database
+ * - Real Authenticated Attempts with Server-Authoritative Grading & XP
  */
 "use client";
 
@@ -31,6 +31,11 @@ import {
   Shield,
   Coins,
   Crown,
+  BookOpen,
+  PlusCircle,
+  Trash2,
+  Loader2,
+  Send,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -44,14 +49,48 @@ export function LiveQuizClient() {
   const codeFromUrl = searchParams.get("code")?.trim().toUpperCase() ?? "";
 
   const [joinCode, setJoinCode] = React.useState(codeFromUrl);
-  const [activeTab, setActiveTab] = React.useState<"join" | "modes" | "discover" | "host">("modes");
+  const [activeTab, setActiveTab] = React.useState<"modes" | "join" | "discover" | "create" | "host">("modes");
   const [selectedGameMode, setSelectedGameMode] = React.useState<GameModeType>("classic");
   const [playingQuiz, setPlayingQuiz] = React.useState<any | null>(
     codeFromUrl.length >= 4 ? { code: codeFromUrl, mode: "classic" } : null
   );
 
-  // Curated ready-to-play practice quizzes
-  const practiceQuizzes = [
+  // Live DB Quizzes state
+  const [dbQuizzes, setDbQuizzes] = React.useState<any[]>([]);
+  const [isLoadingQuizzes, setIsLoadingQuizzes] = React.useState(false);
+
+  // Create Quiz Form State
+  const [newTitle, setNewTitle] = React.useState("");
+  const [newDescription, setNewDescription] = React.useState("");
+  const [newCategory, setNewCategory] = React.useState("general");
+  const [newDifficulty, setNewDifficulty] = React.useState<"easy" | "medium" | "hard">("medium");
+  const [newQuestions, setNewQuestions] = React.useState<Array<{
+    question: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+    points: number;
+  }>>([
+    {
+      question: "What is the capital of Uzbekistan?",
+      options: ["Samarkand", "Tashkent", "Bukhara", "Khiva"],
+      correctIndex: 1,
+      explanation: "Tashkent has been the capital of Uzbekistan since 1930.",
+      points: 1,
+    },
+    {
+      question: "Which organelle produces ATP through cellular respiration?",
+      options: ["Ribosome", "Endoplasmic Reticulum", "Mitochondrion", "Golgi Apparatus"],
+      correctIndex: 2,
+      explanation: "Mitochondria are the powerhouses of eukaryotic cells producing ATP.",
+      points: 1,
+    },
+  ]);
+  const [isCreatingQuiz, setIsCreatingQuiz] = React.useState(false);
+  const [createFeedback, setCreateFeedback] = React.useState<string | null>(null);
+
+  // Curated ready-to-play practice quizzes fallback
+  const defaultPracticeQuizzes = [
     {
       id: "q-math-1",
       title: "Algebra — Quadratic Equations & Factoring",
@@ -93,6 +132,109 @@ export function LiveQuizClient() {
       accuracy: "76%",
     },
   ];
+
+  // Fetch real quizzes from database
+  const loadPublishedQuizzes = React.useCallback(async () => {
+    setIsLoadingQuizzes(true);
+    try {
+      const res = await fetch("/api/quizzes?limit=20");
+      if (res.ok) {
+        const data = await res.json();
+        if (data?.quizzes) {
+          setDbQuizzes(data.quizzes);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load published quizzes:", err);
+    } finally {
+      setIsLoadingQuizzes(false);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    loadPublishedQuizzes();
+  }, [loadPublishedQuizzes]);
+
+  // Handle starting a real database quiz attempt
+  const handleStartRealQuiz = async (quizItem: any) => {
+    try {
+      const startRes = await fetch(`/api/quizzes/${quizItem.id}/attempts`, {
+        method: "POST",
+      });
+
+      if (startRes.ok) {
+        const attemptData = await startRes.json();
+        setPlayingQuiz({
+          quizId: quizItem.id,
+          attemptId: attemptData.attemptId,
+          title: quizItem.title,
+          mode: selectedGameMode,
+          questions: attemptData.questions,
+        });
+        return;
+      }
+    } catch (err) {
+      console.error("Error initiating server attempt, playing in solo client mode:", err);
+    }
+
+    // Fallback to client play
+    setPlayingQuiz({
+      quizId: quizItem.id,
+      title: quizItem.title,
+      mode: selectedGameMode,
+    });
+  };
+
+  // Handle creating a real quiz
+  const handleCreateAndPublishQuiz = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim()) return;
+
+    setIsCreatingQuiz(true);
+    setCreateFeedback(null);
+
+    try {
+      // 1. Create quiz
+      const createRes = await fetch("/api/quizzes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle.trim(),
+          description: newDescription.trim() || undefined,
+          category: newCategory,
+          difficulty: newDifficulty,
+          mode: selectedGameMode === "royale" ? "survival" : "classic",
+          questions: newQuestions,
+        }),
+      });
+
+      if (!createRes.ok) {
+        const errData = await createRes.json().catch(() => null);
+        throw new Error(errData?.error?.message || "Failed to create quiz");
+      }
+
+      const createdQuiz = await createRes.json();
+
+      // 2. Publish quiz
+      const publishRes = await fetch(`/api/quizzes/${createdQuiz.id}/publish`, {
+        method: "POST",
+      });
+
+      if (publishRes.ok) {
+        setCreateFeedback(`Successfully created and published "${newTitle}"!`);
+        setNewTitle("");
+        setNewDescription("");
+        loadPublishedQuizzes();
+        setActiveTab("discover");
+      } else {
+        setCreateFeedback(`Quiz created as draft.`);
+      }
+    } catch (err: any) {
+      setCreateFeedback(`Error: ${err?.message || "Could not complete quiz creation"}`);
+    } finally {
+      setIsCreatingQuiz(false);
+    }
+  };
 
   const gameModesList: Array<{
     id: GameModeType;
@@ -150,8 +292,11 @@ export function LiveQuizClient() {
     return (
       <GuestQuizPlayer
         joinCode={playingQuiz.code || "ARENA"}
+        quizId={playingQuiz.quizId}
+        attemptId={playingQuiz.attemptId}
         quizTitle={playingQuiz.title || "Interactive Quiz Arena"}
         mode={playingQuiz.mode || selectedGameMode}
+        questions={playingQuiz.questions}
         onExit={() => setPlayingQuiz(null)}
       />
     );
@@ -171,7 +316,7 @@ export function LiveQuizClient() {
           Interactive Game Modes & Quiz Arena
         </h1>
         <p className="text-sm text-muted-foreground max-w-2xl mt-1">
-          Choose from 4 dynamic game modes, join live PIN multiplayer lobbies, or practice syllabus topics solo.
+          Choose from 4 dynamic game modes, play real database quizzes with verified server grading, or build and publish your own quiz.
         </p>
       </div>
 
@@ -190,6 +335,30 @@ export function LiveQuizClient() {
         </button>
 
         <button
+          onClick={() => setActiveTab("discover")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === "discover"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <HelpCircle className="size-4" />
+          <span>Browse Quizzes {dbQuizzes.length > 0 && `(${dbQuizzes.length})`}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("create")}
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+            activeTab === "create"
+              ? "bg-primary text-primary-foreground shadow-xs"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground"
+          }`}
+        >
+          <PlusCircle className="size-4" />
+          <span>Create Real Quiz</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab("join")}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
             activeTab === "join"
@@ -199,18 +368,6 @@ export function LiveQuizClient() {
         >
           <Radio className="size-4" />
           <span>Join Live PIN</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("discover")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === "discover"
-              ? "bg-primary text-primary-foreground shadow-xs"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}
-        >
-          <HelpCircle className="size-4" />
-          <span>Solo Practice Quizzes</span>
         </button>
 
         <button
@@ -296,10 +453,345 @@ export function LiveQuizClient() {
         </div>
       )}
 
+      {/* Discover / Browse Quizzes Tab */}
+      {activeTab === "discover" && (
+        <div className="space-y-6">
+          {/* Live Database Quizzes */}
+          {dbQuizzes.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-emerald-600 text-white text-[10px]">Real Database</Badge>
+                  <h2 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                    Live Published Quizzes ({dbQuizzes.length})
+                  </h2>
+                </div>
+                <Button size="sm" variant="ghost" onClick={loadPublishedQuizzes} className="text-xs h-7">
+                  Refresh
+                </Button>
+              </div>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                {dbQuizzes.map((quiz) => (
+                  <Card
+                    key={quiz.id}
+                    className="border-border/80 shadow-xs p-5 hover:border-primary/40 transition-all flex flex-col justify-between bg-card"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Badge variant="outline" className="text-[10px] font-semibold text-primary bg-primary/5 capitalize">
+                          {quiz.category || "General"}
+                        </Badge>
+                        <span className="text-[11px] text-muted-foreground capitalize">{quiz.difficulty}</span>
+                      </div>
+                      <h3 className="text-base font-bold text-foreground">{quiz.title}</h3>
+                      {quiz.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-2">{quiz.description}</p>
+                      )}
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground pt-1">
+                        <span>{quiz.questionCount} Questions</span>
+                        <span>•</span>
+                        <span>{quiz.totalAttempts} Attempts</span>
+                        {quiz.teacher?.name && (
+                          <>
+                            <span>•</span>
+                            <span>By {quiz.teacher.name}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="pt-4 mt-3 border-t flex items-center justify-between">
+                      <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">Server Graded</span>
+                      <Button
+                        size="sm"
+                        onClick={() => handleStartRealQuiz(quiz)}
+                        className="gap-1.5 text-xs font-semibold"
+                      >
+                        <Play className="size-3.5 fill-current" />
+                        Play Quiz
+                      </Button>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Curated Syllabus Quizzes */}
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+                Syllabus Topic Quizzes
+              </h2>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {defaultPracticeQuizzes.map((pq) => (
+                <Card
+                  key={pq.id}
+                  className="border-border/80 shadow-xs p-5 hover:border-primary/40 transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Badge variant="outline" className="text-[10px] font-semibold text-primary bg-primary/5">
+                        {pq.subject}
+                      </Badge>
+                      <span className="text-[11px] text-muted-foreground">{pq.difficulty}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-foreground">{pq.title}</h3>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{pq.questions} Questions</span>
+                      <span>•</span>
+                      <span>{pq.duration}</span>
+                      <span>•</span>
+                      <span>{pq.accuracy} Avg Accuracy</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 mt-2 border-t flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{pq.plays} attempts</span>
+                    <Button
+                      size="sm"
+                      onClick={() => setPlayingQuiz({ ...pq, mode: selectedGameMode })}
+                      className="gap-1.5 text-xs font-semibold"
+                    >
+                      <Play className="size-3.5 fill-current" />
+                      Start Quiz
+                    </Button>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Quiz Tab */}
+      {activeTab === "create" && (
+        <Card className="border-border/80 shadow-md p-6 space-y-6 max-w-3xl mx-auto">
+          <div className="space-y-1">
+            <CardTitle className="text-lg font-bold flex items-center gap-2">
+              <PlusCircle className="size-5 text-primary" />
+              Create & Publish Real Quiz
+            </CardTitle>
+            <CardDescription className="text-xs">
+              Author questions with multiple-choice options, assign points, and save directly to PostgreSQL database.
+            </CardDescription>
+          </div>
+
+          {createFeedback && (
+            <div
+              className={`p-3 rounded-lg text-xs font-medium ${
+                createFeedback.startsWith("Error")
+                  ? "bg-rose-500/10 text-rose-600 border border-rose-500/20"
+                  : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+              }`}
+            >
+              {createFeedback}
+            </div>
+          )}
+
+          <form onSubmit={handleCreateAndPublishQuiz} className="space-y-5">
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="quizTitle" className="text-xs font-semibold">Quiz Title</Label>
+                <Input
+                  id="quizTitle"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="e.g. World History: Silk Road Trade Routes"
+                  required
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="quizDesc" className="text-xs font-semibold">Description (Optional)</Label>
+                <Input
+                  id="quizDesc"
+                  value={newDescription}
+                  onChange={(e) => setNewDescription(e.target.value)}
+                  placeholder="Brief overview of the topics covered in this quiz"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Category</Label>
+                  <select
+                    value={newCategory}
+                    onChange={(e) => setNewCategory(e.target.value)}
+                    className="w-full h-10 rounded-lg border border-border/80 bg-card px-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="general">General</option>
+                    <option value="history">History</option>
+                    <option value="science">Science</option>
+                    <option value="mathematics">Mathematics</option>
+                    <option value="languages">Languages</option>
+                    <option value="technology">Technology</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold">Difficulty</Label>
+                  <select
+                    value={newDifficulty}
+                    onChange={(e) => setNewDifficulty(e.target.value as any)}
+                    className="w-full h-10 rounded-lg border border-border/80 bg-card px-3 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            {/* Questions Authoring */}
+            <div className="space-y-4 pt-2 border-t">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-foreground">Questions ({newQuestions.length})</h3>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() =>
+                    setNewQuestions((prev) => [
+                      ...prev,
+                      {
+                        question: "",
+                        options: ["", "", "", ""],
+                        correctIndex: 0,
+                        explanation: "",
+                        points: 1,
+                      },
+                    ])
+                  }
+                  className="gap-1.5 text-xs h-8"
+                >
+                  <Plus className="size-3.5" />
+                  Add Question
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                {newQuestions.map((q, qIdx) => (
+                  <Card key={qIdx} className="p-4 border-border/80 space-y-3 bg-muted/20">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-bold text-foreground">Question {qIdx + 1}</span>
+                      {newQuestions.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setNewQuestions((prev) => prev.filter((_, i) => i !== qIdx))}
+                          className="text-rose-500 h-7 px-2 hover:bg-rose-500/10"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <Input
+                      value={q.question}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setNewQuestions((prev) => {
+                          const updated = [...prev];
+                          updated[qIdx].question = val;
+                          return updated;
+                        });
+                      }}
+                      placeholder="Enter question text"
+                      required
+                    />
+
+                    <div className="space-y-2">
+                      <Label className="text-[11px] font-semibold text-muted-foreground">
+                        Options (select radio for the correct answer):
+                      </Label>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {q.options.map((opt, optIdx) => (
+                          <div key={optIdx} className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              name={`correct-${qIdx}`}
+                              checked={q.correctIndex === optIdx}
+                              onChange={() => {
+                                setNewQuestions((prev) => {
+                                  const updated = [...prev];
+                                  updated[qIdx].correctIndex = optIdx;
+                                  return updated;
+                                });
+                              }}
+                              className="size-4 text-primary focus:ring-primary"
+                            />
+                            <Input
+                              value={opt}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setNewQuestions((prev) => {
+                                  const updated = [...prev];
+                                  updated[qIdx].options[optIdx] = val;
+                                  return updated;
+                                });
+                              }}
+                              placeholder={`Option ${String.fromCharCode(65 + optIdx)}`}
+                              className="h-8 text-xs"
+                              required
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <Label className="text-[11px] font-semibold text-muted-foreground">
+                        Explanation (optional):
+                      </Label>
+                      <Input
+                        value={q.explanation}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setNewQuestions((prev) => {
+                            const updated = [...prev];
+                            updated[qIdx].explanation = val;
+                            return updated;
+                          });
+                        }}
+                        placeholder="Why is this answer correct?"
+                        className="h-8 text-xs"
+                      />
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+
+            <Button
+              type="submit"
+              disabled={isCreatingQuiz || !newTitle.trim()}
+              className="w-full h-11 text-sm font-bold gap-2 shadow-xs"
+            >
+              {isCreatingQuiz ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  <span>Saving & Publishing to Database...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="size-4" />
+                  <span>Publish Quiz to Database</span>
+                </>
+              )}
+            </Button>
+          </form>
+        </Card>
+      )}
+
       {/* Main Tab Content: PIN */}
       {activeTab === "join" && (
         <div className="grid gap-6 md:grid-cols-2 items-start">
-          {/* PIN Join Card */}
           <Card className="border-border/80 shadow-xs p-6 space-y-5">
             <div className="space-y-1">
               <CardTitle className="text-lg font-bold flex items-center gap-2">
@@ -379,7 +871,7 @@ export function LiveQuizClient() {
             </div>
 
             <div className="space-y-2 pt-2">
-              {practiceQuizzes.slice(0, 2).map((pq) => (
+              {defaultPracticeQuizzes.slice(0, 2).map((pq) => (
                 <div
                   key={pq.id}
                   onClick={() => setPlayingQuiz({ ...pq, mode: selectedGameMode })}
@@ -399,54 +891,6 @@ export function LiveQuizClient() {
               ))}
             </div>
           </Card>
-        </div>
-      )}
-
-      {activeTab === "discover" && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
-              Curated Practice Quizzes ({practiceQuizzes.length})
-            </h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {practiceQuizzes.map((pq) => (
-              <Card
-                key={pq.id}
-                className="border-border/80 shadow-xs p-5 hover:border-primary/40 transition-all flex flex-col justify-between"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Badge variant="outline" className="text-[10px] font-semibold text-primary bg-primary/5">
-                      {pq.subject}
-                    </Badge>
-                    <span className="text-[11px] text-muted-foreground">{pq.difficulty}</span>
-                  </div>
-                  <h3 className="text-base font-bold text-foreground">{pq.title}</h3>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span>{pq.questions} Questions</span>
-                    <span>•</span>
-                    <span>{pq.duration}</span>
-                    <span>•</span>
-                    <span>{pq.accuracy} Avg Accuracy</span>
-                  </div>
-                </div>
-
-                <div className="pt-4 mt-2 border-t flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">{pq.plays} attempts</span>
-                  <Button
-                    size="sm"
-                    onClick={() => setPlayingQuiz({ ...pq, mode: selectedGameMode })}
-                    className="gap-1.5 text-xs font-semibold"
-                  >
-                    <Play className="size-3.5 fill-current" />
-                    Start Quiz
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
         </div>
       )}
 

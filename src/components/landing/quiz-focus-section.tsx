@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   Swords,
   ShieldAlert,
@@ -18,44 +19,45 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function QuizFocusSection() {
+  const t = useTranslations("landing.quizFocus");
   const [activeMode, setActiveMode] = React.useState<"classic" | "royale" | "heist" | "empire">("royale");
 
   const modes = [
     {
       id: "classic",
-      name: "Classic Arena",
+      name: t("modes.classic.name"),
       icon: Timer,
       color: "text-blue-500",
       bg: "bg-blue-500/10 border-blue-500/20",
-      description: "Fast-paced timed questions with streak bonuses and live real-time scoreboards.",
-      tag: "Solo & Class",
+      description: t("modes.classic.description"),
+      tag: t("modes.classic.tag"),
     },
     {
       id: "royale",
-      name: "Quiz Royale",
+      name: t("modes.royale.name"),
       icon: ShieldAlert,
       color: "text-rose-500",
       bg: "bg-rose-500/10 border-rose-500/20",
-      description: "Start with a 100 HP shield. Wrong answers deal damage until the last student stands.",
-      tag: "Competitive",
+      description: t("modes.royale.description"),
+      tag: t("modes.royale.tag"),
     },
     {
       id: "heist",
-      name: "Treasure Heist",
+      name: t("modes.heist.name"),
       icon: Coins,
       color: "text-amber-500",
       bg: "bg-amber-500/10 border-amber-500/20",
-      description: "Chain streaks to open vault chests and earn EDU tokens with team multipliers.",
-      tag: "Token Rewards",
+      description: t("modes.heist.description"),
+      tag: t("modes.heist.tag"),
     },
     {
       id: "empire",
-      name: "Empire Builder",
+      name: t("modes.empire.name"),
       icon: Castle,
       color: "text-emerald-500",
       bg: "bg-emerald-500/10 border-emerald-500/20",
-      description: "Turn correct answers into architectural wonders and expand your team's civilization.",
-      tag: "Collaborative",
+      description: t("modes.empire.description"),
+      tag: t("modes.empire.tag"),
     },
   ];
 
@@ -69,21 +71,21 @@ export function QuizFocusSection() {
           <div className="lg:col-span-6 space-y-6">
             <Badge variant="outline" className="gap-1.5 py-1 px-3 text-xs font-semibold text-primary border-primary/20 bg-primary/5">
               <Swords className="h-3.5 w-3.5" />
-              <span>Interactive Quiz Platform</span>
+              <span>{t("badge")}</span>
             </Badge>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15] text-balance">
-              Practice is most useful when you understand your mistakes.
+              {t("title")}
             </h2>
 
             <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-              Take interactive quizzes, compete live with your class, inspect comprehensive explanations for every error, and automatically turn weak topics into targeted review sets.
+              {t("subtitle")}
             </p>
 
             {/* 4 Distinct Game Mode Selector */}
             <div className="space-y-3 pt-2">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                4 Specialized Arena Game Modes:
+                {t("modesHeader")}
               </span>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {modes.map((m) => {
@@ -124,7 +126,7 @@ export function QuizFocusSection() {
             <div className="pt-2 flex items-center gap-3">
               <Button size="lg" asChild className="gap-2 shadow-xs">
                 <Link href="/live-quiz">
-                  <span>Enter Quiz Arena</span>
+                  <span>{t("cta")}</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -139,13 +141,13 @@ export function QuizFocusSection() {
               <div className="flex items-center justify-between pb-4 border-b border-border/80 text-xs">
                 <div className="flex items-center gap-2">
                   <Badge className="bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20 font-mono text-[11px]">
-                    Shield: 75 / 100 HP
+                    {t("shieldStatus")}
                   </Badge>
-                  <span className="text-muted-foreground">Round 3 of 8</span>
+                  <span className="text-muted-foreground">{t("roundStatus")}</span>
                 </div>
                 <div className="flex items-center gap-2 font-mono text-[11px] text-amber-500">
                   <Flame className="h-3.5 w-3.5 fill-amber-500" />
-                  <span>Combo 4x</span>
+                  <span>{t("comboStatus")}</span>
                 </div>
               </div>
 
@@ -153,21 +155,21 @@ export function QuizFocusSection() {
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-xs font-semibold text-rose-500">
                   <XCircle className="h-4 w-4" />
-                  <span>Reviewing Question Mistake</span>
+                  <span>{t("reviewingMistake")}</span>
                 </div>
 
                 <div className="p-3.5 rounded-xl border border-border/80 bg-muted/30 text-xs space-y-2">
                   <p className="font-semibold text-foreground">
-                    "Which constitutional amendment established the direct popular election of United States senators?"
+                    &quot;{t("sampleQuestion")}&quot;
                   </p>
                   
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-700 dark:text-rose-300 text-xs font-medium">
-                      <span>Your Answer: 15th Amendment</span>
-                      <span className="text-[10px] font-mono uppercase">Incorrect</span>
+                      <span>{t("yourAnswer")}</span>
+                      <span className="text-[10px] font-mono uppercase">{t("incorrectBadge")}</span>
                     </div>
                     <div className="flex items-center justify-between p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 text-xs font-medium">
-                      <span>Correct Answer: 17th Amendment (1913)</span>
+                      <span>{t("correctAnswer")}</span>
                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
                     </div>
                   </div>
@@ -177,14 +179,14 @@ export function QuizFocusSection() {
                 <div className="p-3.5 rounded-xl border border-primary/20 bg-primary/5 text-xs space-y-1.5">
                   <div className="flex items-center gap-1.5 text-primary font-semibold text-[11px]">
                     <Sparkles className="h-3 w-3" />
-                    <span>Instant Remedial Breakdown</span>
+                    <span>{t("remedialBreakdown")}</span>
                   </div>
                   <p className="text-foreground/90 text-[11px] leading-relaxed">
-                    The 15th Amendment granted voting rights regardless of race. The 17th Amendment (passed in 1913) replaced state legislature appointment with direct popular vote for U.S. Senators.
+                    {t("remedialText")}
                   </p>
                   <div className="pt-1 flex items-center justify-between text-[10px] font-medium text-primary">
-                    <span>Added to personal "Targeted Weak Areas" set</span>
-                    <span className="font-mono">+1 Remedial Drill</span>
+                    <span>{t("addedToTargeted")}</span>
+                    <span className="font-mono">{t("drillAdded")}</span>
                   </div>
                 </div>
               </div>

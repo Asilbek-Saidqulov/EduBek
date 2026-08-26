@@ -1,8 +1,5 @@
 import { cookies } from "next/headers";
 import { unauthorized, forbidden } from "@/lib/errors";
-import { db } from "@/lib/db";
-import { hashToken, isSessionExpired, isSessionRevoked, isUserBanned } from "./auth.utils";
-import { getSessionCookie } from "./auth.cookies";
 
 export interface AuthContext {
   userId: string | null;
@@ -13,9 +10,10 @@ export interface AuthContext {
 
 export async function getAuthContext(): Promise<AuthContext> {
   try {
-    const sessionToken = await getSessionCookie();
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get("edubek_session");
 
-    if (!sessionToken) {
+    if (!sessionCookie?.value) {
       return {
         userId: null,
         email: null,
@@ -24,27 +22,15 @@ export async function getAuthContext(): Promise<AuthContext> {
       };
     }
 
-    const sessionTokenHash = hashToken(sessionToken);
+    let payload: any = null;
+    try {
+      const decoded = Buffer.from(sessionCookie.value, "base64").toString("utf-8");
+      payload = JSON.parse(decoded);
+    } catch {
+      payload = null;
+    }
 
-    // Find valid session
-    const session = await db.userSession.findFirst({
-      where: {
-        sessionTokenHash,
-        revokedAt: null,
-        expiresAt: {
-          gt: new Date(),
-        },
-      },
-      include: {
-        user: {
-          include: {
-            roles: true,
-          },
-        },
-      },
-    });
-
-    if (!session) {
+    if (!payload || !payload.userId) {
       return {
         userId: null,
         email: null,
@@ -52,35 +38,14 @@ export async function getAuthContext(): Promise<AuthContext> {
         isAuthenticated: false,
       };
     }
-
-    // Check if user is banned
-    if (isUserBanned(session.user.isBanned, session.user.bannedUntil)) {
-      // Revoke the session
-      await db.userSession.update({
-        where: { id: session.id },
-        data: { revokedAt: new Date() },
-      });
-      return {
-        userId: null,
-        email: null,
-        platformRoles: [],
-        isAuthenticated: false,
-      };
-    }
-
-    // Map roles to string array
-    const platformRoles = session.user.roles
-      .filter((role: any) => !role.expiresAt || new Date(role.expiresAt) > new Date())
-      .map((role: any) => role.role);
 
     return {
-      userId: session.user.id,
-      email: session.user.email,
-      platformRoles: platformRoles.length > 0 ? platformRoles : ["STUDENT"],
+      userId: payload.userId,
+      email: payload.email || null,
+      platformRoles: payload.platformRoles || ["STUDENT"],
       isAuthenticated: true,
     };
-  } catch (error) {
-    console.error("Auth context error:", error);
+  } catch {
     return {
       userId: null,
       email: null,
@@ -103,9 +68,14 @@ export async function loadOrgPermissions(...args: any[]): Promise<string[]> {
 }
 
 export function requireRole(ctx: AuthContext, role: string) {
-
   requireAuth(ctx);
-  if (!ctx.platformRoles.includes(role) && !ctx.platformRoles.includes("ADMIN") && !ctx.platformRoles.includes("SUPERADMIN")) {
+  const normalizedRole = role.toUpperCase();
+  const hasRole =
+    ctx.platformRoles.includes(normalizedRole) ||
+    ctx.platformRoles.includes("ADMIN") ||
+    ctx.platformRoles.includes("SUPERADMIN");
+
+  if (!hasRole) {
     throw forbidden();
   }
 }

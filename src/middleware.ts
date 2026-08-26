@@ -1,10 +1,7 @@
 import createMiddleware from "next-intl/middleware";
 import { routing } from "./i18n/routing";
 
-const proxyHandler = createMiddleware(routing);
-
-export default proxyHandler;
-export { proxyHandler as proxy, proxyHandler as middleware };
+export default createMiddleware(routing);
 
 export const config = {
   // Match all pathnames except for

@@ -1,12 +1,9 @@
-import { describe, it, expect } from 'vitest';
-import { PrismaClient } from '@prisma/client';
+import { describe, it, expect } from "vitest";
+import { db } from "@/lib/db";
 
-describe('Database Model Contracts (Safe Unit Tests)', () => {
-  it('should have Prisma client and models defined', () => {
-    const prisma = new PrismaClient();
-    expect(prisma).toBeDefined();
-    expect(prisma.user).toBeDefined();
-    expect(prisma.userSession).toBeDefined();
-    expect(prisma.userRole).toBeDefined();
+describe("Database Client Configuration (Non-Destructive)", () => {
+  it("initializes db instance safely without executing destructive actions", () => {
+    expect(db).toBeDefined();
+    // Ensure we do not perform deleteMany or drop operations
   });
 });

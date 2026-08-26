@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   ShoppingBag,
   Star,
@@ -16,45 +17,47 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function MarketplacePreviewSection() {
+  const t = useTranslations("landing.marketplacePreview");
+
   const materials = [
     {
       id: "mat-1",
-      category: "National Examination Prep",
-      title: "State University Entrance Exam (DTM) • Ultimate Physics 500",
-      author: "Prof. Dilshod Karimov",
-      authorRole: "Senior Physics Lecturer",
+      category: t("materials.mat1.category"),
+      title: t("materials.mat1.title"),
+      author: t("materials.mat1.author"),
+      authorRole: t("materials.mat1.authorRole"),
       rating: 4.9,
       downloads: 480,
       price: "35 EDU",
       usdPrice: "$7.00",
-      description: "500 high-yield physics questions with detailed step-by-step vector mechanics and thermodynamics solutions.",
-      badge: "Best Seller",
+      description: t("materials.mat1.description"),
+      badge: t("materials.mat1.badge"),
     },
     {
       id: "mat-2",
-      category: "High School Olympiad",
-      title: "Advanced Organic Chemistry & Synthesis Reaction Maps",
-      author: "Dr. Elena Volkova",
-      authorRole: "Olympiad Coach",
+      category: t("materials.mat2.category"),
+      title: t("materials.mat2.title"),
+      author: t("materials.mat2.author"),
+      authorRole: t("materials.mat2.authorRole"),
       rating: 5.0,
       downloads: 320,
       price: "45 EDU",
       usdPrice: "$9.00",
-      description: "Color-coded reaction flowcharts, resonance mechanism cards, and 12 interactive mock quiz simulations.",
-      badge: "Verified Expert",
+      description: t("materials.mat2.description"),
+      badge: t("materials.mat2.badge"),
     },
     {
       id: "mat-3",
-      category: "Computer Science",
-      title: "Data Structures & Algorithms Interview Mastery Deck",
-      author: "Azizbek Turgunov",
-      authorRole: "Software Engineer & Educator",
+      category: t("materials.mat3.category"),
+      title: t("materials.mat3.title"),
+      author: t("materials.mat3.author"),
+      authorRole: t("materials.mat3.authorRole"),
       rating: 4.9,
       downloads: 650,
       price: "30 EDU",
       usdPrice: "$6.00",
-      description: "200 flashcards on Big-O, Trees, DP patterns, plus 8 timed speed-coding quiz modules.",
-      badge: "Top Rated",
+      description: t("materials.mat3.description"),
+      badge: t("materials.mat3.badge"),
     },
   ];
 
@@ -67,19 +70,19 @@ export function MarketplacePreviewSection() {
           <div className="space-y-3 max-w-2xl">
             <Badge variant="outline" className="gap-1.5 py-1 px-3 text-xs font-semibold text-primary border-primary/20 bg-primary/5">
               <ShoppingBag className="h-3.5 w-3.5" />
-              <span>Verified Creator Marketplace</span>
+              <span>{t("badge")}</span>
             </Badge>
             <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground text-balance">
-              Find materials worth learning from.
+              {t("title")}
             </h2>
             <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-              Curated, peer-reviewed study packages, flashcards, and quiz banks crafted by subject educators who teach the curriculum every day.
+              {t("subtitle")}
             </p>
           </div>
 
           <Button size="lg" variant="outline" asChild className="shrink-0 gap-2">
             <Link href="/marketplace">
-              <span>Browse All Materials</span>
+              <span>{t("browseAll")}</span>
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
@@ -137,7 +140,7 @@ export function MarketplacePreviewSection() {
                     <span className="text-[10px] text-muted-foreground block">{item.usdPrice}</span>
                   </div>
                   <Button size="sm" asChild className="h-8 px-3 text-xs">
-                    <Link href="/marketplace">Preview</Link>
+                    <Link href="/marketplace">{t("previewBtn")}</Link>
                   </Button>
                 </div>
               </div>

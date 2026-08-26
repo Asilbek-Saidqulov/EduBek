@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   ArrowRight,
   Sparkles,
@@ -18,21 +19,22 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 
 export function HeroSection() {
+  const t = useTranslations("landing.hero");
   const router = useRouter();
   const [pin, setPin] = React.useState("");
   const [selectedAnswer, setSelectedAnswer] = React.useState<number | null>(null);
   const [isAnswered, setIsAnswered] = React.useState(false);
 
   const sampleQuestion = {
-    subject: "Biology • Cell Energetics",
-    question: "Which organelle generates the majority of cellular ATP via oxidative phosphorylation?",
+    subject: t("sampleSubject"),
+    question: t("sampleQuestion"),
     options: [
-      { id: 0, text: "Ribosome", correct: false },
-      { id: 1, text: "Mitochondria", correct: true },
-      { id: 2, text: "Endoplasmic Reticulum", correct: false },
-      { id: 3, text: "Golgi Apparatus", correct: false },
+      { id: 0, text: t("sampleOption0"), correct: false },
+      { id: 1, text: t("sampleOption1"), correct: true },
+      { id: 2, text: t("sampleOption2"), correct: false },
+      { id: 3, text: t("sampleOption3"), correct: false },
     ],
-    explanation: "Mitochondria produce ~90% of cellular ATP using the electron transport chain across their inner membrane folds (cristae).",
+    explanation: t("aiExplanation"),
   };
 
   const handleSelectOption = (index: number) => {
@@ -62,34 +64,34 @@ export function HeroSection() {
             {/* Context pill */}
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-medium text-primary">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
-              <span>The Connected Learning Ecosystem</span>
+              <span>{t("pill")}</span>
             </div>
 
             {/* Core Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1] text-balance">
-              Where learning <br className="hidden sm:inline" />
+              {t("titlePart1")} <br className="hidden sm:inline" />
               <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-8">
-                connects.
+                {t("titleConnects")}
               </span>
             </h1>
 
             {/* Subtitle */}
             <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed max-w-xl text-balance">
-              A unified platform for students, educators, and creators to discover syllabus knowledge, practice with interactive quizzes, get contextual AI help, and share verified educational materials.
+              {t("subtitle")}
             </p>
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto pt-2">
               <Button size="lg" asChild className="h-12 px-6 font-semibold shadow-sm gap-2" id="hero-cta-primary">
                 <Link href="/register">
-                  <span>Get Started Free</span>
+                  <span>{t("getStarted")}</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild className="h-12 px-6 font-medium" id="hero-cta-secondary">
                 <Link href="/discover">
                   <Search className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>Explore Discover</span>
+                  <span>{t("exploreDiscover")}</span>
                 </Link>
               </Button>
             </div>
@@ -103,14 +105,14 @@ export function HeroSection() {
                     type="text"
                     value={pin}
                     onChange={(e) => setPin(e.target.value.toUpperCase())}
-                    placeholder="Have a Game PIN? (e.g. 749210)"
+                    placeholder={t("pinPlaceholder")}
                     maxLength={10}
                     className="pl-9 font-mono uppercase text-xs sm:text-sm tracking-wider h-10 bg-background"
                     id="hero-pin-input"
                   />
                 </div>
                 <Button type="submit" variant="secondary" size="sm" className="h-10 px-4 font-medium" disabled={!pin.trim()} id="hero-pin-submit">
-                  Join Live
+                  {t("joinLive")}
                 </Button>
               </form>
             </div>
@@ -119,15 +121,15 @@ export function HeroSection() {
             <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-xs text-muted-foreground pt-1">
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                4 Interactive Quiz Modes
+                {t("badgeModes")}
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                Contextual AI Explanations
+                {t("badgeAi")}
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />
-                Educator Classrooms & Marketplace
+                {t("badgeMarketplace")}
               </span>
             </div>
 
@@ -145,15 +147,15 @@ export function HeroSection() {
                   <div className="h-3 w-3 rounded-full bg-rose-500/80" />
                   <div className="h-3 w-3 rounded-full bg-amber-500/80" />
                   <div className="h-3 w-3 rounded-full bg-emerald-500/80" />
-                  <span className="ml-2 font-mono text-[11px] text-muted-foreground">edubek.app/live-quiz/practice</span>
+                  <span className="ml-2 font-mono text-[11px] text-muted-foreground">{t("practiceUrl")}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="text-[10px] font-mono gap-1 text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
                     <Flame className="h-3 w-3 text-amber-500" />
-                    <span>Streak 7d</span>
+                    <span>{t("streak")}</span>
                   </Badge>
                   <Badge variant="secondary" className="text-[10px] font-mono">
-                    Score: 1,420
+                    {t("score")}
                   </Badge>
                 </div>
               </div>
@@ -209,9 +211,9 @@ export function HeroSection() {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
                       <Sparkles className="h-3.5 w-3.5" />
-                      <span>Contextual AI Explanation</span>
+                      <span>{t("aiExplanationTitle")}</span>
                     </div>
-                    <span className="text-[10px] text-muted-foreground font-mono">Gemini 3.7 Flash</span>
+                    <span className="text-[10px] text-muted-foreground font-mono">{t("aiModel")}</span>
                   </div>
                   <p className="text-xs text-foreground/90 leading-relaxed">
                     {sampleQuestion.explanation}
@@ -221,7 +223,7 @@ export function HeroSection() {
                       href="/ai-workspace"
                       className="inline-flex items-center gap-1 text-[11px] font-medium text-primary hover:underline"
                     >
-                      <span>Ask AI Tutor for deeper breakdown</span>
+                      <span>{t("askAiTutor")}</span>
                       <ArrowRight className="h-3 w-3" />
                     </Link>
                   </div>
@@ -231,11 +233,11 @@ export function HeroSection() {
                 <div className="pt-3 border-t border-border/70 flex items-center justify-between text-[11px] text-muted-foreground">
                   <div className="flex items-center gap-1.5">
                     <Layers className="h-3.5 w-3.5 text-indigo-500" />
-                    <span>Connected to: <strong>Grade 10 Biology Syllabus</strong></span>
+                    <span>{t("connectedSyllabus")} <strong>{t("syllabusName")}</strong></span>
                   </div>
                   <div className="flex items-center gap-1 text-primary font-medium">
                     <Brain className="h-3.5 w-3.5" />
-                    <span>+15 Mastery XP</span>
+                    <span>{t("xpBonus")}</span>
                   </div>
                 </div>
 

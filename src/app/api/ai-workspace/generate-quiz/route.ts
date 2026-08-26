@@ -129,7 +129,7 @@ Return valid JSON with the structure:
   ]
 }`;
 
-    // 5. Generate structured JSON with OpenRouter
+    // 5. Generate structured JSON with Gemini
     const result = await generateStructuredJson({
       prompt: userPrompt,
       systemPrompt,
@@ -141,18 +141,29 @@ Return valid JSON with the structure:
     if (userId) {
       try {
         await db.$transaction(async (tx) => {
-          let wallet = userWallet;
+          let wallet = await tx.wallet.findUnique({
+            where: { userId },
+          });
+
           if (!wallet) {
             wallet = await tx.wallet.create({
               data: {
                 userId,
-                eduTokensBalance: 1250,
+                eduTokensBalance: 250,
                 fiatBalance: 0,
+                currency: "USD",
               },
             });
           }
 
-          const newBalance = Math.max(0, wallet.eduTokensBalance - EDU_TOKENS_PER_GENERATION);
+          if (wallet.eduTokensBalance < EDU_TOKENS_PER_GENERATION) {
+            console.warn(
+              `[generate-quiz] User ${userId} had insufficient tokens (${wallet.eduTokensBalance}) at transaction commit.`
+            );
+            return;
+          }
+
+          const newBalance = wallet.eduTokensBalance - EDU_TOKENS_PER_GENERATION;
 
           await tx.wallet.update({
             where: { id: wallet.id },

@@ -13,6 +13,7 @@
     "library": "Kutubxona",
     "liveQuiz": "Jonli viktorina",
     "aiWorkspace": "AI Ish maydoni",
+    "tutor": "AI Repetitor",
     "classrooms": "Sinflar",
     "settings": "Sozlamalar",
     "profile": "Profil",
@@ -31,6 +32,74 @@
     "ecosystem": "Ekotizim",
     "workspaceAndTools": "Ishchi maydon",
     "search": "EduBek bo'yicha qidiruv..."
+  },
+  "tutor": {
+    "title": "EduBek AI Repetitor",
+    "subtitle": "Hujjatga asoslangan interaktiv ta'lim yordamchisi",
+    "blackboardSubtitle": "Jonli raqamli dars daftari",
+    "untitledLesson": "Nomsiz dars",
+    "topic": "Mavzu",
+    "listening": "Tinglanmoqda...",
+    "thinking": "O'ylanmoqda...",
+    "writing": "Doskaga yozilmoqda...",
+    "speaking": "Tushuntirilmoqda...",
+    "idle": "Darsga tayyor",
+    "error": "Diqqat talab etiladi",
+    "save": "Darsni saqlash",
+    "saving": "Saqlanmoqda...",
+    "savedSuccess": "Dars daftari kutubxonangizga saqlandi!",
+    "savedLocalSuccess": "Dars daftari qurilmada saqlandi.",
+    "clear": "Doskani tozalash",
+    "undo": "Bekor qilish",
+    "redo": "Qaytarish",
+    "checkpoint": "Bilimni tekshirish",
+    "checkpointPrompt": "Tezkor sinov savoli",
+    "continue": "Davom etish",
+    "correct": "To'g'ri! Ajoyib natija",
+    "incorrect": "Xato. Tushuntirish bilan tanishing",
+    "explanation": "Tushuntirish",
+    "mastered": "O'zlashtirildi",
+    "needsReview": "Qayta ko'rish kerak",
+    "start": "Boshlash",
+    "stop": "To'xtatish",
+    "empty": "Hali ma'lumot yo'q",
+    "emptyTitle": "Sizning jonli raqamli doskangiz",
+    "emptyDescription": "Savol bering yoki quyidagi mavzulardan birini tanlang. AI Repetitor bosqichma-bosqich yozuvlar, matematik formulalar va interaktiv diagrammalar yaratib o'rgatadi.",
+    "quickStartTopics": "Mavzularni o'rganish",
+    "startLesson": "Darsni boshlash",
+    "starter1Title": "Nyutonning ikkinchi qonuni",
+    "starter1Desc": "$F = ma$ formulasini keltirib chiqarish va kuch vektorlari.",
+    "starter1Prompt": "Menga Nyutonning ikkinchi qonunini bosqichma-bosqich isboti, formulalari va sinov savoli bilan o'rgat.",
+    "starter2Title": "Kvadrat tenglama formulasi",
+    "starter2Desc": "To'la kvadratga ajratish orqali formulani chiqarish.",
+    "starter2Prompt": "Kvadrat tenglama $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ formulasini LaTeX formulalari va tushuntirish bilan doskaga yozib o'rgat.",
+    "starter3Title": "Saralash algoritmlari",
+    "starter3Desc": "QuickSort va MergeSort taqqoslashi hamda diagrammalar.",
+    "starter3Prompt": "QuickSort va MergeSort algoritmlarini murakkabligi, vizual diagrammasi va sinov savollari bilan tushuntir.",
+    "sectionConcept": "Asosiy tushuncha",
+    "sectionExplanation": "Tushuntirish",
+    "sectionDerivation": "Matematik isbot",
+    "sectionExample": "Amaliy misol",
+    "sectionDiagram": "Vizual diagramma",
+    "sectionCheckpoint": "Sinov savoli",
+    "sectionSummary": "Dars xulosasi",
+    "transcriptHeader": "Repetitor suhbati",
+    "dialogueTurns": "ta xabar",
+    "transcriptEmpty": "Dars davomidagi ovozli va matnli tushuntirishlar bu yerda aks etadi.",
+    "inputPlaceholder": "Repetitordan savol so'rang yoki misol keltirishni iltimos qiling...",
+    "send": "Yuborish",
+    "companionSub": "Hujjatga asoslangan AI ta'lim hamrohi",
+    "micActive": "Mikrofon faol",
+    "micDisabled": "Matn va doska rejimi",
+    "blackboardTab": "Doska",
+    "companionTab": "Repetitor suhbati",
+    "quickStepExample": "Amaliy misol",
+    "quickStepExamplePrompt": "Doskaga aniq sonlar bilan ishlangan amaliy misol qo'shing.",
+    "quickAddQuiz": "Sinov savoli",
+    "quickAddQuizPrompt": "O'rganilgan mavzuni tekshirish uchun interaktiv sinov savoli qo'shing.",
+    "quickAddDiagram": "Vizual diagramma",
+    "quickAddDiagramPrompt": "Ushbu mavzuni tushuntiruvchi chiroyli SVG diagramma chizib bering.",
+    "errorGeneric": "AI Repetitorga ulanishda xatolik yuz berdi. Iltimos qaytadan urinib ko'ring."
   },
   "common": {
     "loading": "Yuklanmoqda...",
@@ -34620,5 +34689,674 @@
     "statusPayments": "To'lov shlyuzi",
     "statusAI": "Sun'iy intellekt xizmati",
     "lastUpdated": "Oxirgi yangilanish"
+  },
+  "landing": {
+    "hero": {
+      "pill": "Yagona ta'lim ekotizimi",
+      "titlePart1": "Ta'lim birlashgan",
+      "titleConnects": "makon.",
+      "subtitle": "O'quvchilar, o'qituvchilar va mualliflar uchun yagona platforma: o'quv dasturlarini o'rganing, interaktiv viktorinalar bilan mashq qiling, kontekstual AI yordamini oling va sifatli materiallarni ulashing.",
+      "getStarted": "Bepul boshlash",
+      "exploreDiscover": "Bilimlar xaritasini ko'rish",
+      "pinPlaceholder": "O'yin PIN kodi bormi? (masalan: 749210)",
+      "joinLive": "Jonli o'yinga ulanish",
+      "badgeModes": "4 ta interaktiv viktorina rejimi",
+      "badgeAi": "Kontekstual AI tushuntirishlari",
+      "badgeMarketplace": "O'qituvchilar sinflari va bozor",
+      "practiceUrl": "edubek.app/live-quiz/practice",
+      "streak": "7 kunlik seriya",
+      "score": "Ball: 1,420",
+      "sampleSubject": "Biologiya • Hujayra energetikasi",
+      "sampleQuestion": "Oksidlanishli fosforlanish orqali hujayra ATFining asosiy qismini qaysi organella hosil qiladi?",
+      "sampleOption0": "Ribosoma",
+      "sampleOption1": "Mitoxondriya",
+      "sampleOption2": "Endoplazmatik to'r",
+      "sampleOption3": "Golji majmuasi",
+      "aiExplanationTitle": "Kontekstual AI tushuntirishi",
+      "aiModel": "Gemini 3.7 Flash",
+      "aiExplanation": "Mitoxondriyalar o'zlarining ichki membrana burmalari (kristalar) bo'ylab elektron tashish zanjiri yordamida hujayra ATFining ~90% qismini ishlab chiqaradi.",
+      "askAiTutor": "Batafsil tahlil uchun AI Repetitordan so'rash",
+      "connectedSyllabus": "Bog'langan:",
+      "syllabusName": "10-sinf Biologiya o'quv dasturi",
+      "xpBonus": "+15 Tajriba (XP)"
+    },
+    "ecosystem": {
+      "badge": "O'zaro bog'liq arxitektura",
+      "title": "Alohida vositalar emas. Yagona ekotizim.",
+      "subtitle": "EduBekning har bir qismi boshqasini to'ldiradi: mavzuni kashf qilish viktorina mashqiga olib boradi, xatolar AI tushuntirishini chaqiradi va o'qituvchilar tasdiqlangan o'quv to'plamlarini nashr etadilar.",
+      "connectsInside": "Ekotizim ichida qanday bog'langan:",
+      "feedsInto": "Bog'lanadi:",
+      "readyToExplore": "Ushbu bo'limni ko'rishga tayyormisiz?",
+      "discover": {
+        "title": "Kashf qilish",
+        "badge": "Bilimlar grafigi",
+        "tagline": "Mavzular, saralangan viktorinalar va tuzilgan o'quv yo'llarini o'rganing.",
+        "description": "Tarqoq fayllar o'rniga davlat ta'lim standartlari bo'yicha tuzilgan mavzularni qidiring. Viktorinalar, darsliklar va kartochkalarni bir marta bosish orqali toping.",
+        "cta": "Bilimlar grafigini ochish"
+      },
+      "practice": {
+        "title": "Mashq qilish",
+        "badge": "4 ta arena rejimi",
+        "tagline": "Raqobatbardosh va mustaqil interaktiv viktorinalar orqali tushunchalarni o'zlashtiring.",
+        "description": "Klassik arena, Quiz Royale (100 HP qalqon), Xazina o'g'irlash yoki Saltanat quruvchisi rejimlarida qatnashing. Har bir savolga tezkor xulosa oling.",
+        "cta": "Viktorina arenasini boshlash"
+      },
+      "ai": {
+        "title": "Kontekstual AI",
+        "badge": "O'rnatilgan repetitor",
+        "tagline": "Tezkor bosqichma-bosqich tushuntirishlar, xulosalar va savollar yaratish.",
+        "description": "Sun'iy intellekt to'g'ridan-to'g'ri o'rganish jarayoniga kiritilgan. Viktorinada xato qilsangiz yoki murakkab mavzuni o'qiyotganingizda, ilovadan chiqmasdan tushuntirish oling.",
+        "cta": "AI Ish maydonini ochish"
+      },
+      "learn": {
+        "title": "O'rganish va kuzatish",
+        "badge": "Rivojlanish tahlili",
+        "tagline": "Qaydlarni tartiblang, kunlik seriyalarni saqlang va zaif tomonlarni mustahkamlang.",
+        "description": "Shaxsiy boshqaruv paneli mashq aniqligi, kunlik faollik, sinf topshiriqlari va mavzular tahlilini umumlashtirib, ta'lim rejangizni shakllantiradi.",
+        "cta": "O'quvchi panelini ko'rish"
+      },
+      "create": {
+        "title": "Yaratish",
+        "badge": "O'qituvchilar studiyasi",
+        "tagline": "Daqiqalar ichida viktorinalar, dars qo'llanmalari va interaktiv darslar yarating.",
+        "description": "Dastur mavzulari asosida qo'lda yoki AI yordamida turli formatdagi savollarni shakllantiring, jonli dars o'yinlari uchun eksport qiling yoki nashr eting.",
+        "cta": "Sinf va dars studiyasi"
+      },
+      "marketplace": {
+        "title": "Ta'lim bozori",
+        "badge": "Mualliflar iqtisodiyoti",
+        "tagline": "Tajribali o'qituvchilardan saralangan materiallarni xarid qiling yoki soting.",
+        "description": "Ta'lim mualliflarini qo'llab-quvvatlang. Imtihonga tayyorgarlik to'plamlari, rasmiy dasturlarni xarid qiling yoki o'z materiallaringiz orqali daromad oling.",
+        "cta": "Bozorni ko'rish"
+      }
+    },
+    "howItWorks": {
+      "badge": "Uzluksiz ta'lim sikli",
+      "title": "EduBekda o'rganish qanday kechadi",
+      "subtitle": "Passiv o'qishni faol va mustahkam bilimga aylantiruvchi 4 bosqichli tabiiy tizim.",
+      "stage": "0{num}-bosqich (jami 04)",
+      "realtimeLoop": "Moslashuvchan o'quv sikli",
+      "seeNext": "Keyingi bosqichni ko'rish ({next})",
+      "steps": {
+        "1": {
+          "title": "1. Kashf qilish",
+          "subtitle": "Bog'langan bilimlarni toping",
+          "description": "Fan, o'quv standarti yoki mavzuni tanlang. Tasdiqlangan konspektlar, taqdimotlar va viktorinalarga darhol kiring.",
+          "previewTitle": "Kashf qilish: Organik kimyo • Alkenlar reaksiyalari",
+          "item1": "Dastur: 11-sinf Kimyo",
+          "item2": "12 ta tasdiqlangan viktorina mavjud",
+          "item3": "Top o'qituvchilardan 4 ta xulosa konspekti"
+        },
+        "2": {
+          "title": "2. O'rganish",
+          "subtitle": "Asosiy tushunchalarni anglash",
+          "description": "Tuzilgan bob tahlillari, kartochkalarni o'qing yoki AI repetitordan murakkab formulalarni bosqichma-bosqich tushuntirishni so'rang.",
+          "previewTitle": "O'quv moduli: Elektrofil birikish",
+          "item1": "Markovnikov qoidasi tasvirlangan",
+          "item2": "AI Xulosasi: 3 ta asosiy reaksiya bosqichi",
+          "item3": "Shaxsiy takrorlash jildiga saqlandi"
+        },
+        "3": {
+          "title": "3. Mashq qilish",
+          "subtitle": "Interaktiv arenalarda sinash",
+          "description": "PIN kod bilan jonli sinf mashg'ulotiga qo'shiling yoki Quiz Royale, Xazina va Klassik vaqtli rejimlarida yakka mashq qiling.",
+          "previewTitle": "Mashq arenasi: 10 ta tezkor savol",
+          "item1": "Vaqtli javoblar va ketma-ketlik bonusi",
+          "item2": "Jonli peshqadamlar jadvali",
+          "item3": "Darhol to'g'ri/noto'g'ri xulosasi"
+        },
+        "4": {
+          "title": "4. Rivojlanish",
+          "subtitle": "Xatolarni tahlil qilish va o'zlashtirish",
+          "description": "EduBek har bir xato javobni batafsil tahlil qiladi va zaif tomonlaringizga mos maxsus takrorlash navbatini yaratadi.",
+          "previewTitle": "Xatolar diagnostikasi va takrorlash navbati",
+          "item1": "Aniqlik: 85% (+12% o'sish)",
+          "item2": "Zaif soha aniqlandi: Karbokation barqarorligi",
+          "item3": "3 ta maqsadli mustahkamlash savoli tayyorlandi"
+        }
+      }
+    },
+    "showcase": {
+      "badge": "Interfeys ko'rinishi",
+      "title": "EduBek imkoniyatlari bilan tanishing",
+      "subtitle": "Chuqur o'rganish, tezkor baholash va samarali dars berish uchun ishlab chiqilgan qulay dizayn.",
+      "tabs": {
+        "quiz": "Viktorina arenasi",
+        "discover": "Bilimlarni kashf qilish",
+        "ai": "Kontekstual AI",
+        "teacher": "O'qituvchi maydoni",
+        "marketplace": "Ta'lim bozori"
+      },
+      "activeSession": "Faol sessiya: jonli-sinxron",
+      "openScreen": "Sahifani ochish",
+      "quiz": {
+        "badge": "Quiz Royale rejimi (100 HP qalqon)",
+        "pin": "PIN: 849-201",
+        "title": "Fizika: Nyuton qonunlari va impuls",
+        "streak": "Seriya x3",
+        "timeLeft": "12s qoldi",
+        "questionCount": "6-savol (jami 12)",
+        "question": "Ochiq koinotdagi 80 kg massali fazogir 2 kg massali kalitni 10 m/s tezlik bilan uloqtirdi. Fazogirning orqaga harakat tezligi qanday bo'ladi?",
+        "optA": "A) 0.50 m/s",
+        "optB": "B) 0.25 m/s",
+        "optC": "C) 2.00 m/s",
+        "optD": "D) 0.10 m/s",
+        "reward": "Mukofot: Yuqori aniqlik uchun +35 EDU Token",
+        "cta": "Jonli mashg'ulotga qo'shilish"
+      },
+      "discover": {
+        "title": "Bog'langan o'quv dasturlarini o'rganing",
+        "subtitle": "Davlat dasturi, sinf darajasi yoki aniq mavzu bo'yicha qidiring.",
+        "searchPlaceholder": "Matematika: Hosilalar",
+        "card1Badge": "Matematika",
+        "card1Quizzes": "18 ta viktorina",
+        "card1Title": "Murakkab funksiya va ko'paytma hosilasi",
+        "card1Desc": "Bosqichma-bosqich vizual isbotlar, 40 ta amaliy mashq va interaktiv testlar.",
+        "card1Cta": "14 ta materialni ko'rish →",
+        "card2Badge": "Fizika",
+        "card2Quizzes": "24 ta viktorina",
+        "card2Title": "Elektromagnetizm va induksiya",
+        "card2Desc": "Faradey qonuni, Lens qoidasi, 3D grafiklar bilan magnit oqimi tenglamalari.",
+        "card2Cta": "21 ta materialni ko'rish →",
+        "card3Badge": "Informatika",
+        "card3Quizzes": "15 ta viktorina",
+        "card3Title": "Ikkilik qidiruv daraxtlari va graflar",
+        "card3Desc": "Aylanib chiqish algoritmlari, balanslash va vaqt murakkabligi mashqlari.",
+        "card3Cta": "19 ta materialni ko'rish →",
+        "cta": "Barcha mavzular katalogini ochish"
+      },
+      "ai": {
+        "title": "Kontekstual AI Yordamchi",
+        "subtitle": "Tushuntiruvchi, xulosalovchi va mashqlar tuzuvchi o'rnatilgan sun'iy intellekt vositalari.",
+        "modelBadge": "Gemini 3.7 Pro Repetitor",
+        "you": "SIZ",
+        "userQuery": "Nima sababdan tovush to'lqinlari havoga qaraganda suvda tezroq tarqalishini formula bilan tushuntirib bering.",
+        "tutorLabel": "EduBek AI Repetitor",
+        "tutorResponse": "Tovush tezligi v = √(B / ρ) formulasi bilan aniqlanadi, bu yerda B - elastiklik moduli, ρ - zichlik. Garchi suv havodan ~800 baravar zichroq bo'lsa-da, uning elastiklik moduli 15 000 baravardan ham ortiq! Suv zarralari bir-biriga yaqin bo'lgani uchun elastik tiklanish kuchlari ustunlik qiladi va tovush suvda ~1480 m/s tezlikda (havodagi ~343 m/s ga nisbatan) harakatlanadi.",
+        "chip1": "✨ Bu bo'yicha 3 ta viktorina savoli tuzish",
+        "chip2": "📝 Formulani takrorlash kartochkalariga qo'shish",
+        "cta": "AI Ish maydonini ochish"
+      },
+      "teacher": {
+        "title": "Sinf va o'qituvchilar studiyasi",
+        "subtitle": "Sinflarni boshqaring, viktorinalar biriktiring va o'quvchilar natijalarini kuzating.",
+        "classBadge": "Sinf: 10-A Aniq fanlar",
+        "stat1Label": "Biriktirilgan o'quvchilar",
+        "stat1Value": "32 Faol",
+        "stat1Note": "100% Topshirish ko'rsatkichi",
+        "stat2Label": "Sinf o'rtacha aniqligi",
+        "stat2Value": "84.2%",
+        "stat2Note": "O'tgan darsga nisbatan +6.4%",
+        "stat3Label": "Zaif mavzu aniqlandi",
+        "stat3Value": "Termodinamikaning 2-qonuni",
+        "stat3Note": "AI orqali qo'shimcha viktorina yaratildi",
+        "cta": "O'qituvchilar portalini ochish"
+      },
+      "marketplace": {
+        "title": "Ta'limiy materiallar bozori",
+        "subtitle": "Tasdiqlangan dars materiallari, imtihon to'plamlari va mualliflar uchun daromad tizimi.",
+        "badge": "Dasturga moslashtirilgan",
+        "pack1Category": "Milliy olimpiada tayyorgarligi",
+        "pack1Rating": "4.9 (128 ta sharh)",
+        "pack1Title": "Olimpiada matematikasi to'liq to'plami",
+        "pack1Desc": "Oliy toifali o'qituvchi Alimov tomonidan tayyorlangan 15 ta to'liq interaktiv viktorina va video yechimlar.",
+        "pack1Price": "40 EDU (80 000 so'm)",
+        "pack2Category": "Tibbiyot biologiyasi",
+        "pack2Rating": "5.0 (94 ta sharh)",
+        "pack2Title": "Odam anatomiyasi va fiziologiyasi to'plami",
+        "pack2Desc": "Yurak-qon tomir va asab tizimlarini qamrab oluvchi 350 dan ortiq rasmli kartochkalar va 20 ta vaqtli arena testlari.",
+        "pack2Price": "25 EDU (50 000 so'm)",
+        "viewPack": "To'plamni ko'rish",
+        "cta": "Barcha materiallarni ko'rish"
+      }
+    },
+    "quizFocus": {
+      "badge": "Interaktiv viktorinalar platformasi",
+      "title": "Mashq qilish xatolaringizni tushunganingizdagina eng samarali bo'ladi.",
+      "subtitle": "Interaktiv viktorinalarni yeching, sinf bilan jonli bellashing, har bir xato uchun to'liq tushuntirishlarni ko'ring va zaif mavzularni avtomatik takrorlang.",
+      "modesHeader": "4 ta maxsus arena o'yin rejimi:",
+      "modesHeading": "4 ta maxsus arena o'yin rejimi:",
+      "cta": "Viktorina arenasiga kirish",
+      "enterArena": "Viktorina arenasiga kirish",
+      "modes": {
+        "classic": {
+          "name": "Klassik arena",
+          "tag": "Yakka va sinf",
+          "description": "Ketma-ket to'g'ri javoblar bonusi va jonli peshqadamlar jadvali bilan tezkor savollar."
+        },
+        "royale": {
+          "name": "Quiz Royale",
+          "tag": "Raqobatbardosh",
+          "description": "100 HP qalqon bilan boshlang. Noto'g'ri javoblar oxirgi o'quvchi qolgunicha jonni kamaytiradi."
+        },
+        "heist": {
+          "name": "Xazina o'g'irlash",
+          "tag": "Token mukofotlari",
+          "description": "Sandqlarni ochish va jamoaviy ko'paytirgichlar bilan EDU tokenlarini yutish uchun seriyani davom ettiring."
+        },
+        "empire": {
+          "name": "Saltanat quruvchisi",
+          "tag": "Hamkorlikda",
+          "description": "To'g'ri javoblarni me'moriy mo''jizalarga aylantiring va jamoangiz sivilizatsiyasini kengaytiring."
+        }
+      },
+      "shieldStatus": "Qalqon: 75 / 100 HP",
+      "roundStatus": "3-raund (jami 8)",
+      "comboStatus": "Kombo 4x",
+      "reviewingMistake": "Xato qilingan savol tahlili",
+      "sampleQuestion": "Qaysi konstitutsiyaviy tuzatish AQSh senatorlarining to'g'ridan-to'g'ri xalq tomonidan saylanishini belgilab berdi?",
+      "yourAnswer": "Sizning javobingiz: 15-tuzatish",
+      "incorrectBadge": "Noto'g'ri",
+      "correctAnswer": "To'g'ri javob: 17-tuzatish (1913-yil)",
+      "remedialBreakdown": "Tezkor tuzatuvchi tushuntirish",
+      "remedialText": "15-tuzatish irqidan qat'i nazar ovoz berish huquqini bergan. 17-tuzatish (1913-yilda qabul qilingan) shtat qonun chiqaruvchi organlari tayinlashini to'g'ridan-to'g'ri xalq ovozi bilan almashtirgan.",
+      "addedToTargeted": "Shaxsiy \"Zaif sohalar\" to'plamiga qo'shildi",
+      "drillAdded": "+1 Mustahkamlash mashqi",
+      "preview": {
+        "shield": "Qalqon: 75 / 100 HP",
+        "round": "3-raund (jami 8)",
+        "combo": "Kombo 4x",
+        "reviewTitle": "Xato qilingan savol tahlili",
+        "question": "Qaysi konstitutsiyaviy tuzatish AQSh senatorlarining to'g'ridan-to'g'ri xalq tomonidan saylanishini belgilab berdi?",
+        "yourAnswer": "Sizning javobingiz: 15-tuzatish",
+        "incorrect": "Noto'g'ri",
+        "correctAnswer": "To'g'ri javob: 17-tuzatish (1913-yil)",
+        "remedialTitle": "Tezkor tuzatuvchi tushuntirish",
+        "remedialBody": "15-tuzatish irqidan qat'i nazar ovoz berish huquqini bergan. 17-tuzatish (1913-yilda qabul qilingan) shtat qonun chiqaruvchi organlari tayinlashini to'g'ridan-to'g'ri xalq ovozi bilan almashtirgan.",
+        "addedToWeak": "Shaxsiy \"Zaif sohalar\" to'plamiga qo'shildi",
+        "remedialDrill": "+1 Mustahkamlash mashqi"
+      }
+    },
+    "knowledgeDiscovery": {
+      "badge": "Tuzilgan bilimlarni kashf qilish",
+      "title": "Alohida fayllarni emas, o'zaro bog'liq bilimlarni o'rganing.",
+      "subtitle": "EduBek ta'limni fanlar va dars mavzulari asosida tashkil qiladi. Mavzuni kashf qilish sizni to'g'ridan-to'g'ri o'qituvchi qo'llanmalari, amaliy viktorinalar va yo'l xaritalari bilan bog'laydi.",
+      "subjects": {
+        "physics": {
+          "name": "Fizika",
+          "topic1": "Kinematika va Nyuton mexanikasi",
+          "topic2": "Termodinamika va ideal gazlar",
+          "topic3": "Elektromagnetizm va to'lqinlar",
+          "topic4": "Kvant va yadro fizikasi"
+        },
+        "math": {
+          "name": "Matematika",
+          "topic1": "Hosilalar va funksiyalar",
+          "topic2": "Integrallar va soha yuzalari",
+          "topic3": "Vektorlar va chiziqli algebra",
+          "topic4": "Ehtimollar nazariyasi va statistika"
+        },
+        "cs": {
+          "name": "Informatika",
+          "topic1": "Algoritmlar va ma'lumotlar tuzilmasi",
+          "topic2": "Ob'ektga yo'naltirilgan dasturlash",
+          "topic3": "Ma'lumotlar bazalari va SQL",
+          "topic4": "Veb dasturlash va tarmoqlar"
+        },
+        "biology": {
+          "name": "Biologiya",
+          "topic1": "Hujayra tuzilishi va energetikasi",
+          "topic2": "Genetika va irsiyat qonunlari",
+          "topic3": "Odam fiziologiyasi va anatomiyasi",
+          "topic4": "Ekologiya va evolyutsiya"
+        }
+      },
+      "curriculumHubBadge": "O'quv dasturi markazi",
+      "connectedKnowledgeHub": "Yagona bilimlar markazi",
+      "masterStandard": "Davlat ta'lim standarti",
+      "hubDescription": "Dastlabki bilim talablari, tasdiqlangan dars rejalari va moslashtirilgan savollar bankiga ega tuzilgan ta'lim yo'li.",
+      "quizzesUnit": "Viktorinalar",
+      "guidesUnit": "Qo'llanmalar",
+      "crossLinked": "Milliy standartlar bilan bog'langan",
+      "browseAllTopics": "Barcha mavzularni ko'rish",
+      "bullet1Title": "Dasturga mos yo'llar",
+      "bullet1Desc": "Aniq bosqichlar va nazorat nuqtalari bilan ketma-ket boblarni kuzatib boring.",
+      "bullet2Title": "Fanlararo bog'liqlik",
+      "bullet2Desc": "Matematik tahlil fizika mexanikasiga yoki kimyo hujayra biologiyasiga qanday bog'langanligini darhol ko'ring.",
+      "cta": "Mavzularni kashf qilishni boshlash"
+    },
+    "discovery": {
+      "badge": "Tuzilgan bilimlarni kashf qilish",
+      "title": "Alohida fayllarni emas, o'zaro bog'liq bilimlarni o'rganing.",
+      "subtitle": "EduBek ta'limni fanlar va dars mavzulari asosida tashkil qiladi. Mavzuni kashf qilish sizni to'g'ridan-to'g'ri o'qituvchi qo'llanmalari, amaliy viktorinalar va yo'l xaritalari bilan bog'laydi.",
+      "point1Title": "Dasturga mos yo'llar:",
+      "point1Desc": "Aniq bosqichlar va nazorat nuqtalari bilan ketma-ket boblarni kuzatib boring.",
+      "point2Title": "Fanlararo bog'liqlik:",
+      "point2Desc": "Matematik tahlil fizika mexanikasiga yoki kimyo hujayra biologiyasiga qanday bog'langanligini darhol ko'ring.",
+      "startDiscovering": "Mavzularni kashf qilishni boshlash",
+      "curriculumHub": "O'quv dasturi markazi",
+      "connectedHub": "Yagona bilimlar markazi",
+      "curriculumStandard": "Davlat ta'lim standarti",
+      "curriculumDesc": "Dastlabki bilim talablari, tasdiqlangan dars rejalari va moslashtirilgan savollar bankiga ega tuzilgan ta'lim yo'li.",
+      "quizzes": "Viktorinalar",
+      "guides": "Qo'llanmalar",
+      "crossLinked": "Milliy standartlar bilan bog'langan",
+      "browseAll": "Barcha mavzularni ko'rish",
+      "subjects": {
+        "physics": "Fizika",
+        "math": "Matematika",
+        "cs": "Informatika",
+        "biology": "Biologiya"
+      }
+    },
+    "aiContextual": {
+      "badge": "Kontekstual AI yordami",
+      "title": "Sun'iy intellekt rostdan ham yordam beradigan joyda.",
+      "subtitle": "Alohida chatbot yoki o'yinchoq emas. EduBek aqlli vositalarni to'g'ridan-to'g'ri o'quv materiallari, viktorina savollari va o'qituvchi topshiriqlariga kiritadi.",
+      "btnExplain": "Murakkab tushunchalarni tushuntirish",
+      "btnQuiz": "Mashq to'plamlarini yaratish",
+      "btnSummarize": "Formula va xulosalarni ajratib olish",
+      "btnMistake": "Xatolarni bosqichma-bosqich tekshirish",
+      "cta": "AI Ish maydonini ochish",
+      "actionExplain": "Murakkab tushunchalarni soddalashtirish",
+      "actionQuiz": "Mashq to'plamlarini yaratish",
+      "actionSummarize": "Formula va xulosalarni ajratib olish",
+      "actionMistake": "Xatolarni bosqichma-bosqich tahlil qilish",
+      "openWorkspace": "AI Ish maydonini ochish",
+      "poweredBy": "Server-side Gemini 3.7 asosida ishlaydi",
+      "userContextLabel": "Foydalanuvchi konteksti:",
+      "userQueryLabel": "Foydalanuvchi so'rovi:",
+      "tutorResponseLabel": "EduBek AI Repetitor javobi",
+      "tutorResponse": "EduBek AI Repetitor javobi",
+      "responseTime": "Javob vaqti: 0.4s",
+      "integratedNotes": "O'quv konspektlaringiz bilan integratsiya qilingan",
+      "tryOwnMaterials": "O'z materiallaringiz bilan sinab ko'ring →",
+      "tryMaterials": "O'z materiallaringiz bilan sinab ko'ring →",
+      "actions": {
+        "explain": {
+          "title": "Kontekstual tushuntirish",
+          "inputPrompt": "Kvant superpozitsiyasini murakkab matematik atamalarsiz, oddiy so'zlar bilan tushuntirib bering.",
+          "output": "Stolda aylanayotgan tangani tasavvur qiling. U aylanayotgan paytda aniq 'Gerb' yoki 'Raqam' holatida emas — siz uni to'xtatmaguningizcha (o'lchaguningizcha) har ikkala holatda bo'lish ehtimoli mavjud. Superpozitsiya kvant zarrasining kuzatilmaguncha bir vaqtning o'zida bir nechta mumkin bo'lgan holatlarda bo'lishini anglatadi.",
+          "badge": "Tushunchani soddalashtiruvchi"
+        },
+        "quiz": {
+          "title": "1-Tugma bilan mashq yaratish",
+          "inputPrompt": "Fotosintez bo'yicha qaydlarim asosida xotirani mustahkamlovchi 2 ta savol tuzing.",
+          "output": "1. Yorug'likka bog'liq reaksiyalar jarayonida xlorofill pigmentlarining asosiy vazifasi nima?\n2. Xloroplast organellasining qaysi qismida yorug'likka bog'liq bo'lmagan (Kalvin sikli) reaksiyalar sodir bo'ladi?",
+          "badge": "Tezkor viktorina ustasi"
+        },
+        "summarize": {
+          "title": "Formula va asosiy xulosalar",
+          "inputPrompt": "Termodinamika 1-qismi bo'yicha asosiy tenglamalar va birliklarni ajratib bering.",
+          "output": "• ΔU = Q - W (1-qonun: Ichki energiyaning o'zgarishi = berilgan issiqlik miqdori minus bajarilgan ish)\n• Gaz bajargan ish: W = P·ΔV (O'zgarmas bosimda)\n• Birliklar: Energiya (Joul), Bosim (Paskal), Hajm (m³)",
+          "badge": "Asosiy xulosa"
+        },
+        "mistake": {
+          "title": "Xatolarni bosqichma-bosqich tekshirish",
+          "inputPrompt": "∫ 2x·e^(x²) dx integralini hisoblab 2e^(x²) + C deb javob berdim. Nima uchun bu xato?",
+          "output": "Siz daraja hosilasini hisobga olmadingiz: agar u = x² deb olsak, du = 2x dx bo'ladi. Integral to'g'ridan-to'g'ri ∫ e^u du = e^u + C = e^(x²) + C ga soddalashadi. Oldidagi 2 soni du tarkibiga kirib ketgani sababli qo'shimcha 2 kerak emas.",
+          "badge": "Xato tahlili"
+        }
+      }
+    },
+    "roleSwitcher": {
+      "badge": "Ta'limdagi har bir inson uchun",
+      "title": "O'quvchilar, o'qituvchilar va mualliflar uchun moslashtirilgan tajriba",
+      "subtitle": "EduBek sizning ta'limiy maqsadlaringizga qanday moslashishini ko'rish uchun rollar o'rtasida o'ting.",
+      "activeViewLabel": "Faol interfeys ko'rinishi",
+      "liveDemoBadge": "Jonli namoyish",
+      "syncedBadge": "Sinxronlangan",
+      "roles": {
+        "student": {
+          "label": "O'quvchilar uchun",
+          "badge": "Mustaqil o'zlashtirish",
+          "headline": "Aniq maqsad bilan mashq qiling, xatolarni to'g'rilang va yutuqlarga erishing.",
+          "description": "EduBek sizga aniq mavzular xaritasi, tengdoshlar bilan bellashish uchun o'yin arenalari, tushunmagan joylaringizda tezkor AI repetitor yordami va seriyalar bo'yicha mukofotlarni taqdim etadi.",
+          "benefit1": "4 xil o'yin rejimiga ega interaktiv viktorina arenalari",
+          "benefit2": "Har bir xato qilingan savolning avtomatik tahlili",
+          "benefit3": "Murakkab tushunchalarni tushuntirishga tayyor AI Repetitor",
+          "benefit4": "EDU tokenlarini jamg'arish va kunlik faollik seriyalarini saqlash",
+          "ctaText": "O'quvchi sifatida boshlash",
+          "preview": {
+            "title": "O'quvchi ko'rsatkichlari va o'zlashtirish",
+            "stat1Label": "Haftalik aniqlik",
+            "stat2Label": "Joriy seriya",
+            "stat3Label": "EDU Token balansi",
+            "daysStreak": "kunlik seriya",
+            "detail": "Tavsiya etilgan mashq: Organik kimyo (3 ta zaif mavzu aniqlandi)"
+          }
+        },
+        "teacher": {
+          "label": "O'qituvchilar va maktablar uchun",
+          "badge": "O'qituvchi maydoni",
+          "headline": "Sinfni soniyalar ichida jalb qiling va o'quvchilarning bilim bo'shliqlarini darhol aniqlang.",
+          "description": "Oddiy 6 xonali PIN kod orqali jonli viktorinalar o'tkazing, uyga vazifalarni taqsimlang, baholashni avtomatlashtiring va o'quvchilar qayerda qiynalayotganini ko'ring.",
+          "benefit1": "Jonli sinf o'yinlarini o'tkazish (Klassik, Royale, Xazina, Saltanat)",
+          "benefit2": "O'quv dasturi asosida AI yordamida testlar yaratish",
+          "benefit3": "Sinf aniqligi bo'yicha real vaqtli tahlillar va grafiklar",
+          "benefit4": "Baholarni eksport qilish, vazifalar berish va bir nechta sinflarni boshqarish",
+          "ctaText": "O'qituvchi studiyasini ochish",
+          "preview": {
+            "title": "10-sinf Biologiya • Jonli dars 10-A",
+            "stat1Label": "Faol o'quvchilar",
+            "stat2Label": "Sinf o'rtachasi",
+            "stat3Label": "O'tkazilgan viktorinalar",
+            "online": "Online",
+            "completed": "Bajarildi",
+            "detail": "Jonli o'yin PIN: 849-201 • 4-raund (jami 10) davom etmoqda"
+          }
+        },
+        "creator": {
+          "label": "Mualliflar uchun",
+          "badge": "Mualliflar iqtisodiyoti",
+          "headline": "O'z bilimingizni tasdiqlangan o'quv to'plamlariga va barqaror daromadga aylantiring.",
+          "description": "Imtihonlarga tayyorgarlik qo'llanmalari, to'liq test banklari va video kurslarni nashr eting. Narxlarni EDU tokenlari yoki milliy valyutada belgilang va daromad oling.",
+          "benefit1": "Darsliklar, olimpiada to'plamlari va qo'llanmalarni sotish",
+          "benefit2": "Savdodan 85% gacha daromad ulushini saqlab qolish",
+          "benefit3": "Batafsil tahlillar: yuklab olishlar, baholar va ko'rishlar soni",
+          "benefit4": "Tasdiqlangan o'qituvchi profilini shakllantirish",
+          "ctaText": "EduBek muallifiga aylanish",
+          "preview": {
+            "title": "Mualliflik studiyasi paneli",
+            "stat1Label": "Oylik daromad",
+            "stat2Label": "Faol xaridorlar",
+            "stat3Label": "Materiallar reytingi",
+            "students": "O'quvchi",
+            "detail": "Eng ommabop: 'Olimpiada matematikasi to'liq to'plami' (128 ta savdo)"
+          }
+        }
+      }
+    },
+    "roles": {
+      "badge": "Ta'limdagi har bir inson uchun",
+      "title": "O'quvchilar, o'qituvchilar va mualliflar uchun moslashtirilgan tajriba",
+      "subtitle": "EduBek sizning ta'limiy maqsadlaringizga qanday moslashishini ko'rish uchun rollar o'rtasida o'ting.",
+      "activeView": "Faol interfeys ko'rinishi",
+      "liveDemo": "Jonli namoyish",
+      "synced": "Sinxronlangan",
+      "student": {
+        "label": "O'quvchilar uchun",
+        "badge": "Mustaqil o'zlashtirish",
+        "headline": "Aniq maqsad bilan mashq qiling, xatolarni to'g'rilang va yutuqlarga erishing.",
+        "description": "EduBek sizga aniq mavzular xaritasi, tengdoshlar bilan bellashish uchun o'yin arenalari, tushunmagan joylaringizda tezkor AI repetitor yordami va seriyalar bo'yicha mukofotlarni taqdim etadi.",
+        "benefit1": "4 xil o'yin rejimiga ega interaktiv viktorina arenalari",
+        "benefit2": "Har bir xato qilingan savolning avtomatik tahlili",
+        "benefit3": "Murakkab tushunchalarni tushuntirishga tayyor AI Repetitor",
+        "benefit4": "EDU tokenlarini jamg'arish va kunlik faollik seriyalarini saqlash",
+        "cta": "O'quvchi sifatida boshlash",
+        "previewTitle": "O'quvchi ko'rsatkichlari va o'zlashtirish",
+        "stat1Label": "Haftalik aniqlik",
+        "stat2Label": "Joriy seriya",
+        "stat3Label": "EDU Token balansi",
+        "detail": "Tavsiya etilgan mashq: Organik kimyo (3 ta zaif mavzu aniqlandi)"
+      },
+      "teacher": {
+        "label": "O'qituvchilar va maktablar uchun",
+        "badge": "O'qituvchi maydoni",
+        "headline": "Sinfni soniyalar ichida jalb qiling va o'quvchilarning bilim bo'shliqlarini darhol aniqlang.",
+        "description": "Oddiy 6 xonali PIN kod orqali jonli viktorinalar o'tkazing, uyga vazifalarni taqsimlang, baholashni avtomatlashtiring va o'quvchilar qayerda qiynalayotganini ko'ring.",
+        "benefit1": "Jonli sinf o'yinlarini o'tkazish (Klassik, Royale, Xazina, Saltanat)",
+        "benefit2": "O'quv dasturi asosida AI yordamida testlar yaratish",
+        "benefit3": "Sinf aniqligi bo'yicha real vaqtli tahlillar va grafiklar",
+        "benefit4": "Baholarni eksport qilish, vazifalar berish va bir nechta sinflarni boshqarish",
+        "cta": "O'qituvchi studiyasini ochish",
+        "previewTitle": "10-sinf Biologiya • Jonli dars 10-A",
+        "stat1Label": "Faol o'quvchilar",
+        "stat1Value": "32 Online",
+        "stat2Label": "Sinf o'rtachasi",
+        "stat3Label": "O'tkazilgan viktorinalar",
+        "stat3Value": "28 Bajarildi",
+        "detail": "Jonli o'yin PIN: 849-201 • 4-raund (jami 10) davom etmoqda"
+      },
+      "creator": {
+        "label": "Mualliflar uchun",
+        "badge": "Mualliflar iqtisodiyoti",
+        "headline": "O'z bilimingizni tasdiqlangan o'quv to'plamlariga va barqaror daromadga aylantiring.",
+        "description": "Imtihonlarga tayyorgarlik qo'llanmalari, to'liq test banklari va video kurslarni nashr eting. Narxlarni EDU tokenlari yoki milliy valyutada belgilang va daromad oling.",
+        "benefit1": "Darsliklar, olimpiada to'plamlari va qo'llanmalarni sotish",
+        "benefit2": "Savdodan 85% gacha daromad ulushini saqlab qolish",
+        "benefit3": "Batafsil tahlillar: yuklab olishlar, baholar va ko'rishlar soni",
+        "benefit4": "Tasdiqlangan o'qituvchi profilini shakllantirish",
+        "cta": "EduBek muallifiga aylanish",
+        "previewTitle": "Mualliflik studiyasi paneli",
+        "stat1Label": "Oylik daromad",
+        "stat2Label": "Faol xaridorlar",
+        "stat2Value": "312 O'quvchi",
+        "stat3Label": "Materiallar reytingi",
+        "detail": "Eng ommabop: 'Olimpiada matematikasi to'liq to'plami' (128 ta savdo)"
+      }
+    },
+    "marketplacePreview": {
+      "badge": "Tasdiqlangan mualliflar bozori",
+      "title": "O'rganishga arziydigan materiallarni toping.",
+      "subtitle": "Har kuni dars beradigan tajribali mutaxassislar tomonidan yaratilgan saralangan o'quv to'plamlari, kartochkalar va test banklari.",
+      "browseAll": "Barcha materiallarni ko'rish",
+      "previewBtn": "Ko'rish",
+      "materials": {
+        "mat1": {
+          "category": "Davlat imtihonlariga tayyorgarlik (DTM)",
+          "title": "Oliy o'quv yurtlariga kirish imtihoni • Fizika 500 to'plami",
+          "author": "Anvar Alimov",
+          "authorRole": "Fizika fani katta o'qituvchisi",
+          "description": "Vektor mexanikasi va termodinamika bo'yicha batafsil bosqichma-bosqich yechimlariga ega 500 ta muhim savol.",
+          "badge": "Eng ko'p sotilgan"
+        },
+        "mat2": {
+          "category": "Maktab olimpiadalari",
+          "title": "Organik kimyo va sintez reaksiyalari xaritasi",
+          "author": "Dilnoza Rahimova",
+          "authorRole": "Olimpiada murabbiyi",
+          "description": "Rangli reaksiya sxemalari, rezonans mexanizmlari va 12 ta interaktiv mashg'ulot testi.",
+          "badge": "Tasdiqlangan ekspert"
+        },
+        "mat3": {
+          "category": "Informatika va Dasturlash",
+          "title": "Ma'lumotlar tuzilmalari va algoritmlar to'plami",
+          "author": "Sardor Yusupov",
+          "authorRole": "Dasturiy injiniring o'qituvchisi",
+          "description": "Big-O, daraxtlar, dinamik dasturlash bo'yicha 200 ta kartochka va 8 ta vaqtli tezkor kodlash viktorinasi.",
+          "badge": "Eng yuqori baholangan"
+        }
+      }
+    },
+    "marketplace": {
+      "badge": "Tasdiqlangan mualliflar bozori",
+      "title": "O'rganishga arziydigan materiallarni toping.",
+      "subtitle": "Har kuni dars beradigan tajribali mutaxassislar tomonidan yaratilgan saralangan o'quv to'plamlari, kartochkalar va test banklari.",
+      "browseAll": "Barcha materiallarni ko'rish",
+      "preview": "Ko'rib chiqish",
+      "bestSeller": "Eng ko'p sotilgan",
+      "verifiedExpert": "Tasdiqlangan ekspert",
+      "topRated": "Eng yuqori baholangan",
+      "item1Category": "Davlat imtihonlariga tayyorgarlik (DTM)",
+      "item1Title": "Oliy o'quv yurtlariga kirish imtihoni • Fizika 500 to'plami",
+      "item1Role": "Fizika fani katta o'qituvchisi",
+      "item1Desc": "Vektor mexanikasi va termodinamika bo'yicha batafsil bosqichma-bosqich yechimlariga ega 500 ta muhim savol.",
+      "item2Category": "Maktab olimpiadalari",
+      "item2Title": "Organik kimyo va sintez reaksiyalari xaritasi",
+      "item2Role": "Olimpiada murabbiyi",
+      "item2Desc": "Rangli reaksiya sxemalari, rezonans mexanizmlari va 12 ta interaktiv mashg'ulot testi.",
+      "item3Category": "Informatika va Dasturlash",
+      "item3Title": "Ma'lumotlar tuzilmalari va algoritmlar to'plami",
+      "item3Role": "Dasturiy injiniring o'qituvchisi",
+      "item3Desc": "Big-O, daraxtlar, dinamik dasturlash bo'yicha 200 ta kartochka va 8 ta vaqtli tezkor kodlash viktorinasi."
+    },
+    "platformTruth": {
+      "badge": "Platforma imkoniyatlari",
+      "title": "Faol dars xonalarida yuqori ishonchlilik uchun ishlab chiqilgan",
+      "subtitle": "EduBekning har bir funksiyasi sinovlar paytida hech qanday to'siqsiz va uzluksiz dars o'tishni ta'minlash uchun puxta ishlab chiqilgan.",
+      "syncTitle": "Real vaqtli o'yin sinxronizatsiyasi",
+      "syncDesc": "Tezkor PIN ulanish, soniyaning ulushlarida javoblarni baholash va sinfdoshlar bilan bir vaqtda musobaqalashish.",
+      "multilingualTitle": "To'liq ko'p tilli tizim",
+      "multilingualDesc": "O'zbek, Ingliz va Rus tillarida to'liq va mukammal mahalliylashtirish.",
+      "aiTitle": "Kontekstual Gemini 3.7 AI",
+      "aiDesc": "Darslar va testlarga o'rnatilgan bosqichma-bosqich masalalar tushuntirishi va avtomatik savol yaratish.",
+      "contentTitle": "Tasdiqlangan ta'limiy kontent",
+      "contentDesc": "Mualliflik kafolati, sifat reytingi va dars dasturiga mosligi tekshirilgan o'quv materiallari.",
+      "privacyTitle": "Maxfiylik va sinf nazorati",
+      "privacyDesc": "O'qituvchi va o'quvchi rollarining qat'iy chegarasi, natijalar maxfiyligi va xavfsiz sessiyalar.",
+      "accessibleTitle": "Hamma joyda qulay",
+      "accessibleDesc": "Mobil telefonlar, planshetlar, sensorli doskalar va kompyuterlar uchun qorong'u va yorug' mavzularda optimallashtirilgan.",
+      "highlights": {
+        "sync": {
+          "title": "Real vaqtli o'yin sinxronizatsiyasi",
+          "description": "Tezkor PIN ulanish, soniyaning ulushlarida javoblarni baholash va sinfdoshlar bilan bir vaqtda musobaqalashish."
+        },
+        "multilingual": {
+          "title": "To'liq ko'p tilli tizim",
+          "description": "O'zbek, Ingliz va Rus tillarida to'liq va mukammal mahalliylashtirish."
+        },
+        "ai": {
+          "title": "Kontekstual Gemini 3.7 AI",
+          "description": "Darslar va testlarga o'rnatilgan bosqichma-bosqich masalalar tushuntirishi va avtomatik savol yaratish."
+        },
+        "verified": {
+          "title": "Tasdiqlangan ta'limiy kontent",
+          "description": "Mualliflik kafolati, sifat reytingi va dars dasturiga mosligi tekshirilgan o'quv materiallari."
+        },
+        "privacy": {
+          "title": "Maxfiylik va sinf nazorati",
+          "description": "O'qituvchi va o'quvchi rollarining qat'iy chegarasi, natijalar maxfiyligi va xavfsiz sessiyalar."
+        },
+        "accessible": {
+          "title": "Hamma joyda qulay",
+          "description": "Mobil telefonlar, planshetlar, sensorli doskalar va kompyuterlar uchun qorong'u va yorug' mavzularda optimallashtirilgan."
+        }
+      }
+    },
+    "finalCta": {
+      "badge": "EduBek ekotizimiga qo'shiling",
+      "title": "Bugun EduBek bilan ta'limni boshlang.",
+      "subtitle": "Tuzilgan bilimlarni kashf eting, interaktiv viktorinalar bilan bilimlarni mustahkamlang, AI yordamini oling va yagona platformada o'rganing.",
+      "getStarted": "Bepul boshlash",
+      "explore": "Bilimlar xaritasini ko'rish",
+      "exploreDiscover": "Bilimlar xaritasini ko'rish",
+      "freeIndividual": "Yakka tartibdagi o'quvchilar uchun bepul",
+      "noCard": "Bank kartasi talab qilinmaydi",
+      "instantPin": "Sinf PIN kodi bilan tezkor kirish",
+      "pill1": "Yakka tartibdagi o'quvchilar uchun bepul",
+      "pill2": "Bank kartasi talab qilinmaydi",
+      "pill3": "Sinf PIN kodi bilan tezkor kirish"
+    },
+    "footer": {
+      "brandDescription": "Interaktiv viktorinalar, ta'limiy bilimlar xaritasi, kontekstual AI yordamchisi va o'qituvchilar bozorini birlashtirgan yagona ekotizim.",
+      "ecosystemTitle": "Ekotizim",
+      "workspacesTitle": "Ish maydonlari",
+      "accountTitle": "Hisob",
+      "links": {
+        "knowledgeDiscovery": "Bilimlarni kashf qilish",
+        "liveQuizArena": "Jonli viktorina arenasi",
+        "contextualAi": "Kontekstual AI",
+        "creatorMarketplace": "Mualliflar bozori",
+        "teacherClassrooms": "O'qituvchilar sinflari",
+        "studentDashboard": "O'quvchi paneli",
+        "personalLibrary": "Shaxsiy kutubxona",
+        "tokenWallet": "Token hamyoni",
+        "signIn": "Kirish",
+        "createAccount": "Ro'yxatdan o'tish",
+        "settingsProfile": "Sozlamalar va profil",
+        "notifications": "Bildirishnomalar"
+      },
+      "tagline": "Interaktiv viktorinalar, ta'limiy bilimlar xaritasi, kontekstual AI yordamchisi va o'qituvchilar bozorini birlashtirgan yagona ekotizim.",
+      "ecosystem": "Ekotizim",
+      "workspaces": "Ish maydonlari",
+      "account": "Hisob",
+      "rights": "EduBek ta'lim ekotizimi. Barcha huquqlar himoyalangan.",
+      "allRightsReserved": "ta'lim ekotizimi. Barcha huquqlar himoyalangan.",
+      "standards": "Umumiy ta'lim standartlari",
+      "curriculumStandards": "Umumiy ta'lim standartlari",
+      "multilingual": "Ko'p tilli (O'zbekcha • English • Русский)",
+      "multilingualPill": "Ko'p tilli (O'zbekcha • English • Русский)"
+    }
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import {
   Compass,
   BookOpen,
@@ -13,75 +14,72 @@ import {
 import { Badge } from "@/components/ui/badge";
 
 export function HowItWorksSection() {
+  const t = useTranslations("landing.howItWorks");
   const [activeStep, setActiveStep] = React.useState<number>(1);
 
   const steps = [
     {
       num: 1,
-      title: "1. Discover",
-      subtitle: "Find connected knowledge",
+      title: t("steps.1.title"),
+      subtitle: t("steps.1.subtitle"),
       icon: Compass,
       color: "text-blue-500",
       borderColor: "border-blue-500/30",
       bgLight: "bg-blue-500/10",
-      description:
-        "Select your subject, curriculum standard, or topic. Instantly access verified study notes, creator decks, and related quiz sets.",
-      previewTitle: "Discover: Organic Chemistry • Alkene Reactions",
+      description: t("steps.1.description"),
+      previewTitle: t("steps.1.previewTitle"),
       previewContent: [
-        "Curriculum: Grade 11 Chemistry",
-        "12 Verified Quizzes available",
-        "4 Study summaries by top educators",
+        t("steps.1.item1"),
+        t("steps.1.item2"),
+        t("steps.1.item3"),
       ],
     },
     {
       num: 2,
-      title: "2. Learn",
-      subtitle: "Understand core concepts",
+      title: t("steps.2.title"),
+      subtitle: t("steps.2.subtitle"),
       icon: BookOpen,
       color: "text-emerald-500",
       borderColor: "border-emerald-500/30",
       bgLight: "bg-emerald-500/10",
-      description:
-        "Read structured chapter breakdowns, flashcards, or ask the contextual AI tutor to explain tricky formulas step-by-step.",
-      previewTitle: "Learning Module: Electrophilic Addition",
+      description: t("steps.2.description"),
+      previewTitle: t("steps.2.previewTitle"),
       previewContent: [
-        "Markovnikov's Rule illustrated",
-        "AI Summary: 3 key reaction steps generated",
-        "Saved to personal revision folder",
+        t("steps.2.item1"),
+        t("steps.2.item2"),
+        t("steps.2.item3"),
       ],
     },
     {
       num: 3,
-      title: "3. Practice",
-      subtitle: "Test in interactive arenas",
+      title: t("steps.3.title"),
+      subtitle: t("steps.3.subtitle"),
       icon: Swords,
       color: "text-amber-500",
       borderColor: "border-amber-500/30",
       bgLight: "bg-amber-500/10",
-      description:
-        "Join a live class session with a PIN or practice solo in Quiz Royale, Treasure Heist, or Classic timed challenge modes.",
-      previewTitle: "Practice Arena: 10 Rapid Questions",
+      description: t("steps.3.description"),
+      previewTitle: t("steps.3.previewTitle"),
       previewContent: [
-        "Timed answers with streak multiplier",
-        "Live leaderboard calculation",
-        "Immediate right/wrong feedback",
+        t("steps.3.item1"),
+        t("steps.3.item2"),
+        t("steps.3.item3"),
       ],
     },
     {
       num: 4,
-      title: "4. Improve",
-      subtitle: "Understand mistakes & master",
+      title: t("steps.4.title"),
+      subtitle: t("steps.4.subtitle"),
       icon: TrendingUp,
       color: "text-violet-500",
       borderColor: "border-violet-500/30",
       bgLight: "bg-violet-500/10",
-      description:
-        "EduBek breaks down every wrong answer with detailed explanations and builds a custom revision queue targeting your weak spots.",
-      previewTitle: "Mistake Diagnostic & Revision Queue",
+      description: t("steps.4.description"),
+      previewTitle: t("steps.4.previewTitle"),
       previewContent: [
-        "Accuracy: 85% (+12% improvement)",
-        "Weak area identified: Carbocation stability",
-        "3 targeted remedial questions queued",
+        t("steps.4.item1"),
+        t("steps.4.item2"),
+        t("steps.4.item3"),
       ],
     },
   ];
@@ -96,13 +94,13 @@ export function HowItWorksSection() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-14 space-y-4">
           <Badge variant="outline" className="text-xs font-semibold text-primary border-primary/20 bg-primary/5">
-            The Continuous Learning Cycle
+            {t("badge")}
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground text-balance">
-            How learning progresses on EduBek
+            {t("title")}
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-            A natural four-stage loop designed to turn passive reading into active, permanent mastery.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -156,7 +154,7 @@ export function HowItWorksSection() {
                   </div>
                   <div>
                     <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                      Stage 0{current.num} of 04
+                      {t("stage", { num: current.num })}
                     </span>
                     <h4 className="text-lg font-bold text-foreground">{current.previewTitle}</h4>
                   </div>
@@ -180,14 +178,14 @@ export function HowItWorksSection() {
               <div className="pt-4 border-t border-border/80 flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Sparkles className="h-3.5 w-3.5 text-primary" />
-                  <span>Real-time adaptive loop</span>
+                  <span>{t("realtimeLoop")}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => setActiveStep((prev) => (prev % 4) + 1)}
                   className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline"
                 >
-                  <span>See Next Stage ({activeStep < 4 ? `Step 0${activeStep + 1}` : "Step 01"})</span>
+                  <span>{t("seeNext", { next: activeStep < 4 ? `0${activeStep + 1}` : "01" })}</span>
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>

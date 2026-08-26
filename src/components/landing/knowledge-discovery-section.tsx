@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   Compass,
   Layers,
@@ -17,13 +18,54 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function KnowledgeDiscoverySection() {
+  const t = useTranslations("landing.knowledgeDiscovery");
   const [selectedSubject, setSelectedSubject] = React.useState<string>("physics");
 
   const subjects = [
-    { id: "physics", name: "Physics", icon: "⚡", topics: ["Electromagnetism", "Quantum Mechanics", "Thermodynamics", "Wave Optics"] },
-    { id: "math", name: "Mathematics", icon: "📐", topics: ["Calculus & Integrals", "Linear Algebra", "Probability & Stats", "Trigonometry"] },
-    { id: "cs", name: "Computer Science", icon: "💻", topics: ["Algorithms & Data Structures", "Relational Databases", "Computer Networks", "Cybersecurity"] },
-    { id: "biology", name: "Biology", icon: "🧬", topics: ["Cellular Respiration", "Genetics & DNA", "Ecosystem Dynamics", "Human Anatomy"] },
+    {
+      id: "physics",
+      name: t("subjects.physics.name"),
+      icon: "⚡",
+      topics: [
+        t("subjects.physics.topic1"),
+        t("subjects.physics.topic2"),
+        t("subjects.physics.topic3"),
+        t("subjects.physics.topic4"),
+      ],
+    },
+    {
+      id: "math",
+      name: t("subjects.math.name"),
+      icon: "📐",
+      topics: [
+        t("subjects.math.topic1"),
+        t("subjects.math.topic2"),
+        t("subjects.math.topic3"),
+        t("subjects.math.topic4"),
+      ],
+    },
+    {
+      id: "cs",
+      name: t("subjects.cs.name"),
+      icon: "💻",
+      topics: [
+        t("subjects.cs.topic1"),
+        t("subjects.cs.topic2"),
+        t("subjects.cs.topic3"),
+        t("subjects.cs.topic4"),
+      ],
+    },
+    {
+      id: "biology",
+      name: t("subjects.biology.name"),
+      icon: "🧬",
+      topics: [
+        t("subjects.biology.topic1"),
+        t("subjects.biology.topic2"),
+        t("subjects.biology.topic3"),
+        t("subjects.biology.topic4"),
+      ],
+    },
   ];
 
   const current = subjects.find((s) => s.id === selectedSubject) || subjects[0];
@@ -63,18 +105,18 @@ export function KnowledgeDiscoverySection() {
                 <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 space-y-2">
                   <div className="flex items-center justify-between">
                     <Badge variant="outline" className="text-[10px] uppercase font-mono">
-                      Curriculum Hub
+                      {t("curriculumHubBadge")}
                     </Badge>
                     <span className="text-xs text-primary font-semibold flex items-center gap-1">
                       <Network className="h-3.5 w-3.5" />
-                      <span>Connected Knowledge Hub</span>
+                      <span>{t("connectedKnowledgeHub")}</span>
                     </span>
                   </div>
                   <h4 className="text-base font-bold text-foreground">
-                    {current.name} • Master Curriculum Standard
+                    {current.name} • {t("masterStandard")}
                   </h4>
                   <p className="text-xs text-muted-foreground">
-                    Structured learning path with prerequisites, verified educator lesson plans, and aligned practice banks.
+                    {t("hubDescription")}
                   </p>
                 </div>
 
@@ -92,11 +134,11 @@ export function KnowledgeDiscoverySection() {
                       <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
                         <span className="flex items-center gap-1">
                           <Swords className="h-3 w-3 text-amber-500" />
-                          <span>8 Quizzes</span>
+                          <span>8 {t("quizzesUnit")}</span>
                         </span>
                         <span className="flex items-center gap-1">
                           <BookOpen className="h-3 w-3 text-blue-500" />
-                          <span>4 Guides</span>
+                          <span>4 {t("guidesUnit")}</span>
                         </span>
                       </div>
                     </div>
@@ -107,10 +149,10 @@ export function KnowledgeDiscoverySection() {
               <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground">
                 <span className="flex items-center gap-1">
                   <Layers className="h-3.5 w-3.5 text-primary" />
-                  <span>Cross-linked with National Standards</span>
+                  <span>{t("crossLinked")}</span>
                 </span>
                 <Link href="/discover" className="text-primary font-semibold hover:underline flex items-center gap-1">
-                  <span>Browse all topics</span>
+                  <span>{t("browseAllTopics")}</span>
                   <ArrowRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -122,15 +164,15 @@ export function KnowledgeDiscoverySection() {
           <div className="lg:col-span-6 order-1 lg:order-2 space-y-6">
             <Badge variant="outline" className="gap-1.5 py-1 px-3 text-xs font-semibold text-primary border-primary/20 bg-primary/5">
               <Compass className="h-3.5 w-3.5" />
-              <span>Structured Knowledge Discovery</span>
+              <span>{t("badge")}</span>
             </Badge>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15] text-balance">
-              Explore interconnected knowledge, not just isolated files.
+              {t("title")}
             </h2>
 
             <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-              EduBek organizes learning around connected subjects and curriculum topics. Discovering a topic links you directly to teacher-created study guides, practice quizzes, and prerequisite roadmaps.
+              {t("subtitle")}
             </p>
 
             <div className="space-y-3 pt-2 text-sm text-muted-foreground">
@@ -139,7 +181,7 @@ export function KnowledgeDiscoverySection() {
                   ✓
                 </div>
                 <div>
-                  <strong className="text-foreground">Syllabus-Aligned Paths:</strong> Follow sequenced chapter tracks with clear milestones and concept checkpoints.
+                  <strong className="text-foreground">{t("bullet1Title")}:</strong> {t("bullet1Desc")}
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -147,7 +189,7 @@ export function KnowledgeDiscoverySection() {
                   ✓
                 </div>
                 <div>
-                  <strong className="text-foreground">Cross-Topic Links:</strong> Instantly see how calculus connects to physics mechanics, or how chemistry relates to cellular biology.
+                  <strong className="text-foreground">{t("bullet2Title")}:</strong> {t("bullet2Desc")}
                 </div>
               </div>
             </div>
@@ -156,7 +198,7 @@ export function KnowledgeDiscoverySection() {
               <Button size="lg" asChild className="gap-2">
                 <Link href="/discover">
                   <Search className="h-4 w-4" />
-                  <span>Start Discovering Topics</span>
+                  <span>{t("cta")}</span>
                 </Link>
               </Button>
             </div>

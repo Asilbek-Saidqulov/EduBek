@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   Sparkles,
   HelpCircle,
@@ -16,36 +17,33 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 
 export function AiContextualSection() {
+  const t = useTranslations("landing.aiContextual");
   const [activeAction, setActiveAction] = React.useState<"explain" | "quiz" | "summarize" | "mistake">("explain");
 
   const actions = {
     explain: {
-      title: "Contextual Explanation",
-      inputPrompt: "Explain Quantum Superposition simply without heavy mathematical jargon.",
-      output:
-        "Imagine a spinning coin on a table. While it's spinning, it isn't purely 'Heads' or 'Tails'—it has a probability of landing on either until you stop it (measure it). Superposition means a quantum particle exists in a combination of multiple possible states simultaneously until observed.",
-      badge: "Concept Simplifier",
+      title: t("actions.explain.title"),
+      inputPrompt: t("actions.explain.inputPrompt"),
+      output: t("actions.explain.output"),
+      badge: t("actions.explain.badge"),
     },
     quiz: {
-      title: "1-Click Practice Generation",
-      inputPrompt: "Generate 2 active recall questions from my photosynthesis study notes.",
-      output:
-        "1. What is the primary role of chlorophyll pigments during the light-dependent reactions?\n2. Where do the light-independent (Calvin Cycle) reactions take place within the chloroplast organelle?",
-      badge: "Instant Quiz Creator",
+      title: t("actions.quiz.title"),
+      inputPrompt: t("actions.quiz.inputPrompt"),
+      output: t("actions.quiz.output"),
+      badge: t("actions.quiz.badge"),
     },
     summarize: {
-      title: "Key Formula & Takeaway Extractor",
-      inputPrompt: "Extract core equations and units for Thermodynamics Unit 1.",
-      output:
-        "• ΔU = Q - W (First Law: Change in internal energy = heat added minus work done)\n• Work by gas: W = P·ΔV (Constant pressure)\n• Units: Energy (Joules), Pressure (Pascals), Volume (m³)",
-      badge: "Executive Summary",
+      title: t("actions.summarize.title"),
+      inputPrompt: t("actions.summarize.inputPrompt"),
+      output: t("actions.summarize.output"),
+      badge: t("actions.summarize.badge"),
     },
     mistake: {
-      title: "Step-by-Step Error Diagnostic",
-      inputPrompt: "I calculated integral ∫ 2x·e^(x²) dx and answered 2e^(x²) + C. Why is that wrong?",
-      output:
-        "You forgot the derivative of the exponent: let u = x², then du = 2x dx. The integral simplifies directly to ∫ e^u du = e^u + C = e^(x²) + C. You didn't need the leading 2 because it was absorbed into du.",
-      badge: "Mistake Breakdown",
+      title: t("actions.mistake.title"),
+      inputPrompt: t("actions.mistake.inputPrompt"),
+      output: t("actions.mistake.output"),
+      badge: t("actions.mistake.badge"),
     },
   };
 
@@ -61,15 +59,15 @@ export function AiContextualSection() {
           <div className="lg:col-span-6 space-y-6">
             <Badge variant="outline" className="gap-1.5 py-1 px-3 text-xs font-semibold text-primary border-primary/20 bg-primary/5">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>Contextual AI Assistance</span>
+              <span>{t("badge")}</span>
             </Badge>
 
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15] text-balance">
-              AI, where it actually helps.
+              {t("title")}
             </h2>
 
             <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-              Not a detached chatbot or gimmick. EduBek embeds intelligent tools directly into your study material, quiz questions, and teacher assignments.
+              {t("subtitle")}
             </p>
 
             {/* Feature Action Buttons */}
@@ -85,7 +83,7 @@ export function AiContextualSection() {
                 id="ai-action-explain"
               >
                 <HelpCircle className="h-4 w-4 text-violet-500 shrink-0" />
-                <span>Explain Complex Concepts</span>
+                <span>{t("btnExplain")}</span>
               </button>
 
               <button
@@ -99,7 +97,7 @@ export function AiContextualSection() {
                 id="ai-action-quiz"
               >
                 <Swords className="h-4 w-4 text-amber-500 shrink-0" />
-                <span>Generate Practice Sets</span>
+                <span>{t("btnQuiz")}</span>
               </button>
 
               <button
@@ -113,7 +111,7 @@ export function AiContextualSection() {
                 id="ai-action-summarize"
               >
                 <FileText className="h-4 w-4 text-blue-500 shrink-0" />
-                <span>Extract Formulas & Summaries</span>
+                <span>{t("btnSummarize")}</span>
               </button>
 
               <button
@@ -127,14 +125,14 @@ export function AiContextualSection() {
                 id="ai-action-mistake"
               >
                 <RefreshCw className="h-4 w-4 text-emerald-500 shrink-0" />
-                <span>Diagnose Mistakes Step-by-Step</span>
+                <span>{t("btnMistake")}</span>
               </button>
             </div>
 
             <div className="pt-2">
               <Button size="lg" asChild className="gap-2">
                 <Link href="/ai-workspace">
-                  <span>Open Contextual AI Workspace</span>
+                  <span>{t("cta")}</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -152,7 +150,7 @@ export function AiContextualSection() {
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-foreground">{current.title}</h4>
-                    <span className="text-[11px] text-muted-foreground">Powered by server-side Gemini 3.7</span>
+                    <span className="text-[11px] text-muted-foreground">{t("poweredBy")}</span>
                   </div>
                 </div>
                 <Badge variant="outline" className="text-[10px] font-mono">
@@ -162,7 +160,7 @@ export function AiContextualSection() {
 
               {/* Input Context preview */}
               <div className="p-3 rounded-xl border border-border/70 bg-muted/40 text-xs space-y-1">
-                <span className="text-[10px] font-mono uppercase text-muted-foreground">User Context Query:</span>
+                <span className="text-[10px] font-mono uppercase text-muted-foreground">{t("userContextLabel")}</span>
                 <p className="font-medium text-foreground">{current.inputPrompt}</p>
               </div>
 
@@ -171,9 +169,9 @@ export function AiContextualSection() {
                 <div className="flex items-center justify-between text-primary font-semibold text-[11px]">
                   <span className="flex items-center gap-1.5">
                     <Sparkles className="h-3 w-3" />
-                    <span>EduBek AI Tutor Response</span>
+                    <span>{t("tutorResponseLabel")}</span>
                   </span>
-                  <span className="text-[10px] font-mono text-muted-foreground">Response time: 0.4s</span>
+                  <span className="text-[10px] font-mono text-muted-foreground">{t("responseTime")}</span>
                 </div>
                 <p className="text-foreground/90 leading-relaxed whitespace-pre-line text-xs sm:text-sm">
                   {current.output}
@@ -183,10 +181,10 @@ export function AiContextualSection() {
               <div className="pt-2 flex items-center justify-between text-xs text-muted-foreground">
                 <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
                   <Check className="h-3.5 w-3.5" />
-                  <span>Integrated with your syllabus notes</span>
+                  <span>{t("integratedNotes")}</span>
                 </span>
                 <Link href="/ai-workspace" className="text-primary font-semibold hover:underline">
-                  Try with your own materials →
+                  {t("tryOwnMaterials")}
                 </Link>
               </div>
 

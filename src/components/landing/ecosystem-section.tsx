@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
 import {
   Compass,
   GraduationCap,
@@ -18,97 +19,92 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
 export function EcosystemSection() {
+  const t = useTranslations("landing.ecosystem");
   const [activePillar, setActivePillar] = React.useState<string>("discover");
 
   const pillars = [
     {
       id: "discover",
-      title: "Discover",
-      badge: "Knowledge Graph",
+      title: t("discover.title"),
+      badge: t("discover.badge"),
       icon: Compass,
       color: "text-blue-500",
       bgColor: "bg-blue-500/10 border-blue-500/20",
       accentBorder: "border-blue-500",
-      tagline: "Explore topics, curated quizzes, and structured learning paths.",
-      description:
-        "Instead of fragmented files, search topics organized by curriculum standards. Discover related quizzes, study guides, and flashcard sets in one click.",
+      tagline: t("discover.tagline"),
+      description: t("discover.description"),
       link: "/discover",
-      linkText: "Explore Knowledge Graph",
+      linkText: t("discover.cta"),
       connectedTo: ["practice", "learn", "ai"],
     },
     {
       id: "practice",
-      title: "Practice",
-      badge: "4 Arena Modes",
+      title: t("practice.title"),
+      badge: t("practice.badge"),
       icon: Swords,
       color: "text-amber-500",
       bgColor: "bg-amber-500/10 border-amber-500/20",
       accentBorder: "border-amber-500",
-      tagline: "Master concepts through competitive and solo interactive quizzes.",
-      description:
-        "Engage in Classic Arena, Quiz Royale (100 HP shield), Treasure Heist (streak multipliers), or Empire Builder. Get instant feedback on every question.",
+      tagline: t("practice.tagline"),
+      description: t("practice.description"),
       link: "/live-quiz",
-      linkText: "Launch Quiz Arena",
+      linkText: t("practice.cta"),
       connectedTo: ["ai", "learn"],
     },
     {
       id: "ai",
-      title: "Contextual AI",
-      badge: "Built-In Tutor",
+      title: t("ai.title"),
+      badge: t("ai.badge"),
       icon: Sparkles,
       color: "text-violet-500",
       bgColor: "bg-violet-500/10 border-violet-500/20",
       accentBorder: "border-violet-500",
-      tagline: "Instant step-by-step explanations, summarization, and question generation.",
-      description:
-        "AI is embedded right into your learning flow. When you miss a quiz question or review complex notes, get instant step-by-step guidance without switching apps.",
+      tagline: t("ai.tagline"),
+      description: t("ai.description"),
       link: "/ai-workspace",
-      linkText: "Open AI Workspace",
+      linkText: t("ai.cta"),
       connectedTo: ["create", "practice"],
     },
     {
       id: "learn",
-      title: "Learn & Track",
-      badge: "Progress Intelligence",
+      title: t("learn.title"),
+      badge: t("learn.badge"),
       icon: GraduationCap,
       color: "text-emerald-500",
       bgColor: "bg-emerald-500/10 border-emerald-500/20",
       accentBorder: "border-emerald-500",
-      tagline: "Organize notes, maintain daily streaks, and target weak areas.",
-      description:
-        "Your personal dashboard aggregates practice accuracy, daily streaks, assigned class homework, and weak-topic diagnostics to guide your daily study plan.",
+      tagline: t("learn.tagline"),
+      description: t("learn.description"),
       link: "/dashboard",
-      linkText: "View Student Dashboard",
+      linkText: t("learn.cta"),
       connectedTo: ["discover", "create"],
     },
     {
       id: "create",
-      title: "Create",
-      badge: "Educator Studio",
+      title: t("create.title"),
+      badge: t("create.badge"),
       icon: PenTool,
       color: "text-rose-500",
       bgColor: "bg-rose-500/10 border-rose-500/20",
       accentBorder: "border-rose-500",
-      tagline: "Build quizzes, study guides, and interactive lessons in minutes.",
-      description:
-        "Generate multi-format questions manually or with AI assistance from your syllabus outlines, export them for live classroom games, or publish them.",
+      tagline: t("create.tagline"),
+      description: t("create.description"),
       link: "/classrooms",
-      linkText: "Educator Classroom Studio",
+      linkText: t("create.cta"),
       connectedTo: ["marketplace", "practice"],
     },
     {
       id: "marketplace",
-      title: "Marketplace",
-      badge: "Creator Economy",
+      title: t("marketplace.title"),
+      badge: t("marketplace.badge"),
       icon: ShoppingBag,
       color: "text-cyan-500",
       bgColor: "bg-cyan-500/10 border-cyan-500/20",
       accentBorder: "border-cyan-500",
-      tagline: "Access and monetize high-yield study materials from verified educators.",
-      description:
-        "Support educational creators. Buy premium exam preparation packs, verified school curricula, or earn revenue by publishing your own top-rated materials.",
+      tagline: t("marketplace.tagline"),
+      description: t("marketplace.description"),
       link: "/marketplace",
-      linkText: "Browse Marketplace",
+      linkText: t("marketplace.cta"),
       connectedTo: ["discover", "create"],
     },
   ];
@@ -124,13 +120,13 @@ export function EcosystemSection() {
         <div className="flex flex-col items-center text-center space-y-4 max-w-3xl mx-auto mb-12">
           <Badge variant="outline" className="gap-1.5 py-1 px-3 text-xs font-semibold text-primary border-primary/20 bg-primary/5">
             <Workflow className="h-3.5 w-3.5" />
-            <span>The Interconnected Architecture</span>
+            <span>{t("badge")}</span>
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground text-balance">
-            Not isolated tools. One connected ecosystem.
+            {t("title")}
           </h2>
           <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-balance">
-            Every part of EduBek feeds directly into the next: discovering a topic leads to active quiz practice, mistakes trigger contextual AI explanations, and educators publish verified study sets.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -203,7 +199,7 @@ export function EcosystemSection() {
                 <div className="rounded-xl border border-border/70 bg-muted/40 p-4 space-y-2.5">
                   <div className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <TrendingUp className="h-3.5 w-3.5 text-primary" />
-                    <span>How it connects inside the ecosystem:</span>
+                    <span>{t("connectsInside")}</span>
                   </div>
                   <div className="flex flex-wrap gap-2 pt-1">
                     {current.connectedTo.map((connId) => {
@@ -215,7 +211,7 @@ export function EcosystemSection() {
                           className="flex items-center gap-1.5 text-xs rounded-lg border border-border bg-background px-3 py-1.5 font-medium text-foreground"
                         >
                           <CheckCircle2 className="h-3 w-3 text-emerald-500" />
-                          <span>Feeds into <strong>{target.title}</strong></span>
+                          <span>{t("feedsInto")} <strong>{target.title}</strong></span>
                         </div>
                       );
                     })}
@@ -225,7 +221,7 @@ export function EcosystemSection() {
 
               {/* Direct CTA to that feature */}
               <div className="pt-4 border-t border-border/80 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Ready to explore this component?</span>
+                <span className="text-xs text-muted-foreground">{t("readyToExplore")}</span>
                 <Button size="sm" asChild className="gap-2">
                   <Link href={current.link}>
                     <span>{current.linkText}</span>
