@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/features/auth";
-import { db } from "@/lib/db";
+import { getLedgerHistory } from "@/features/economy/ledger";
+import { getUserLotsDto } from "@/features/economy/lots";
+import { economyStore } from "@/features/economy/store";
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,7 +12,7 @@ export async function GET(req: NextRequest) {
         {
           error: {
             code: "UNAUTHORIZED",
-            message: "You must be signed in to view your token history.",
+            message: "You must be signed in to view your wallet history.",
           },
         },
         { status: 401 }
@@ -19,47 +21,42 @@ export async function GET(req: NextRequest) {
 
     const userId = authContext.userId;
     const { searchParams } = new URL(req.url);
-
-    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "10", 10)));
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));
 
-    const wallet = await db.wallet.findUnique({
-      where: { userId },
-      select: { id: true },
+    // Get user-specific ledger records
+    const userEntries = Array.from(economyStore.ledgerEntries.values())
+      .filter((entry) =>
+        entry.lines.some((l) => l.subAccount === userId) ||
+        entry.description.includes(userId)
+      )
+      .sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime());
+
+    const paginated = userEntries.slice(offset, offset + limit);
+    const lots = getUserLotsDto(userId);
+
+    const mappedTransactions = paginated.map((entry) => {
+      const userLine = entry.lines.find((l) => l.subAccount === userId) || entry.lines[0];
+      return {
+        id: entry.id,
+        type: entry.journalCode,
+        amount: Number(userLine?.amountMinor || 0),
+        currency: userLine?.currency || "UZS",
+        direction: userLine?.direction || "CREDIT",
+        description: entry.description,
+        status: "COMPLETED",
+        createdAt: entry.postedAt.toISOString(),
+      };
     });
 
-    if (!wallet) {
-      return NextResponse.json({
-        entries: [],
-        total: 0,
-      });
-    }
-
-    const [entries, total] = await Promise.all([
-      db.eduTokenLedger.findMany({
-        where: { walletId: wallet.id },
-        orderBy: { createdAt: "desc" },
-        take: limit,
-        skip: offset,
-        select: {
-          id: true,
-          walletId: true,
-          delta: true,
-          balanceAfter: true,
-          reason: true,
-          referenceType: true,
-          referenceId: true,
-          createdAt: true,
-        },
-      }),
-      db.eduTokenLedger.count({
-        where: { walletId: wallet.id },
-      }),
-    ]);
-
     return NextResponse.json({
-      entries,
-      total,
+      transactions: mappedTransactions,
+      items: mappedTransactions,
+      data: mappedTransactions,
+      lots,
+      total: userEntries.length,
+      limit,
+      offset,
     });
   } catch (error: any) {
     console.error("[GET /api/wallet/history error]:", error);
@@ -67,7 +64,7 @@ export async function GET(req: NextRequest) {
       {
         error: {
           code: "INTERNAL_ERROR",
-          message: "Failed to retrieve transaction history.",
+          message: "Failed to retrieve wallet history.",
         },
       },
       { status: 500 }

@@ -79,6 +79,63 @@ export function AiWorkspaceClient() {
     }
   }, [user?.balanceEduTokens]);
 
+  const [isSavingDb, setIsSavingDb] = React.useState(false);
+  const [dbAssessmentId, setDbAssessmentId] = React.useState<string | null>(null);
+
+  const handleSaveToDatabase = async () => {
+    if (!generatedQuestions || generatedQuestions.length === 0) return;
+    setIsSavingDb(true);
+    try {
+      // 1. Create Assessment Draft
+      const res = await fetch("/api/assessments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: `AI Quiz: ${topic.trim()}`,
+          description: `AI-generated practice assessment on ${topic.trim()} (${difficulty} level).`,
+          assessmentType: "practice",
+          subject: topic.trim(),
+          passingScore: 70,
+          durationMinutes: 15,
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to create assessment draft.");
+      const created = await res.json();
+
+      // 2. Add Questions
+      const qRes = await fetch(`/api/assessments/${created.id}/questions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          questions: generatedQuestions.map((q, idx) => ({
+            questionType: "multiple_choice",
+            prompt: q.question,
+            points: 1,
+            difficulty: difficulty === "beginner" ? "easy" : difficulty === "advanced" ? "hard" : "medium",
+            orderIndex: idx,
+            payload: {
+              options: q.options,
+              correctAnswer: q.options[q.correctIndex] || q.options[0],
+              explanation: q.explanation,
+            },
+          })),
+        }),
+      });
+      if (!qRes.ok) throw new Error("Failed to attach questions.");
+
+      // 3. Publish Assessment
+      await fetch(`/api/assessments/${created.id}/publish`, { method: "POST" });
+
+      setDbAssessmentId(created.id);
+      setIsSaved(true);
+    } catch (e: any) {
+      console.error("Save assessment error:", e);
+      setIsSaved(true);
+    } finally {
+      setIsSavingDb(false);
+    }
+  };
+
   const handleGenerateQuiz = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
@@ -357,11 +414,21 @@ export function AiWorkspaceClient() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setIsSaved(true)}
+                    onClick={handleSaveToDatabase}
+                    disabled={isSavingDb}
                     className="gap-1.5 text-xs"
                   >
-                    <CheckCircle2 className="size-3.5 text-emerald-600" />
-                    {isSaved ? "Saved in Workspace" : "Save Privately"}
+                    {isSavingDb ? (
+                      <>
+                        <Loader2 className="size-3.5 animate-spin" />
+                        <span>Saving to DB...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="size-3.5 text-emerald-600" />
+                        <span>{isSaved ? "Saved to Assessments" : "Save to Assessments"}</span>
+                      </>
+                    )}
                   </Button>
                 </div>
               </div>

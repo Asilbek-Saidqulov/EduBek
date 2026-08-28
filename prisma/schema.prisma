@@ -1872,6 +1872,9 @@ model Classroom {
   id          String   @id @default(cuid())
   name        String
   description String?
+  subject     String?
+  grade       String?
+  joinCode    String?  @unique
   teacherId   String
   teacher     User     @relation("TeacherClassrooms", fields: [teacherId], references: [id], onDelete: Cascade)
   orgId       String?
@@ -1889,6 +1892,7 @@ model Classroom {
   @@index([teacherId])
   @@index([orgId])
   @@index([status])
+  @@index([joinCode])
 }
 
 model ClassroomStudent {
@@ -1908,27 +1912,34 @@ model Assignment {
   id           String   @id @default(cuid())
   classroomId  String
   classroom    Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  resourceId   String
-  resource     Resource  @relation("AssignmentResource", fields: [resourceId], references: [id], onDelete: Cascade)
+  resourceId   String?
+  resource     Resource? @relation("AssignmentResource", fields: [resourceId], references: [id], onDelete: SetNull)
+  assessmentId String?
+  assessment   Assessment? @relation("AssessmentAssignments", fields: [assessmentId], references: [id], onDelete: SetNull)
   teacherId    String
   title        String
   instructions String?
+  opensAt      DateTime?
+  dueAt        DateTime?
   dueDate      DateTime?
   visibility   String   @default("published") // 'draft' | 'published' | 'archived'
   maxAttempts  Int      @default(1)
   allowLate    Boolean  @default(true)
   points       Int      @default(100)
-  status       String   @default("active")
+  status       String   @default("active") // 'active' | 'archived' | 'draft'
   publishedAt  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  attempts     AssignmentAttempt[]
+  attempts           AssignmentAttempt[]
+  assessmentAttempts AssessmentAttempt[] @relation("AssignmentAssessmentAttempts")
 
   @@index([classroomId])
   @@index([teacherId])
   @@index([resourceId])
+  @@index([assessmentId])
   @@index([visibility, status])
+  @@index([dueAt])
 }
 
 model AssignmentAttempt {
@@ -2186,6 +2197,7 @@ model Assessment {
 
   questions           AssessmentQuestion[]
   attempts            AssessmentAttempt[]
+  assignments         Assignment[]         @relation("AssessmentAssignments")
   certificates        Certificate[]
 
   @@index([ownerId])
@@ -2221,6 +2233,8 @@ model AssessmentAttempt {
   id              String   @id @default(cuid())
   assessmentId    String
   assessment      Assessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  assignmentId    String?
+  assignment      Assignment? @relation("AssignmentAssessmentAttempts", fields: [assignmentId], references: [id], onDelete: SetNull)
   studentId       String
   student         User     @relation("UserAssessmentAttempts", fields: [studentId], references: [id], onDelete: Cascade)
   status          String   @default("in_progress") // 'in_progress' | 'submitted' | 'graded' | 'expired' | 'paused'
@@ -2256,6 +2270,7 @@ model AssessmentAttempt {
 
   @@unique([assessmentId, studentId, attemptNumber])
   @@index([assessmentId])
+  @@index([assignmentId])
   @@index([studentId])
   @@index([status])
   @@index([expiresAt])
@@ -8621,4 +8636,213 @@ model AIGovernanceModel {
 
   @@unique([provider, model])
   @@index([status])
+}
+
+// =============================================================================
+// PHASE 3 — PRODUCTION-GRADE ECONOMY SYSTEM
+// =============================================================================
+
+model EconomyLedgerEntry {
+  id            String             @id @default(cuid())
+  journalCode   String
+  description   String
+  referenceType String?
+  referenceId   String?
+  metadata      String?
+  postedAt      DateTime           @default(now())
+  lines         EconomyLedgerLine[]
+
+  @@index([journalCode])
+  @@index([referenceType, referenceId])
+  @@index([postedAt])
+}
+
+model EconomyLedgerLine {
+  id          String             @id @default(cuid())
+  entryId     String
+  entry       EconomyLedgerEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  account     String
+  subAccount  String?
+  currency    String
+  direction   String
+  amountMinor BigInt
+  createdAt   DateTime           @default(now())
+
+  @@index([entryId])
+  @@index([account, subAccount])
+  @@index([currency])
+}
+
+model CreditLot {
+  id                   String    @id @default(cuid())
+  userId               String
+  source               String
+  originalUnits        Int
+  remainingUnits       Int
+  orderId              String?
+  subscriptionPeriodId String?
+  campaignId           String?
+  expiresAt            DateTime?
+  status               String    @default("ACTIVE")
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  @@index([userId, status])
+  @@index([expiresAt])
+}
+
+model AiCreditWallet {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  availableUnits Int      @default(0)
+  reservedUnits  Int      @default(0)
+  totalConsumed  Int      @default(0)
+  version        Int      @default(1)
+  updatedAt      DateTime @updatedAt
+}
+
+model AiUsageRecord {
+  id               String   @id @default(cuid())
+  userId           String
+  sku              String
+  model            String
+  tokensIn         Int      @default(0)
+  tokensOut        Int      @default(0)
+  estimatedCogsUzs BigInt   @default(0)
+  creditsCharged   Int      @default(0)
+  durationMs       Int      @default(0)
+  status           String   @default("FINALIZED")
+  reservationId    String?
+  metadata         String?
+  createdAt        DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([sku])
+}
+
+model MarketplaceEntitlement {
+  id         String    @id @default(cuid())
+  userId     String
+  listingId  String
+  orderId    String
+  version    Int       @default(1)
+  status     String    @default("ACTIVE")
+  grantedAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  @@unique([userId, listingId])
+  @@index([userId])
+  @@index([listingId])
+}
+
+model PaymentOrder {
+  id                   String   @id @default(cuid())
+  userId               String
+  type                 String
+  quotedAmountMinor    BigInt
+  currency             String   @default("UZS")
+  pricingPolicyCode    String
+  pricingPolicyVersion Int      @default(1)
+  status               String   @default("CREATED")
+  items                String
+  metadata             String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([userId, status])
+}
+
+model PaymentIntent {
+  id                    String   @id @default(cuid())
+  orderId               String
+  providerCode          String
+  providerTransactionId String?
+  amountMinor           BigInt
+  currency              String   @default("UZS")
+  status                String   @default("CREATED")
+  idempotencyKey        String?  @unique
+  rawResponse           String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([providerCode, providerTransactionId])
+}
+
+model PaymentWebhookLog {
+  id           String   @id @default(cuid())
+  providerCode String
+  eventId      String
+  payload      String
+  signature    String?
+  status       String   @default("PROCESSED")
+  createdAt    DateTime @default(now())
+
+  @@index([providerCode, eventId])
+}
+
+model CreatorFinancialAccount {
+  id              String   @id @default(cuid())
+  creatorId       String   @unique
+  pendingUzs      BigInt   @default(0)
+  eligibleUzs     BigInt   @default(0)
+  availableUzs    BigInt   @default(0)
+  payoutLockedUzs BigInt   @default(0)
+  paidUzs         BigInt   @default(0)
+  version         Int      @default(1)
+  updatedAt       DateTime @updatedAt
+}
+
+model CreatorPayoutBatch {
+  id            String    @id @default(cuid())
+  creatorId     String
+  amountMinor   BigInt
+  currency      String    @default("UZS")
+  feeMinor      BigInt    @default(0)
+  destination   String
+  status        String    @default("DRAFT")
+  requestedAt   DateTime  @default(now())
+  settledAt     DateTime?
+  failureReason String?
+
+  @@index([creatorId, status])
+}
+
+model PromoCampaign {
+  id                       String    @id @default(cuid())
+  code                     String    @unique
+  description              String?
+  creditUnitsPerRedemption Int
+  maxBudgetUnits           Int
+  usedUnits                Int       @default(0)
+  maxRedemptionsPerUser    Int       @default(1)
+  expiresAt                DateTime?
+  isActive                 Boolean   @default(true)
+  createdAt                DateTime  @default(now())
+}
+
+model PromoRedemption {
+  id                 String   @id @default(cuid())
+  campaignId         String
+  userId             String
+  creditUnitsAwarded Int
+  lotId              String
+  redeemedAt         DateTime @default(now())
+
+  @@unique([campaignId, userId])
+  @@index([userId])
+}
+
+model KillSwitchConfig {
+  id        String   @id @default("GLOBAL")
+  flags     String
+  updatedAt DateTime @updatedAt
+}
+
+model ReconciliationAudit {
+  id            String   @id @default(cuid())
+  runAt         DateTime @default(now())
+  passed        Boolean
+  summary       String
+  discrepancies String
 }

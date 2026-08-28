@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthContext } from "@/features/auth";
-import { db } from "@/lib/db";
+import { getUserAiCredits } from "@/features/economy/credits";
+import { getCreatorAccount } from "@/features/economy/creator";
+import { getUserSubscription } from "@/features/economy/subscriptions";
 
 export async function GET(req: NextRequest) {
   try {
@@ -19,45 +21,43 @@ export async function GET(req: NextRequest) {
 
     const userId = authContext.userId;
 
-    let wallet = await db.wallet.findUnique({
-      where: { userId },
-      select: {
-        id: true,
-        eduTokensBalance: true,
-        fiatBalance: true,
-        lockedEduTokens: true,
-        currency: true,
-        updatedAt: true,
-      },
-    });
-
-    // If user has no wallet record yet, initialize one
-    if (!wallet) {
-      wallet = await db.wallet.create({
-        data: {
-          userId,
-          eduTokensBalance: 250,
-          fiatBalance: 0,
-          currency: "USD",
-        },
-        select: {
-          id: true,
-          eduTokensBalance: true,
-          fiatBalance: true,
-          lockedEduTokens: true,
-          currency: true,
-          updatedAt: true,
-        },
-      });
-    }
+    // Fetch AI Credits (available, reserved, totalConsumed, lots, expiringSoon)
+    const aiCredits = await getUserAiCredits(userId);
+    const creator = await getCreatorAccount(userId);
+    const subscription = getUserSubscription(userId);
 
     return NextResponse.json({
-      balance: wallet.eduTokensBalance,
-      fiatBalance: wallet.fiatBalance,
-      lockedEduTokens: wallet.lockedEduTokens,
-      currency: wallet.currency,
-      walletId: wallet.id,
-      updatedAt: wallet.updatedAt,
+      // Backward compatibility fields
+      balance: aiCredits.availableUnits,
+      fiatBalance: Number(creator.availableUzs) || 0,
+      lockedEduTokens: aiCredits.reservedUnits,
+      currency: "UZS",
+      walletId: aiCredits.id,
+      updatedAt: aiCredits.updatedAt,
+
+      // Phase 3 rich fields
+      aiCredits: {
+        available: aiCredits.availableUnits,
+        reserved: aiCredits.reservedUnits,
+        totalConsumed: aiCredits.totalConsumed,
+        expiringSoon: aiCredits.expiringSoonUnits || 0,
+        nearestExpiration: aiCredits.nearestExpiration || null,
+        lots: aiCredits.lots,
+      },
+      creatorBalance: {
+        pendingUzs: creator.pendingUzs,
+        eligibleUzs: creator.eligibleUzs,
+        availableUzs: creator.availableUzs,
+        payoutLockedUzs: creator.payoutLockedUzs,
+        paidUzs: creator.paidUzs,
+      },
+      subscription: {
+        tier: subscription.tier,
+        planName: subscription.planName,
+        status: subscription.status,
+        monthlyQuota: subscription.monthlyQuota,
+        currentPeriodEnd: subscription.currentPeriodEnd,
+      },
     });
   } catch (error: any) {
     console.error("[GET /api/wallet/balance error]:", error);

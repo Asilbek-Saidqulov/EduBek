@@ -1,16 +1,23 @@
-// Auto-generated module for @/features/payment
-import { z } from "zod";
-import { db } from "@/lib/db";
+/**
+ * Payment feature bridge module
+ */
 
-export async function listProviders(...args: any[]): Promise<any> {
+import { providerRegistry } from "./economy/providers/registry";
+import { initiateCheckout, handleProviderWebhook, getPaymentIntentStatus } from "./economy/payments";
+import { getKillSwitchFlags, updateKillSwitchFlags } from "./economy/kill-switches";
+
+export async function listProviders() {
   return {
     success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
+    providers: providerRegistry.listAvailableProviders(),
     timestamp: new Date().toISOString(),
   };
 }
-export type listProviders = any;
+
+export {
+  initiateCheckout,
+  handleProviderWebhook,
+  getPaymentIntentStatus,
+  getKillSwitchFlags,
+  updateKillSwitchFlags,
+};

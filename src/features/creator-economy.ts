@@ -1,52 +1,61 @@
-// Auto-generated module for @/features/creator-economy
-import { z } from "zod";
-import { db } from "@/lib/db";
+/**
+ * Creator Economy Feature Module
+ */
 
-export async function getDashboard(...args: any[]): Promise<any> {
+import { AuthContext, requireAuth } from "./auth";
+import { getCreatorAccount, requestCreatorPayout, listCreatorPayouts, maturePendingEarnings } from "./economy/creator";
+import { getUserEntitlements } from "./economy/marketplace";
+
+export async function getDashboard(ctx: AuthContext) {
+  requireAuth(ctx);
+  const account = await getCreatorAccount(ctx.userId);
   return {
     success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
+    account,
     timestamp: new Date().toISOString(),
   };
 }
-export type getDashboard = any;
-export async function getEarnings(...args: any[]): Promise<any> {
+
+export async function getEarnings(ctx: AuthContext) {
+  requireAuth(ctx);
+  const account = await getCreatorAccount(ctx.userId);
   return {
     success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
+    data: account,
     timestamp: new Date().toISOString(),
   };
 }
-export type getEarnings = any;
-export async function getPayouts(...args: any[]): Promise<any> {
+
+export async function getPayouts(ctx: AuthContext) {
+  requireAuth(ctx);
+  const payouts = listCreatorPayouts(ctx.userId);
   return {
     success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
+    data: payouts,
+    items: payouts,
+    total: payouts.length,
     timestamp: new Date().toISOString(),
   };
 }
-export type getPayouts = any;
-export async function requestPayout(...args: any[]): Promise<any> {
+
+export async function requestPayout(ctx: AuthContext, amountMinor: bigint, destination: string, destinationType?: string) {
+  requireAuth(ctx);
+  const payout = await requestCreatorPayout({
+    creatorId: ctx.userId,
+    amountMinor,
+    destination,
+    destinationType: destinationType as any,
+  });
   return {
     success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
+    data: payout,
     timestamp: new Date().toISOString(),
   };
 }
-export type requestPayout = any;
+
+export {
+  getCreatorAccount,
+  requestCreatorPayout,
+  listCreatorPayouts,
+  maturePendingEarnings,
+};

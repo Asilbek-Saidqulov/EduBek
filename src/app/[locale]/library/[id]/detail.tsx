@@ -21,6 +21,7 @@ import {
   History,
   Layers,
   PenTool,
+  Play,
   Presentation,
   Tag,
   type LucideIcon,
@@ -183,6 +184,14 @@ export function ResourceDetail({ id }: { id: string }) {
             </div>
           )}
           <div className="flex flex-wrap gap-2">
+            {(r.resourceType === "quiz" || r.resourceType === "assessment" || r.resourceType === "lesson_plan") && (
+              <Button asChild size="sm" className="gap-1.5 bg-primary text-primary-foreground font-bold">
+                <Link href={`/live-quiz?assessmentId=${r.id}`}>
+                  <Play className="size-4 fill-current" aria-hidden />
+                  <span>Launch Live Quiz / Arena</span>
+                </Link>
+              </Button>
+            )}
             {user && (
               <Button
                 variant="outline"
