@@ -108,9 +108,14 @@ export class RoomManager {
       const assessment = await db.assessment.findUnique({
         where: { id: input.assessmentId },
         include: {
-          questions: {
-            include: { question: true },
-            orderBy: { order: "asc" },
+          sections: {
+            include: {
+              questions: {
+                include: { question: true },
+                orderBy: { orderNum: "asc" },
+              },
+            },
+            orderBy: { orderNum: "asc" },
           },
         },
       });
@@ -119,34 +124,36 @@ export class RoomManager {
         throw notFound("Assessment not found");
       }
 
-      for (const secQ of assessment.questions) {
-        const bq = secQ.question;
-        let parsedPayload: any = {};
-        try {
-          parsedPayload = bq.payload ? JSON.parse(bq.payload) : {};
-        } catch {
-          parsedPayload = {};
+      for (const sec of assessment.sections) {
+        for (const secQ of sec.questions) {
+          const bq = secQ.question;
+          let parsedPayload: any = {};
+          try {
+            parsedPayload = bq.payload ? JSON.parse(bq.payload) : {};
+          } catch {
+            parsedPayload = {};
+          }
+
+          const options: string[] = Array.isArray(parsedPayload.options)
+            ? parsedPayload.options
+            : [];
+          const correctAns = parsedPayload.correctAnswer || undefined;
+          const correctIdx = parsedPayload.correctIndex ?? (correctAns ? options.indexOf(correctAns) : undefined);
+
+          questions.push({
+            id: bq.id,
+            prompt: bq.prompt,
+            type: (bq.questionType as any) || "multiple_choice",
+            options,
+            correctIndex: correctIdx !== -1 ? correctIdx : undefined,
+            correctAnswer: correctAns,
+            acceptableAnswers: parsedPayload.acceptableAnswers,
+            explanation: parsedPayload.explanation,
+            points: secQ.points || bq.points || 1,
+            durationMs: (secQ.timeLimitSeconds || 30) * 1000,
+            difficulty: bq.difficulty,
+          });
         }
-
-        const options: string[] = Array.isArray(parsedPayload.options)
-          ? parsedPayload.options
-          : [];
-        const correctAns = parsedPayload.correctAnswer || undefined;
-        const correctIdx = parsedPayload.correctIndex ?? (correctAns ? options.indexOf(correctAns) : undefined);
-
-        questions.push({
-          id: bq.id,
-          prompt: parsedPayload.prompt || bq.topic || "Question",
-          type: (bq.questionType as any) || "multiple_choice",
-          options,
-          correctIndex: correctIdx !== -1 ? correctIdx : undefined,
-          correctAnswer: correctAns,
-          acceptableAnswers: parsedPayload.acceptableAnswers,
-          explanation: parsedPayload.explanation,
-          points: secQ.points || bq.points || 1,
-          durationMs: (secQ.overrides ? JSON.parse(secQ.overrides).timeLimitSeconds : undefined) || 30000,
-          difficulty: bq.difficulty,
-        });
       }
     }
 
