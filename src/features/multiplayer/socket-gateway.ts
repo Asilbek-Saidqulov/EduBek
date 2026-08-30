@@ -4,6 +4,13 @@ import { RoomManager } from "./room-manager";
 import { GameRoom } from "./engine";
 import { checkActionRateLimit } from "./anti-cheat";
 import { PlayerAnswerSubmission } from "./types";
+import { env } from "@/config/env";
+
+function parseAllowedOrigins(): string[] | undefined {
+  const raw = env.EDUBEK_ALLOWED_ORIGINS;
+  if (!raw) return undefined;
+  return raw.split(",").map((o) => o.trim()).filter(Boolean);
+}
 
 interface AuthenticatedSocket extends Socket {
   data: {
@@ -38,12 +45,14 @@ export class SocketGateway {
       return this.io;
     }
 
+    const allowedOrigins = parseAllowedOrigins();
+
     this.io = new SocketIOServer(httpServer, {
       path: "/api/socket/io",
       cors: {
-        origin: "*",
+        origin: allowedOrigins && allowedOrigins.length > 0 ? allowedOrigins : "*",
         methods: ["GET", "POST"],
-        credentials: true,
+        credentials: Boolean(allowedOrigins && allowedOrigins.length > 0),
       },
       pingTimeout: 20000,
       pingInterval: 10000,

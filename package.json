@@ -4,8 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
+    "dev:realtime": "tsx watch src/server/index.ts",
     "build": "prisma generate && next build",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

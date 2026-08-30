@@ -56,6 +56,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
+import { MultiplayerLivePlayer } from "@/components/edubek/multiplayer-live-player";
 
 export function LiveQuizClient() {
   const searchParams = useSearchParams();
@@ -75,6 +76,15 @@ export function LiveQuizClient() {
       ? { assessmentId: assessmentIdFromUrl, mode: "classic" }
       : null,
   );
+
+  const [multiplayerRoom, setMultiplayerRoom] = React.useState<{
+    code: string;
+    isHost: boolean;
+    displayName: string;
+  } | null>(null);
+
+  const [isCreatingMultiplayer, setIsCreatingMultiplayer] = React.useState(false);
+  const [multiplayerError, setMultiplayerError] = React.useState<string | null>(null);
 
   // Assessments List State
   const [assessments, setAssessments] = React.useState<any[]>([]);
@@ -223,6 +233,71 @@ export function LiveQuizClient() {
       mode: selectedGameMode,
       durationMinutes: item.durationMinutes,
     });
+  };
+
+  // Multiplayer: Create Room
+  const handleCreateMultiplayerRoom = async (mode: GameModeType, title: string) => {
+    setIsCreatingMultiplayer(true);
+    setMultiplayerError(null);
+    try {
+      const res = await fetch("/api/live/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title || `${mode.charAt(0).toUpperCase() + mode.slice(1)} Arena`,
+          gameMode: mode,
+          maxPlayers: 50,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error?.message || "Failed to create multiplayer room");
+      }
+
+      const data = await res.json();
+      setMultiplayerRoom({
+        code: data.session?.code || data.code,
+        isHost: true,
+        displayName: "Host",
+      });
+    } catch (err: any) {
+      setMultiplayerError(err?.message || "Could not create multiplayer room");
+    } finally {
+      setIsCreatingMultiplayer(false);
+    }
+  };
+
+  // Multiplayer: Join Room
+  const handleJoinMultiplayerRoom = async (code: string) => {
+    setIsCreatingMultiplayer(true);
+    setMultiplayerError(null);
+    try {
+      const res = await fetch("/api/live/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          code: code.trim().toUpperCase(),
+          displayName: `Player_${Math.floor(1000 + Math.random() * 9000)}`,
+        }),
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error?.message || "Failed to join multiplayer room");
+      }
+
+      const data = await res.json();
+      setMultiplayerRoom({
+        code: code.trim().toUpperCase(),
+        isHost: false,
+        displayName: data.player?.displayName || "Player",
+      });
+    } catch (err: any) {
+      setMultiplayerError(err?.message || "Could not join multiplayer room");
+    } finally {
+      setIsCreatingMultiplayer(false);
+    }
   };
 
   // 1-Click Full Assessment Generation via AI
@@ -564,6 +639,18 @@ export function LiveQuizClient() {
     },
   ];
 
+  // If currently in a multiplayer room
+  if (multiplayerRoom) {
+    return (
+      <MultiplayerLivePlayer
+        initialCode={multiplayerRoom.code}
+        initialDisplayName={multiplayerRoom.displayName}
+        isHost={multiplayerRoom.isHost}
+        onExit={() => setMultiplayerRoom(null)}
+      />
+    );
+  }
+
   // If currently taking an assessment/quiz
   if (playingQuiz) {
     return (
@@ -730,18 +817,33 @@ export function LiveQuizClient() {
                       </div>
                     ))}
 
-                    <Button
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedGameMode(modeItem.id);
-                        setPlayingQuiz({ mode: modeItem.id, title: modeItem.title });
-                      }}
-                      className="w-full mt-3 text-xs font-bold gap-1.5"
-                    >
-                      <Play className="size-3.5 fill-current" />
-                      <span>Play Arena</span>
-                    </Button>
+                     <div className="flex items-center gap-2 w-full">
+                       <Button
+                         size="sm"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           setSelectedGameMode(modeItem.id);
+                           setPlayingQuiz({ mode: modeItem.id, title: modeItem.title });
+                         }}
+                         className="flex-1 text-xs font-bold gap-1.5"
+                       >
+                         <Play className="size-3.5 fill-current" />
+                         <span>Solo</span>
+                       </Button>
+                       <Button
+                         size="sm"
+                         variant="outline"
+                         onClick={(e) => {
+                           e.stopPropagation();
+                           handleCreateMultiplayerRoom(modeItem.id, modeItem.title);
+                         }}
+                         disabled={isCreatingMultiplayer}
+                         className="flex-1 text-xs font-bold gap-1.5"
+                       >
+                         <Users className="size-3.5" />
+                         <span>Multiplayer</span>
+                       </Button>
+                     </div>
                   </div>
                 </Card>
               );
@@ -1529,19 +1631,39 @@ export function LiveQuizClient() {
                 maxLength={8}
               />
 
-              <Button
-                onClick={() => {
-                  if (joinCode.trim().length >= 4) {
-                    setPlayingQuiz({ code: joinCode.trim(), mode: selectedGameMode });
-                  }
-                }}
-                disabled={joinCode.trim().length < 4}
-                className="w-full h-11 text-sm font-bold gap-2"
-              >
-                <span>Enter Arena</span>
-                <ArrowRight className="size-4" />
-              </Button>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  onClick={() => {
+                    if (joinCode.trim().length >= 4) {
+                      setPlayingQuiz({ code: joinCode.trim(), mode: selectedGameMode });
+                    }
+                  }}
+                  disabled={joinCode.trim().length < 4}
+                  className="h-11 text-sm font-bold gap-2"
+                >
+                  <span>Solo</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleJoinMultiplayerRoom(joinCode)}
+                  disabled={joinCode.trim().length < 4 || isCreatingMultiplayer}
+                  className="h-11 text-sm font-bold gap-2"
+                >
+                  {isCreatingMultiplayer ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Users className="size-4" />
+                  )}
+                  <span>Multiplayer</span>
+                </Button>
+              </div>
             </div>
+
+            {multiplayerError && (
+              <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-600 text-xs">
+                {multiplayerError}
+              </div>
+            )}
           </Card>
         </div>
       )}

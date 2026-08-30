@@ -15,7 +15,8 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "@typescript-eslint/ban-ts-comment": "off",
     "@typescript-eslint/prefer-as-const": "off",
     "@typescript-eslint/no-unused-disable-directive": "off",
-    
+    "@typescript-eslint/no-empty-object-type": "off",
+
     // React rules
     "react-hooks/exhaustive-deps": "off",
     "react-hooks/purity": "off",
@@ -47,15 +48,16 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
   },
 }, {
   ignores: [
-    "node_modules/**", 
-    ".next/**", 
-    "out/**", 
-    "build/**",
-    "dist-server/**", 
-    "next-env.d.ts", 
-    "examples/**", 
-    "skills", 
-    "scripts/**"
+    "**/node_modules/**",
+    "**/.next/**",
+    "**/.kilo/**",
+    "**/out/**",
+    "**/build/**",
+    "**/dist-server/**",
+    "next-env.d.ts",
+    "**/examples/**",
+    "**/skills/**",
+    "**/scripts/**",
   ],
 }];
 

@@ -79,7 +79,22 @@ export async function createSession(ctx: AuthContext, body: CreateSessionBody) {
     throw unauthorized("Must be logged in to host a live session");
   }
 
-  // If quiz specified, verify user or ownership if needed
+  if (body.quizId) {
+    const quiz = await db.quiz.findUnique({ where: { id: body.quizId }, select: { teacherId: true, isPublished: true } });
+    if (!quiz) throw notFound("Quiz not found");
+    if (quiz.teacherId !== ctx.userId && !quiz.isPublished) {
+      throw forbidden("You are not authorized to use this quiz in a multiplayer session");
+    }
+  }
+
+  if (body.assessmentId) {
+    const assessment = await db.assessment.findUnique({ where: { id: body.assessmentId }, select: { ownerId: true, status: true } });
+    if (!assessment) throw notFound("Assessment not found");
+    if (assessment.ownerId !== ctx.userId && assessment.status !== "published") {
+      throw forbidden("You are not authorized to use this assessment in a multiplayer session");
+    }
+  }
+
   const room = await roomManager.createRoom({
     hostId: ctx.userId,
     title: body.title,
