@@ -33,9 +33,9 @@ describe("Phase 1 — Core Backend Repair Unit & Integration Tests", () => {
       expect(err instanceof AiError).toBe(true);
     });
 
-    it("throws appropriate error when Gemini API key is missing", async () => {
-      const originalKey = process.env.GEMINI_API_KEY;
-      delete process.env.GEMINI_API_KEY;
+    it("throws appropriate error when OpenRouter API key is missing", async () => {
+      const originalKey = process.env.OPENROUTER_API_KEY;
+      delete process.env.OPENROUTER_API_KEY;
 
       await expect(
         generateText({ prompt: "Hello" })
@@ -55,7 +55,7 @@ describe("Phase 1 — Core Backend Repair Unit & Integration Tests", () => {
       ).rejects.toThrow(AiError);
 
       if (originalKey) {
-        process.env.GEMINI_API_KEY = originalKey;
+        process.env.OPENROUTER_API_KEY = originalKey;
       }
     });
   });

@@ -8,7 +8,7 @@ import {
   conflict,
 } from "@/lib/errors";
 import { type AuthContext } from "@/features/auth";
-import { GoogleGenAI } from "@google/genai";
+import { generateStructuredJson, generateText, getGeneralModel } from "@/lib/ai";
 
 // -----------------------------------------------------------------------------
 // Schemas
@@ -1001,16 +1001,10 @@ export async function createBankQuestion(
 }
 
 // -----------------------------------------------------------------------------
-// AI Generation Helpers
+// AI Generation Helpers (Powered by OpenRouter DeepSeek V4 Flash)
 // -----------------------------------------------------------------------------
 
-function getGeminiClient(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-  return new GoogleGenAI({ apiKey });
-}
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 1500): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 2000): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) =>
@@ -1020,16 +1014,12 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 1500): Promise<
 }
 
 export async function generateAssessment(authCtx: AuthContext, body: any) {
-  const gemini = getGeminiClient();
   const topic = body.topic || "General Knowledge";
   const questionCount = body.questionCount || 5;
 
-  if (gemini) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
-      const response: any = await withTimeout(
-        gemini.models.generateContent({
-          model: "gemini-3.6-flash",
-          contents: `Create a structured ${body.assessmentType || "quiz"} on the topic: "${topic}".
+      const prompt = `Create a structured ${body.assessmentType || "quiz"} on the topic: "${topic}".
 Subject: ${body.subject || "General"}
 Target Grade: ${body.grade || "Secondary / University"}
 Question count: ${questionCount}
@@ -1056,17 +1046,21 @@ Respond ONLY with valid JSON conforming to:
       }
     }
   ]
-}`,
+}`;
+
+      const { data } = await withTimeout(
+        generateStructuredJson<any>({
+          prompt,
+          model: getGeneralModel(),
+          maxTokens: 3500,
+          temperature: 0.3,
         }),
-        1500
+        2500
       );
 
-      const text = response.text || "";
-      const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const parsed = JSON.parse(cleaned);
-      return { success: true, ...parsed };
+      return { success: true, ...data };
     } catch (e) {
-      console.warn("[generateAssessment] Gemini error, using fallback outline:", e);
+      console.warn("[generateAssessment] OpenRouter error, using fallback outline:", e);
     }
   }
 
@@ -1099,43 +1093,45 @@ Respond ONLY with valid JSON conforming to:
 }
 
 export async function generateQuestions(authCtx: AuthContext, body: any) {
-  const gemini = getGeminiClient();
   const topic = body.topic || "General Knowledge";
   const count = body.count || 5;
 
-  if (gemini) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
-      const response: any = await withTimeout(
-        gemini.models.generateContent({
-          model: "gemini-3.6-flash",
-          contents: `Generate ${count} ${body.difficulty || "medium"} difficulty educational questions on "${topic}".
+      const prompt = `Generate ${count} ${body.difficulty || "medium"} difficulty educational questions on "${topic}".
 Type: ${body.questionType || "multiple_choice"}
 Language: ${body.language || "English"}
 
-Respond ONLY with valid JSON array of questions:
-[
-  {
-    "questionType": "${body.questionType || "multiple_choice"}",
-    "prompt": string,
-    "difficulty": "${body.difficulty || "medium"}",
-    "points": 1,
-    "payload": {
-      "options": [string, string, string, string],
-      "correctAnswer": string,
-      "explanation": string
+Respond ONLY with valid JSON conforming to:
+{
+  "questions": [
+    {
+      "questionType": "${body.questionType || "multiple_choice"}",
+      "prompt": string,
+      "difficulty": "${body.difficulty || "medium"}",
+      "points": 1,
+      "payload": {
+        "options": [string, string, string, string],
+        "correctAnswer": string,
+        "explanation": string
+      }
     }
-  }
-]`,
+  ]
+}`;
+
+      const { data } = await withTimeout(
+        generateStructuredJson<{ questions: any[] }>({
+          prompt,
+          model: getGeneralModel(),
+          maxTokens: 3000,
+          temperature: 0.3,
         }),
-        1500
+        2500
       );
 
-      const text = response.text || "";
-      const cleaned = text.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-      const parsed = JSON.parse(cleaned);
-      return { success: true, questions: parsed };
+      return { success: true, questions: data.questions || [] };
     } catch (e) {
-      console.warn("[generateQuestions] Gemini error, using fallback:", e);
+      console.warn("[generateQuestions] OpenRouter error, using fallback:", e);
     }
   }
 
@@ -1161,28 +1157,30 @@ Respond ONLY with valid JSON array of questions:
 }
 
 export async function generateExplanation(authCtx: AuthContext, body: any) {
-  const gemini = getGeminiClient();
-
-  if (gemini) {
+  if (process.env.OPENROUTER_API_KEY) {
     try {
-      const response: any = await withTimeout(
-        gemini.models.generateContent({
-          model: "gemini-3.6-flash",
-          contents: `Explain clearly why the correct answer is "${body.correctAnswer}" for the question:
+      const prompt = `Explain clearly why the correct answer is "${body.correctAnswer}" for the question:
 "${body.questionPrompt}"
 Student's answer was: "${body.studentAnswer || "None"}".
 Provide a helpful, pedagogical explanation and a tip for remembering this concept.
-Respond in ${body.language || "English"}.`,
+Respond in ${body.language || "English"}.`;
+
+      const { text } = await withTimeout(
+        generateText({
+          prompt,
+          model: getGeneralModel(),
+          maxTokens: 1000,
+          temperature: 0.3,
         }),
-        1500
+        2500
       );
 
       return {
         success: true,
-        explanation: response.text,
+        explanation: text,
       };
     } catch (e) {
-      console.warn("[generateExplanation] Gemini error, using fallback:", e);
+      console.warn("[generateExplanation] OpenRouter error, using fallback:", e);
     }
   }
 

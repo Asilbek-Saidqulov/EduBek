@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { chatCompletion, AiError, type ChatMessage } from "@/lib/ai";
+import { chatCompletion, AiError, type ChatMessage, getTutorModel } from "@/lib/ai";
 import { checkRateLimit } from "@/lib/rate-limiter";
 import { getAuthContext } from "@/features/auth";
 import { db } from "@/lib/db";
+import {
+  getStudentMemory,
+  formatStudentMemoryForPrompt,
+  extractAndPersistConversationMemories,
+} from "@/lib/tutor/student-memory";
 
 const chatRequestSchema = z.object({
   message: z
@@ -28,7 +33,7 @@ export async function POST(req: NextRequest) {
   try {
     // 1. Rate Limiting
     const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "anonymous";
-    const rateLimit = checkRateLimit(`ai:tutor-chat:${ip}`, 25, 60 * 1000);
+    const rateLimit = checkRateLimit(`ai:tutor-chat:${ip}`, 30, 60 * 1000);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {
@@ -64,28 +69,40 @@ export async function POST(req: NextRequest) {
     const userId = authContext?.userId;
     const locale = reqLocale || authContext?.locale || "uz";
 
+    // 4. Fetch persistent Student Memory for personalized Socratic tutoring
+    let memoryBlock = "";
+    if (userId) {
+      try {
+        const studentMemory = await getStudentMemory(userId, context);
+        memoryBlock = formatStudentMemoryForPrompt(studentMemory, locale);
+      } catch (memErr) {
+        console.warn("[tutor-chat memory fetch error]", memErr);
+      }
+    }
+
     const languageInstruction =
       locale === "uz"
-        ? "MUHIM: Javobingizni o'quvchiga tushunarli, aniq o'zbek tilida (lotin yozuvida) bering. Formulalar va misollarni qadamma-qadam tushuntiring."
+        ? "MUHIM: Javobingizni o'quvchiga tushunarli, samimiy, aniq o'zbek tilida (lotin yozuvida) bering. Formulalar va misollarni qadamma-qadam tushuntiring. Sokratik uslubda savollar bilan o'quvchini mustaqil fikrlashga undang."
         : locale === "ru"
-        ? "ВАЖНО: Отвечайте на чистом, понятном русском языке с пошаговыми объяснениями, примерами и формулами."
-        : "IMPORTANT: Respond in clear, encouraging English with step-by-step explanations, formulas, and worked examples.";
+        ? "ВАЖНО: Отвечайте на чистом, понятном русском языке с пошаговыми объяснениями, примерами и формулами. Используйте Сократовский метод для вовлечения ученика."
+        : "IMPORTANT: Respond in clear, encouraging English with step-by-step explanations, formulas, and worked examples. Use Socratic questioning to guide understanding.";
 
-    const systemPrompt = `You are EduBek AI Study Companion, an expert academic tutor and step-by-step problem solver for students.
+    const systemPrompt = `You are EduBek AI Tutor, an intelligent, empathetic, and Socratic academic educator powered by Qwen3.5-Flash.
 ${languageInstruction}
 
 Your core tutoring guidelines:
-1. Provide structured, intuitive explanations with clear headings, bullet points, and worked steps.
-2. When answering math/science questions, write out all formulas clearly and explain what each variable represents.
-3. If the student makes a mistake or asks a confusing problem, break it into manageable sub-steps and ask a friendly verification question at the end.
-4. Keep explanations educational, engaging, concise, and aligned with standard curriculum subjects (Math, Physics, Chemistry, Biology, Computer Science, History, Languages).
-${context ? `Additional lesson context provided by student:\n${context}` : ""}`;
+1. Socratic & Step-by-Step: Never just dump raw final answers. Walk the student through intuitive, logical steps.
+2. Mathematical & Scientific Rigor: Write all formulas in clear standard LaTeX ($inline$ and $$block$$). Explain each variable.
+3. Diagnostic & Adaptive: Identify student misconceptions gently and address root causes.
+4. Encourage & Verify: Ask a targeted concept-check question at the end to confirm understanding.
+${memoryBlock ? `\n${memoryBlock}` : ""}
+${context ? `\nAdditional Lesson Context:\n${context}` : ""}`;
 
     // Convert history to OpenRouter ChatMessage format
     const messages: ChatMessage[] = [];
 
-    // Include last 6 turns of history for conversational context
-    const recentHistory = history.slice(-6);
+    // Include last 8 turns of history for conversational context
+    const recentHistory = history.slice(-8);
     for (const h of recentHistory) {
       messages.push({
         role: h.role,
@@ -98,14 +115,26 @@ ${context ? `Additional lesson context provided by student:\n${context}` : ""}`;
       content: message,
     });
 
-    // 4. Generate AI reply via OpenRouter
+    // 5. Generate AI reply via OpenRouter using dedicated Tutor model (Qwen3.5-Flash)
+    const tutorModel = getTutorModel();
     const result = await chatCompletion({
       messages,
       systemPrompt,
-      temperature: 0.7,
+      temperature: 0.4,
+      model: tutorModel,
+      maxTokens: 2500,
     });
 
-    // 5. Optionally log usage
+    // 6. Asynchronously update student learning memory based on conversation
+    if (userId) {
+      extractAndPersistConversationMemories(
+        userId,
+        [...recentHistory.map((h) => ({ role: h.role, content: h.text })), { role: "user", content: message }, { role: "assistant", content: result.text }],
+        context
+      ).catch(() => {});
+    }
+
+    // 7. Telemetry & Usage logging
     if (userId) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -164,8 +193,8 @@ ${context ? `Additional lesson context provided by student:\n${context}` : ""}`;
     return NextResponse.json(
       {
         error: {
-          code: "INTERNAL_ERROR",
-          message: "The AI Tutor service is temporarily unavailable. Please try again.",
+          code: "TUTOR_CHAT_FAILED",
+          message: error?.message || "Failed to generate tutor response",
         },
       },
       { status: 500 }
