@@ -5,6 +5,11 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  async rewrites() {
+    const realtime = process.env.REALTIME_URL || "http://127.0.0.1:3001";
+    return [{ source: "/api/socket/io", destination: `${realtime}/api/socket/io` },
+            { source: "/api/socket/io/:path*", destination: `${realtime}/api/socket/io/:path*` }];
+  },
   // TypeScript errors are verified separately via `npx tsc --noEmit`.
   // The Next.js-internal TS checker OOM-kills on this project's many files.
   typescript: {

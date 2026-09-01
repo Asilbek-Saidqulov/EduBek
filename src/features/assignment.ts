@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { db } from "@/lib/db";
+import { recordAssignmentGrade } from "@/features/gradebook";
 import {
   badRequest,
   unauthorized,
@@ -977,6 +978,19 @@ export async function submitAssignmentAttempt(
       responses: true,
     },
   });
+
+  await recordAssignmentGrade({
+    classroomId: attempt.assignment?.classroomId,
+    studentId: attempt.studentId || attempt.userId,
+    assignmentId,
+    attemptId: attempt.id,
+    assessmentAttemptId: attempt.id,
+    title: attempt.assignment?.title || attempt.assessment.title,
+    points: totalPointsAwarded,
+    maxPoints: totalPointsMax,
+    percentage: Math.round(scorePct * 100) / 100,
+    passed,
+  }).catch((err) => console.error("[gradebook] record failed", err));
 
   return gradedAttempt;
 }

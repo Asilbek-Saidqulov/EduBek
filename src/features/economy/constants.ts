@@ -5,7 +5,7 @@ export const CREATOR_SHARE_BPS = 7000;
 
 export const MIN_CREATOR_PAYOUT_UZS = 100_000n; // 100,000 UZS
 export const PAYOUT_FEE_UZS = 5_000n; // 5,000 UZS flat transfer fee
-export const CREATOR_HOLD_DAYS = 7; // 7 days holding period for refund/chargeback buffer
+export const CREATOR_HOLD_DAYS = 14; // refund/chargeback window before eligible
 
 export const PROMO_EXPIRATION_DAYS = 30; // 30 days default for promo lots
 export const SUBSCRIPTION_CREDIT_EXPIRATION_DAYS = 31; // Month-bound credits
@@ -115,10 +115,10 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     name: "EduBek Free",
     priceMonthlyUzs: 0n,
     priceYearlyUzs: 0n,
-    aiCreditsMonthly: 50,
+    aiCreditsMonthly: 5,
     features: [
       "Access to public quizzes & assessments",
-      "50 Monthly AI Credits",
+      "5 Monthly AI Credits (hard cap)",
       "Standard tutor assistance",
       "Public marketplace browsing",
     ],
@@ -131,7 +131,7 @@ export const SUBSCRIPTION_PLANS: Record<string, SubscriptionPlanConfig> = {
     aiCreditsMonthly: 400,
     features: [
       "400 AI Credits refreshed every billing period",
-      "Unlimited assessment generation & export",
+      "Assessment generation within plan quota",
       "Priority AI response latency",
       "Live analytics & anti-cheat reports",
       "Verified educator badge",

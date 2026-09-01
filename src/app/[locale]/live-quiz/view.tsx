@@ -57,16 +57,39 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
 import { MultiplayerLivePlayer } from "@/components/edubek/multiplayer-live-player";
+import { GameModePicker } from "@/components/edubek/game-modes";
+import { useCurrentUser } from "@/hooks/use-current-user";
+import { useTranslations } from "next-intl";
+
+type QuizTab = "modes" | "discover" | "create" | "gradebook" | "questionbank" | "join";
+
+function isStaffRole(roles: string[] | undefined) {
+  return (roles ?? []).some((r) => /teacher|admin|creator/i.test(String(r)));
+}
 
 export function LiveQuizClient() {
   const searchParams = useSearchParams();
+  const t = useTranslations("quizHub");
+  const { user, isLoading: userLoading } = useCurrentUser();
+  const isTeacher = isStaffRole(user?.platformRoles) || isStaffRole(user?.roles);
   const codeFromUrl = searchParams.get("code")?.trim().toUpperCase() ?? "";
   const assessmentIdFromUrl = searchParams.get("assessmentId")?.trim() ?? "";
 
   const [joinCode, setJoinCode] = React.useState(codeFromUrl);
-  const [activeTab, setActiveTab] = React.useState<
-    "modes" | "discover" | "create" | "gradebook" | "questionbank" | "join"
-  >("modes");
+  const tabFromUrl = searchParams.get("tab");
+  const [activeTab, setActiveTab] = React.useState<QuizTab>(() => {
+    const allowed: QuizTab[] = ["create", "join", "discover", "gradebook", "modes", "questionbank"];
+    if (tabFromUrl && allowed.includes(tabFromUrl as QuizTab)) return tabFromUrl as QuizTab;
+    return "join";
+  });
+
+  React.useEffect(() => {
+    if (userLoading) return;
+    if (isTeacher) return;
+    if (activeTab === "gradebook" || activeTab === "questionbank" || activeTab === "create") {
+      setActiveTab("join");
+    }
+  }, [userLoading, isTeacher, activeTab]);
   const [selectedGameMode, setSelectedGameMode] = React.useState<GameModeType>("classic");
 
   const [playingQuiz, setPlayingQuiz] = React.useState<any | null>(
@@ -113,26 +136,7 @@ export function LiveQuizClient() {
       correctAnswer: string;
       explanation: string;
     }>
-  >([
-    {
-      questionType: "multiple_choice",
-      prompt: "What is the capital of Uzbekistan?",
-      points: 1,
-      difficulty: "easy",
-      options: ["Samarkand", "Tashkent", "Bukhara", "Khiva"],
-      correctAnswer: "Tashkent",
-      explanation: "Tashkent has been the capital of Uzbekistan since 1930.",
-    },
-    {
-      questionType: "multiple_choice",
-      prompt: "Which organelle produces ATP through cellular respiration?",
-      points: 1,
-      difficulty: "medium",
-      options: ["Ribosome", "Endoplasmic Reticulum", "Mitochondrion", "Golgi Apparatus"],
-      correctAnswer: "Mitochondrion",
-      explanation: "Mitochondria are known as the powerhouses of eukaryotic cells.",
-    },
-  ]);
+  >([]);
 
   const [isCreatingAssessment, setIsCreatingAssessment] = React.useState(false);
   const [createFeedback, setCreateFeedback] = React.useState<string | null>(null);
@@ -140,6 +144,9 @@ export function LiveQuizClient() {
   // AI Generator Modal in Studio
   const [aiTopicPrompt, setAiTopicPrompt] = React.useState("");
   const [aiQuestionCount, setAiQuestionCount] = React.useState(5);
+  const [aiLanguage, setAiLanguage] = React.useState<"uz" | "en" | "ru">("uz");
+  const [aiDifficulty, setAiDifficulty] = React.useState<"easy" | "medium" | "hard">("medium");
+  const [aiQuestionType, setAiQuestionType] = React.useState<"multiple_choice" | "true_false">("multiple_choice");
   const [isGeneratingWithAi, setIsGeneratingWithAi] = React.useState(false);
   const [aiError, setAiError] = React.useState<string | null>(null);
 
@@ -314,8 +321,10 @@ export function LiveQuizClient() {
           topic: aiTopicPrompt.trim(),
           questionCount: aiQuestionCount,
           assessmentType: newAssessmentType,
-          subject: newSubject,
-          language: "English",
+          subject: newSubject || aiTopicPrompt.trim(),
+          language: aiLanguage,
+          difficulty: aiDifficulty,
+          questionType: aiQuestionType,
         }),
       });
 
@@ -336,12 +345,13 @@ export function LiveQuizClient() {
           difficulty: q.difficulty || "medium",
           options: q.payload?.options || ["True", "False"],
           correctAnswer: q.payload?.correctAnswer || q.payload?.options?.[0] || "True",
-          explanation: q.payload?.explanation || "",
+          explanation: "",
         }));
         setQuestionsList(mappedQuestions);
       }
 
-      setCreateFeedback("AI outline generated and applied to the builder! You can customize before publishing.");
+      if (!newTitle) setNewTitle(aiTopicPrompt.trim());
+      setCreateFeedback("Quiz questions added. Explanations are created later only if a student misses a question.");
     } catch (err: any) {
       setAiError(err?.message || "Could not generate assessment with AI");
     } finally {
@@ -358,11 +368,11 @@ export function LiveQuizClient() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          topic: newTitle || newSubject || "General Knowledge",
-          count: 2,
-          difficulty: "medium",
-          questionType: "multiple_choice",
-          language: "English",
+          topic: aiTopicPrompt.trim() || newTitle || newSubject || "General Knowledge",
+          count: Math.min(3, aiQuestionCount),
+          difficulty: aiDifficulty,
+          questionType: aiQuestionType,
+          language: aiLanguage,
         }),
       });
       if (!res.ok) throw new Error("Could not generate questions");
@@ -375,7 +385,7 @@ export function LiveQuizClient() {
           difficulty: q.difficulty || "medium",
           options: q.payload?.options || ["A", "B", "C", "D"],
           correctAnswer: q.payload?.correctAnswer || q.payload?.options?.[0] || "A",
-          explanation: q.payload?.explanation || "",
+          explanation: "",
         }));
         setQuestionsList((prev) => [...prev, ...newItems]);
       }
@@ -586,58 +596,7 @@ export function LiveQuizClient() {
     setActiveTab("create");
   };
 
-  // Game Modes List Configuration
-  const gameModesList: Array<{
-    id: GameModeType;
-    title: string;
-    description: string;
-    icon: any;
-    badge: string;
-    features: string[];
-    colorClass: string;
-    borderClass: string;
-  }> = [
-    {
-      id: "classic",
-      title: "Classic Arena",
-      description: "Standard competitive quiz format with speed multipliers, accuracy metrics, and instant explanations.",
-      icon: Trophy,
-      badge: "Standard",
-      features: ["Base 500 pts + speed multiplier", "Detailed mistake review", "Syllabus alignment"],
-      colorClass: "bg-primary/10 text-primary",
-      borderClass: "hover:border-primary/50",
-    },
-    {
-      id: "royale",
-      title: "Quiz Royale (Survival Battle)",
-      description: "Elimination battle royale where incorrect answers deplete your 100 HP shield. Outlast the lobby!",
-      icon: Swords,
-      badge: "Survival",
-      features: ["100 HP & Shield mechanics", "Streak shield regen", "#1 Victory Royale podium"],
-      colorClass: "bg-amber-500/10 text-amber-500",
-      borderClass: "hover:border-amber-500/50",
-    },
-    {
-      id: "heist",
-      title: "Treasure Heist",
-      description: "Crack the secret knowledge vault! Chain correct streaks for up to 4x Gold multipliers and 50:50 powerups.",
-      icon: Zap,
-      badge: "Fast-Paced",
-      features: ["Up to 4x Vault Gold combos", "50:50 Answer Eliminator", "Time Freeze power-up"],
-      colorClass: "bg-yellow-500/10 text-yellow-500",
-      borderClass: "hover:border-yellow-500/50",
-    },
-    {
-      id: "empire",
-      title: "Empire Builder",
-      description: "Construct ancient wonder monuments by demonstrating subject mastery. Upgrade from Forum to Golden Citadel.",
-      icon: Castle,
-      badge: "Progression",
-      features: ["4 Civilization wonder stages", "Masonry resource collection", "Subject mastery levels"],
-      colorClass: "bg-emerald-500/10 text-emerald-500",
-      borderClass: "hover:border-emerald-500/50",
-    },
-  ];
+
 
   // If currently in a multiplayer room
   if (multiplayerRoom) {
@@ -683,172 +642,85 @@ export function LiveQuizClient() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8" id="live-quiz-hub">
-      {/* Top Banner Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
               <Gamepad2 className="size-3.5" />
-              Phase 2 Assessment Engine
+              {isTeacher ? t("badgeTeacher") : t("badgePractice")}
             </span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-            Assessment & Live Arena
+            {isTeacher ? t("teacherTitle") : t("studentTitle")}
           </h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Take verified curriculum exams, practice in multiplayer gamified arenas, or create AI-generated assessments.
+            {isTeacher
+              ? t("teacherSubtitle")
+              : t("studentSubtitle")}
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            onClick={() => setActiveTab("create")}
-            className="gap-2 bg-primary text-primary-foreground shadow-xs text-xs font-bold h-10"
-          >
+        {isTeacher && (
+          <Button onClick={() => setActiveTab("create")} className="gap-2 h-10">
             <Plus className="size-4" />
-            <span>Create Assessment</span>
+            {t("createQuiz")}
           </Button>
-        </div>
+        )}
       </div>
 
-      {/* Navigation Tabs */}
       <div className="flex items-center gap-2 border-b pb-3 overflow-x-auto">
-        <button
-          onClick={() => setActiveTab("modes")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-            activeTab === "modes" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          <Gamepad2 className="size-4" />
-          <span>Game Arenas</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("discover")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-            activeTab === "discover" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          <BookOpen className="size-4" />
-          <span>Assessments ({assessments.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("create")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-            activeTab === "create" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          <Sparkles className="size-4 text-violet-400" />
-          <span>Studio & AI Generator</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("gradebook")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-            activeTab === "gradebook" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          <Award className="size-4" />
-          <span>Teacher Gradebook</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("questionbank")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-            activeTab === "questionbank" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          <Layers className="size-4" />
-          <span>Question Bank</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab("join")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all shrink-0 ${
-            activeTab === "join" ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
-          }`}
-        >
-          <Radio className="size-4" />
-          <span>Join with PIN</span>
-        </button>
+        {(isTeacher
+          ? [
+              { id: "discover" as const, label: t("tabQuizzes", { count: assessments.length }), icon: BookOpen },
+              { id: "create" as const, label: t("tabCreate"), icon: Sparkles },
+              { id: "gradebook" as const, label: t("tabGradebook"), icon: Award },
+              { id: "questionbank" as const, label: t("tabBank"), icon: Layers },
+              { id: "join" as const, label: t("tabTestCode"), icon: Radio },
+              { id: "modes" as const, label: t("tabLiveModes"), icon: Gamepad2 },
+            ]
+          : [
+              { id: "join" as const, label: t("tabJoin"), icon: Radio },
+              { id: "discover" as const, label: t("tabPlay"), icon: BookOpen },
+              { id: "modes" as const, label: t("tabLive"), icon: Gamepad2 },
+            ]
+        ).map((tab) => {
+          const Icon = tab.icon;
+          const on = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all shrink-0 ${
+                on ? "bg-primary text-primary-foreground shadow-xs" : "text-muted-foreground hover:bg-muted"
+              }`}
+            >
+              <Icon className="size-4" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       {/* --------------------------------------------------------------------- */}
       {/* 1. GAME MODES TAB */}
       {/* --------------------------------------------------------------------- */}
       {activeTab === "modes" && (
-        <div className="space-y-6">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {gameModesList.map((modeItem) => {
-              const Icon = modeItem.icon;
-              const isSelected = selectedGameMode === modeItem.id;
-              return (
-                <Card
-                  key={modeItem.id}
-                  onClick={() => setSelectedGameMode(modeItem.id)}
-                  className={`cursor-pointer transition-all border-border/80 p-5 flex flex-col justify-between ${
-                    isSelected ? "border-primary ring-2 ring-primary/30 bg-primary/5 shadow-md" : "hover:border-primary/40 bg-card"
-                  }`}
-                >
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2.5 rounded-xl ${modeItem.colorClass}`}>
-                        <Icon className="size-5" />
-                      </div>
-                      <Badge variant="outline" className="text-[10px] uppercase font-mono">
-                        {modeItem.badge}
-                      </Badge>
-                    </div>
-
-                    <div>
-                      <h3 className="text-base font-bold text-foreground">{modeItem.title}</h3>
-                      <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-                        {modeItem.description}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t mt-4 space-y-2">
-                    {modeItem.features.map((feat, idx) => (
-                      <div key={idx} className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                        <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
-                        <span>{feat}</span>
-                      </div>
-                    ))}
-
-                     <div className="flex items-center gap-2 w-full">
-                       <Button
-                         size="sm"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           setSelectedGameMode(modeItem.id);
-                           setPlayingQuiz({ mode: modeItem.id, title: modeItem.title });
-                         }}
-                         className="flex-1 text-xs font-bold gap-1.5"
-                       >
-                         <Play className="size-3.5 fill-current" />
-                         <span>Solo</span>
-                       </Button>
-                       <Button
-                         size="sm"
-                         variant="outline"
-                         onClick={(e) => {
-                           e.stopPropagation();
-                           handleCreateMultiplayerRoom(modeItem.id, modeItem.title);
-                         }}
-                         disabled={isCreatingMultiplayer}
-                         className="flex-1 text-xs font-bold gap-1.5"
-                       >
-                         <Users className="size-3.5" />
-                         <span>Multiplayer</span>
-                       </Button>
-                     </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Pick a mode. The questions stay the same — the board and rules change.
+          </p>
+          <GameModePicker
+            selected={selectedGameMode}
+            onSelect={setSelectedGameMode}
+            onSolo={(id, title) => {
+              setSelectedGameMode(id);
+              setPlayingQuiz({ mode: id, title });
+            }}
+            onMultiplayer={(id, title) => handleCreateMultiplayerRoom(id, title)}
+            multiplayerBusy={isCreatingMultiplayer}
+            soloLabel={t("solo")}
+            multiplayerLabel={t("multiplayer")}
+          />
         </div>
       )}
 
@@ -891,18 +763,20 @@ export function LiveQuizClient() {
           {isLoadingAssessments ? (
             <div className="p-12 text-center text-muted-foreground space-y-3">
               <Loader2 className="size-8 animate-spin mx-auto text-primary" />
-              <p className="text-xs">Loading database assessments...</p>
+              <p className="text-xs">{t("loadingQuizzes")}</p>
             </div>
           ) : filteredAssessments.length === 0 ? (
             <Card className="p-12 text-center space-y-3 border-dashed">
               <BookOpen className="size-8 text-muted-foreground mx-auto" />
-              <CardTitle className="text-base font-bold">No Assessments Found</CardTitle>
+              <CardTitle className="text-base font-bold">{t("noQuizzes")}</CardTitle>
               <CardDescription className="text-xs">
-                Create a new assessment with our AI studio or adjust your search filter.
+                {isTeacher ? t("emptyTeacher") : t("emptyStudent")}
               </CardDescription>
-              <Button onClick={() => setActiveTab("create")} size="sm" className="text-xs gap-1.5">
-                <Plus className="size-3.5" /> Create Assessment
-              </Button>
+              {isTeacher && (
+                <Button onClick={() => setActiveTab("create")} size="sm" className="text-xs gap-1.5">
+                  <Plus className="size-3.5" /> {t("createQuiz")}
+                </Button>
+              )}
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -946,28 +820,31 @@ export function LiveQuizClient() {
                         onClick={() => handleStartAssessment(a)}
                         className="flex-1 text-xs font-bold gap-1.5 h-9"
                       >
-                        <Play className="size-3.5 fill-current" /> Take Assessment
+                        <Play className="size-3.5 fill-current" /> {t("play")}
                       </Button>
 
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleDuplicateAssessment(a.id)}
-                        className="size-9 shrink-0"
-                        title="Duplicate Assessment"
-                      >
-                        <Copy className="size-3.5" />
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => handleArchiveAssessment(a.id)}
-                        className="size-9 shrink-0 text-muted-foreground hover:text-rose-500"
-                        title="Archive Assessment"
-                      >
-                        <Archive className="size-3.5" />
-                      </Button>
+                      {isTeacher && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDuplicateAssessment(a.id)}
+                            className="size-9 shrink-0"
+                            title="Duplicate"
+                          >
+                            <Copy className="size-3.5" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleArchiveAssessment(a.id)}
+                            className="size-9 shrink-0 text-muted-foreground hover:text-rose-500"
+                            title="Archive"
+                          >
+                            <Archive className="size-3.5" />
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </Card>
@@ -990,46 +867,72 @@ export function LiveQuizClient() {
                   <Sparkles className="size-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-foreground">1-Click AI Assessment Generator</h3>
+                  <h3 className="text-base font-bold text-foreground">{t("createWithAi")}</h3>
                   <p className="text-xs text-muted-foreground">
-                    Enter any topic or syllabus material to auto-generate a full assessment structure with rubric.
+                    {t("createWithAiHint")}
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
               <Input
                 value={aiTopicPrompt}
                 onChange={(e) => setAiTopicPrompt(e.target.value)}
-                placeholder="e.g. Newton's 3 Laws of Motion, Python Functions, Cell Mitosis..."
-                className="sm:col-span-2 text-xs bg-card h-10"
+                placeholder={t("topicPlaceholder")}
+                className="sm:col-span-2 lg:col-span-2 text-xs bg-card h-10"
               />
               <select
                 value={aiQuestionCount}
                 onChange={(e) => setAiQuestionCount(Number(e.target.value))}
                 className="h-10 rounded-lg border border-border/80 bg-card px-3 text-xs text-foreground focus:outline-none"
               >
-                <option value={3}>3 Questions</option>
-                <option value={5}>5 Questions</option>
-                <option value={8}>8 Questions</option>
-                <option value={10}>10 Questions</option>
+                {[3, 5, 8, 10, 15, 20].map((n) => (
+                  <option key={n} value={n}>
+                    {t("nQuestions", { count: n })}
+                  </option>
+                ))}
               </select>
-
+              <select
+                value={aiLanguage}
+                onChange={(e) => setAiLanguage(e.target.value as "uz" | "en" | "ru")}
+                className="h-10 rounded-lg border border-border/80 bg-card px-3 text-xs text-foreground focus:outline-none"
+              >
+                <option value="uz">{t("langUz")}</option>
+                <option value="en">{t("langEn")}</option>
+                <option value="ru">{t("langRu")}</option>
+              </select>
+              <select
+                value={aiDifficulty}
+                onChange={(e) => setAiDifficulty(e.target.value as "easy" | "medium" | "hard")}
+                className="h-10 rounded-lg border border-border/80 bg-card px-3 text-xs text-foreground focus:outline-none"
+              >
+                <option value="easy">{t("easy")}</option>
+                <option value="medium">{t("medium")}</option>
+                <option value="hard">{t("hard")}</option>
+              </select>
+              <select
+                value={aiQuestionType}
+                onChange={(e) => setAiQuestionType(e.target.value as "multiple_choice" | "true_false")}
+                className="h-10 rounded-lg border border-border/80 bg-card px-3 text-xs text-foreground focus:outline-none"
+              >
+                <option value="multiple_choice">{t("multipleChoice")}</option>
+                <option value="true_false">{t("trueFalse")}</option>
+              </select>
               <Button
                 onClick={handleAiGenerateAssessment}
                 disabled={isGeneratingWithAi || !aiTopicPrompt.trim()}
-                className="bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold gap-2 h-10"
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-bold gap-2 h-10 lg:col-span-6"
               >
                 {isGeneratingWithAi ? (
                   <>
                     <Loader2 className="size-3.5 animate-spin" />
-                    <span>Generating...</span>
+                    <span>{t("creating")}</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="size-3.5" />
-                    <span>Generate Outline</span>
+                    <span>{t("createQuestions")}</span>
                   </>
                 )}
               </Button>
@@ -1616,9 +1519,9 @@ export function LiveQuizClient() {
             </div>
 
             <div className="space-y-1">
-              <CardTitle className="text-xl font-bold">Join Live Arena</CardTitle>
+              <CardTitle className="text-xl font-bold">{t("joinTitle")}</CardTitle>
               <CardDescription className="text-xs">
-                Enter a 6-digit game PIN code to connect to an active live session.
+                {t("joinHint")}
               </CardDescription>
             </div>
 
@@ -1626,7 +1529,7 @@ export function LiveQuizClient() {
               <Input
                 value={joinCode}
                 onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="e.g. 748291"
+                placeholder={t("pinPlaceholder")}
                 className="text-center font-mono text-xl tracking-widest h-14 uppercase"
                 maxLength={8}
               />
@@ -1641,7 +1544,7 @@ export function LiveQuizClient() {
                   disabled={joinCode.trim().length < 4}
                   className="h-11 text-sm font-bold gap-2"
                 >
-                  <span>Solo</span>
+                  <span>{t("solo")}</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -1654,7 +1557,7 @@ export function LiveQuizClient() {
                   ) : (
                     <Users className="size-4" />
                   )}
-                  <span>Multiplayer</span>
+                  <span>{t("multiplayer")}</span>
                 </Button>
               </div>
             </div>

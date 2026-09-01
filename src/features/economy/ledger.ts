@@ -4,6 +4,7 @@
  */
 
 import { LedgerAccount, LedgerDirection, LedgerEntryDto, LedgerLineInput } from "./types";
+import { persistJournalEntry } from "./persist";
 import { economyStore, StoredLedgerEntry, StoredLedgerLine } from "./store";
 import { ApiError } from "@/lib/errors";
 
@@ -91,6 +92,7 @@ export async function recordJournalEntry(params: RecordJournalEntryParams): Prom
   };
 
   economyStore.ledgerEntries.set(entryId, entry);
+  void persistJournalEntry(entry);
 
   return {
     id: entry.id,

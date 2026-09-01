@@ -234,7 +234,7 @@ export function MarketplaceBrowse() {
         </div>
         <div className="flex items-center gap-2 shrink-0 font-mono text-[11px]">
           <Coins className="size-3.5 text-amber-500" />
-          <span>1 EduToken = 1,000 UZS</span>
+          <span>AI credits are for tutoring only</span>
         </div>
       </div>
 

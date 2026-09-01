@@ -3,6 +3,7 @@ import { getAuthContext } from "@/features/auth";
 import { getLedgerHistory } from "@/features/economy/ledger";
 import { getUserLotsDto } from "@/features/economy/lots";
 import { economyStore } from "@/features/economy/store";
+import { getWalletBalance } from "@/features/wallet";
 
 export async function GET(req: NextRequest) {
   try {
@@ -20,6 +21,26 @@ export async function GET(req: NextRequest) {
     }
 
     const userId = authContext.userId;
+    const prismaHist = await getWalletBalance(userId).catch(() => null);
+    if (prismaHist) {
+      const rows = prismaHist.history.slice(offset, offset + limit).map((e) => ({
+        id: e.id,
+        delta: e.delta,
+        balanceAfter: e.balanceAfter,
+        reason: e.reason,
+        referenceType: e.referenceType,
+        referenceId: e.referenceId,
+        createdAt: e.createdAt,
+      }));
+      return NextResponse.json({
+        success: true,
+        items: rows,
+        data: rows,
+        total: prismaHist.history.length,
+        wallet: prismaHist.wallet,
+      });
+    }
+
     const { searchParams } = new URL(req.url);
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "20", 10)));
     const offset = Math.max(0, parseInt(searchParams.get("offset") || "0", 10));

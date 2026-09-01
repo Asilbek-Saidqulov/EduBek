@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { withErrorHandler, notFound } from "@/lib/errors";
 import { getAuthContext } from "@/features/auth";
 import { db } from "@/lib/db";
-import { acceptAnswer } from "@/features/collaboration";
+import { acceptAnswer } from "@/features/discussions";
 
 export const POST = withErrorHandler<{ id: string; replyId: string }>(async (_req, ctx) => {
   const authCtx = await getAuthContext();

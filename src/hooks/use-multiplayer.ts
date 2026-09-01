@@ -42,7 +42,7 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
     try {
       setConnectionStatus("connecting");
 
-      socketInstance = io({
+      socketInstance = io(process.env.NEXT_PUBLIC_REALTIME_URL || undefined, {
         path: "/api/socket/io",
         transports: ["websocket", "polling"],
         reconnection: true,

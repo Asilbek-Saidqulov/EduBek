@@ -33,8 +33,28 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { useTranslations, useLocale } from "next-intl";
+import { MODE_SKIN, ModeStatusChips, type GameModeType } from "@/components/edubek/game-modes";
+import {
+  classicScore,
+  heistEarnOnCorrect,
+  resolveHeistInvest,
+  resolveHeistRaid,
+  resourcesForCorrectAnswer,
+  canUpgradeEmpire,
+  applyEmpireUpgrade,
+  empirePower,
+  applyRoyaleMistake,
+  royaleShieldEarned,
+  simulateBattleOpponent,
+  emptyResources,
+  EMPIRE_TIERS,
+  ROYALE_START_HEARTS,
+  BATTLE_DUEL_QUESTIONS,
+  type Resources,
+} from "@/features/multiplayer/mode-rules";
 
-export type GameModeType = "classic" | "royale" | "heist" | "empire";
+export type { GameModeType };
 
 export interface GuestQuizQuestion {
   id?: string;
@@ -141,6 +161,8 @@ export function GuestQuizPlayer({
   onExit,
   onAttemptCompleted,
 }: GuestQuizPlayerProps) {
+  const t = useTranslations("quizPlayer");
+  const locale = useLocale();
   const activeAssessmentId = propAssessmentId || quizId;
   const [activeQuestions, setActiveQuestions] = React.useState<GuestQuizQuestion[]>(
     propQuestions && propQuestions.length > 0 ? propQuestions : DEFAULT_QUESTIONS,
@@ -169,16 +191,25 @@ export function GuestQuizPlayer({
   const [isGeneratingPractice, setIsGeneratingPractice] = React.useState(false);
   const [practiceMessage, setPracticeMessage] = React.useState<string | null>(null);
 
-  // Gamification Modes State
   const [hp, setHp] = React.useState(100);
   const [shields, setShields] = React.useState(50);
   const [alivePlayers, setAlivePlayers] = React.useState(24);
   const [vaultGold, setVaultGold] = React.useState(0);
-  const [streakCombo, setStreakCombo] = React.useState(1);
+  const [streakCombo, setStreakCombo] = React.useState(0);
   const [hiddenOptions, setHiddenOptions] = React.useState<number[]>([]);
   const [powerupUsedFiftyFifty, setPowerupUsedFiftyFifty] = React.useState(false);
   const [empireScore, setEmpireScore] = React.useState(0);
   const [masonryStone, setMasonryStone] = React.useState(100);
+  const [hearts, setHearts] = React.useState(ROYALE_START_HEARTS);
+  const [hasShield, setHasShield] = React.useState(false);
+  const [eliminated, setEliminated] = React.useState(false);
+  const [resources, setResources] = React.useState<Resources>(emptyResources);
+  const [empireTier, setEmpireTier] = React.useState(0);
+  const [lastAward, setLastAward] = React.useState<string | null>(null);
+  const [heistChoiceOpen, setHeistChoiceOpen] = React.useState(false);
+  const [pendingGold, setPendingGold] = React.useState(0);
+  const [battleYou, setBattleYou] = React.useState(0);
+  const [battleThem, setBattleThem] = React.useState(0);
 
   const startTimeRef = React.useRef<number>(Date.now());
   const questionStartTimeRef = React.useRef<number>(Date.now());
@@ -276,27 +307,100 @@ export function GuestQuizPlayer({
     }));
 
     setIsAnswered(true);
+    applyModeResult(index === currentQ.correctIndex || currentQ.correctIndex === undefined, timeSpent);
+  };
 
-    // Gamified check (if local answer key is present)
-    const hasCorrectIndex = currentQ.correctIndex !== undefined;
-    const isCorrect = hasCorrectIndex ? index === currentQ.correctIndex : true;
-
-    if (isCorrect) {
-      setScore((s) => s + (currentQ.points || 1));
-      if (mode === "heist") {
-        setVaultGold((g) => g + 50 * streakCombo);
-        setStreakCombo((c) => Math.min(4, c + 1));
-      } else if (mode === "empire") {
-        setEmpireScore((e) => e + 1);
-        setMasonryStone((m) => m + 50);
+  const applyModeResult = (isCorrect: boolean, timeSpent: number) => {
+    if (mode === "classic" || mode === "battle") {
+      const pts = classicScore(isCorrect, timeSpent);
+      setScore((s) => s + pts.totalPoints);
+      setLastAward(isCorrect ? `+${pts.totalPoints} (${pts.basePoints} + ${pts.speedBonus} speed)` : "+0");
+      if (mode === "battle") {
+        const duel = simulateBattleOpponent(isCorrect, timeSpent);
+        setBattleYou((y) => y + duel.playerPts);
+        setBattleThem((th) => th + duel.opponentPts);
+        setLastAward(
+          isCorrect
+            ? `You +${duel.playerPts} · Rival +${duel.opponentPts}`
+            : `Miss · Rival +${duel.opponentPts}`,
+        );
       }
-    } else {
-      if (mode === "royale") {
-        setShields((s) => Math.max(0, s - 25));
-        if (shields <= 0) setHp((h) => Math.max(0, h - 35));
-      }
-      if (mode === "heist") setStreakCombo(1);
+      return;
     }
+
+    if (mode === "heist") {
+      if (isCorrect) {
+        setPendingGold(heistEarnOnCorrect());
+        setHeistChoiceOpen(true);
+        setLastAward("+100 gold — choose what to do with it");
+      } else {
+        setLastAward("No gold this question");
+      }
+      return;
+    }
+
+    if (mode === "empire") {
+      if (isCorrect) {
+        const gain = resourcesForCorrectAnswer();
+        setResources((r) => ({
+          wood: r.wood + gain.wood,
+          stone: r.stone + gain.stone,
+          gold: r.gold + gain.gold,
+          food: r.food + gain.food,
+        }));
+        setLastAward(`+${gain.wood} wood · +${gain.stone} stone · +${gain.gold} gold · +${gain.food} food`);
+      } else {
+        setLastAward("No resources this question");
+      }
+      return;
+    }
+
+    if (mode === "royale") {
+      if (isCorrect) {
+        const nextStreak = streakCombo + 1;
+        setStreakCombo(nextStreak);
+        if (royaleShieldEarned(nextStreak)) setHasShield(true);
+        setLastAward(royaleShieldEarned(nextStreak) ? "Safe — shield earned" : "Safe");
+      } else {
+        const next = applyRoyaleMistake(hearts, hasShield);
+        setHearts(next.hearts);
+        setHasShield(next.hasShield);
+        setStreakCombo(0);
+        setLastAward(hasShield ? "Shield blocked the miss" : `Lost a heart (${next.hearts} left)`);
+        if (next.eliminated) {
+          setEliminated(true);
+          setIsFinished(true);
+        }
+      }
+    }
+  };
+
+  const finishHeistChoice = (kind: "save" | "invest" | "raid") => {
+    let extra = pendingGold;
+    let note = `Saved ${pendingGold}`;
+    if (kind === "invest") {
+      const r = resolveHeistInvest();
+      extra = pendingGold + r.goldDelta;
+      note = r.win ? "Invest won +200" : "Invest returned 0 extra";
+    }
+    if (kind === "raid") {
+      const r = resolveHeistRaid();
+      extra = pendingGold + r.goldDelta;
+      note = r.win ? "Raid took +300 from the pot" : "Raid failed (−100)";
+    }
+    setVaultGold((g) => Math.max(0, g + extra));
+    setScore((s) => Math.max(0, s + extra));
+    setPendingGold(0);
+    setHeistChoiceOpen(false);
+    setLastAward(note);
+  };
+
+  const tryEmpireUpgrade = () => {
+    const next = applyEmpireUpgrade(empireTier, resources);
+    setEmpireTier(next.tierIndex);
+    setResources(next.resources);
+    setScore(empirePower(next.tierIndex, next.resources));
+    setLastAward(next.tierIndex > empireTier ? `Upgraded to ${EMPIRE_TIERS[next.tierIndex]}` : "Need more resources");
   };
 
   // Handle Multi-Select Checkboxes
@@ -381,9 +485,13 @@ export function GuestQuizPlayer({
 
   // Navigation handlers
   const handleNext = () => {
-    if (currentIndex + 1 < activeQuestions.length) {
+    if (heistChoiceOpen) return;
+    const limit = mode === "battle" ? Math.min(BATTLE_DUEL_QUESTIONS, activeQuestions.length) : activeQuestions.length;
+    if (currentIndex + 1 < limit) {
       setCurrentIndex((prev) => prev + 1);
     } else {
+      if (mode === "heist") setScore(vaultGold);
+      if (mode === "empire") setScore(empirePower(empireTier, resources));
       handleSubmitAssessment();
     }
   };
@@ -421,7 +529,7 @@ export function GuestQuizPlayer({
           questionType: questionItem.questionType || "multiple_choice",
           correctAnswer: String(correctAns || "Correct standard response"),
           studentAnswer: String(studentAns || "No answer recorded"),
-          language: "English",
+          language: locale,
         }),
       });
 
@@ -453,7 +561,7 @@ export function GuestQuizPlayer({
         body: JSON.stringify({
           topic: quizTitle || "Assessment Practice",
           questionCount: 5,
-          language: "English",
+          language: locale,
         }),
       });
 
@@ -531,7 +639,7 @@ export function GuestQuizPlayer({
     return (
       <Card className="mx-auto max-w-lg border-border/80 p-10 text-center space-y-4 shadow-xl">
         <Loader2 className="size-10 animate-spin text-primary mx-auto" />
-        <CardTitle className="text-xl font-bold">Initializing Assessment Engine...</CardTitle>
+        <CardTitle className="text-xl font-bold">{t("loadingInit")}</CardTitle>
         <CardDescription className="text-xs">
           Loading authorized questions, security rules, and setting up your attempt session.
         </CardDescription>
@@ -544,10 +652,8 @@ export function GuestQuizPlayer({
     return (
       <Card className="mx-auto max-w-lg border-border/80 p-10 text-center space-y-4 shadow-xl" id="grading-in-progress">
         <Loader2 className="size-10 animate-spin text-primary mx-auto" />
-        <CardTitle className="text-xl font-bold">Grading Attempt Server-Side...</CardTitle>
-        <CardDescription className="text-xs">
-          Evaluating student responses, applying rubric criteria, and calculating official points.
-        </CardDescription>
+        <CardTitle className="text-xl font-bold">{t("grading")}</CardTitle>
+        <CardDescription className="text-xs">{t("gradingHint")}</CardDescription>
       </Card>
     );
   }
@@ -576,24 +682,24 @@ export function GuestQuizPlayer({
             </div>
 
             <CardTitle className="text-2xl sm:text-3xl font-bold">
-              {hasPassed ? "Assessment Passed!" : "Assessment Completed"}
+              {hasPassed ? t("passedTitle") : t("completedTitle")}
             </CardTitle>
             <CardDescription className="text-sm">
-              Official server-graded outcome for <strong>{quizTitle}</strong> taken by {nickname}.
+              {t("officialResult", { title: quizTitle || t("defaultTitle") })}
             </CardDescription>
           </div>
 
           {/* Key Metrics Grid */}
           <div className="grid grid-cols-3 gap-3 p-5 rounded-2xl bg-muted/30 border border-border/70 text-center">
             <div>
-              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Score</div>
+              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t("score")}</div>
               <div className="text-2xl sm:text-3xl font-black text-primary mt-1">
                 {totalAwardedPoints} / {totalMaxPoints}
               </div>
-              <span className="text-[11px] text-muted-foreground">Points Earned</span>
+              <span className="text-[11px] text-muted-foreground">{t("pointsEarned")}</span>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Percentage</div>
+              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t("percentage")}</div>
               <div
                 className={`text-2xl sm:text-3xl font-black mt-1 ${
                   hasPassed ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
@@ -601,10 +707,10 @@ export function GuestQuizPlayer({
               >
                 {calculatedPct}%
               </div>
-              <span className="text-[11px] text-muted-foreground">Grade</span>
+              <span className="text-[11px] text-muted-foreground">{t("grade")}</span>
             </div>
             <div>
-              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">Outcome</div>
+              <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t("outcome")}</div>
               <div className="mt-1.5">
                 <Badge
                   className={`text-xs px-3 py-1 font-bold ${
@@ -613,11 +719,11 @@ export function GuestQuizPlayer({
                       : "bg-rose-600 hover:bg-rose-700 text-white"
                   }`}
                 >
-                  {hasPassed ? "PASSED" : "NEEDS PRACTICE"}
+                  {hasPassed ? t("passed") : t("needsPractice")}
                 </Badge>
               </div>
               <span className="text-[11px] text-muted-foreground block mt-1">
-                {serverAttemptResult?.status === "graded" ? "Auto & Manual Graded" : "Recorded in DB"}
+                {t("recorded")}
               </span>
             </div>
           </div>
@@ -665,7 +771,7 @@ export function GuestQuizPlayer({
           {/* Detailed Question Review List */}
           <div className="space-y-4 pt-4 border-t">
             <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-              <span>Question Breakdown ({activeQuestions.length})</span>
+              <span>{t("questionBreakdown", { count: activeQuestions.length })}</span>
               <span className="text-xs normal-case font-normal text-muted-foreground">
                 Verified against database snapshot
               </span>
@@ -674,7 +780,7 @@ export function GuestQuizPlayer({
             {activeQuestions.map((q, idx) => {
               const questionIdentifier = q.questionId || q.id || `q-${idx}`;
               const recorded = responsesMap[questionIdentifier];
-              const studentAnswerVal = recorded?.answer ?? "Not answered";
+              const studentAnswerVal = recorded?.answer ?? t("notAnswered");
 
               // Check if server response exists
               const serverResp = serverAttemptResult?.responses?.find(
@@ -708,11 +814,11 @@ export function GuestQuizPlayer({
                         <div className="flex items-center gap-1 text-[11px] font-semibold justify-end mt-0.5">
                           {isCorrect ? (
                             <span className="text-emerald-600 flex items-center gap-1">
-                              <CheckCircle2 className="size-3" /> Correct
+                              <CheckCircle2 className="size-3" /> {t("correct")}
                             </span>
                           ) : (
                             <span className="text-rose-600 flex items-center gap-1">
-                              <XCircle className="size-3" /> Incorrect
+                              <XCircle className="size-3" /> {t("incorrect")}
                             </span>
                           )}
                         </div>
@@ -722,7 +828,7 @@ export function GuestQuizPlayer({
 
                   <div className="grid gap-2 text-xs pt-1">
                     <div className="p-3 rounded-lg bg-card border flex flex-col gap-1">
-                      <span className="text-muted-foreground text-[11px] font-medium">Your Submitted Response:</span>
+                      <span className="text-muted-foreground text-[11px] font-medium">{t("yourAnswer")}</span>
                       <span className="font-semibold text-foreground">
                         {Array.isArray(studentAnswerVal) ? studentAnswerVal.join(", ") : String(studentAnswerVal)}
                       </span>
@@ -731,7 +837,7 @@ export function GuestQuizPlayer({
                     {q.correctAnswer && (
                       <div className="p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/20 flex flex-col gap-1">
                         <span className="text-emerald-700 dark:text-emerald-400 text-[11px] font-medium">
-                          Expected Answer:
+                          {t("expectedAnswer")}
                         </span>
                         <span className="font-semibold text-emerald-900 dark:text-emerald-200">{q.correctAnswer}</span>
                       </div>
@@ -739,40 +845,49 @@ export function GuestQuizPlayer({
 
                     {serverResp?.feedback && (
                       <div className="p-3 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-900 dark:text-blue-200">
-                        <strong>Teacher Feedback:</strong> {serverResp.feedback}
+                        <strong>{t("teacherFeedback")}:</strong> {serverResp.feedback}
                       </div>
                     )}
                   </div>
 
-                  {/* AI Explanation Accordion / Button */}
-                  <div className="pt-2">
-                    {aiState ? (
-                      <div className="p-3.5 rounded-xl bg-violet-500/10 border border-violet-500/30 text-xs space-y-1.5">
-                        <div className="flex items-center gap-1.5 font-bold text-violet-700 dark:text-violet-300">
-                          <Brain className="size-3.5" />
-                          <span>AI Pedagogical Explanation</span>
-                        </div>
-                        {aiState.loading ? (
-                          <div className="flex items-center gap-2 text-muted-foreground text-xs py-1">
-                            <Loader2 className="size-3 animate-spin text-violet-600" />
-                            <span>Generating pedagogical breakdown...</span>
+                  {isCorrect === false && (
+                    <div className="pt-2 flex flex-wrap items-center gap-2">
+                      {aiState ? (
+                        <div className="w-full p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-xs space-y-1.5">
+                          <div className="flex items-center gap-1.5 font-semibold">
+                            <Brain className="size-3.5" />
+                            <span>{t("whyWrong")}</span>
                           </div>
-                        ) : (
-                          <p className="text-foreground/90 leading-relaxed">{aiState.text}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleRequestAiExplanation(q, studentAnswerVal, q.correctAnswer)}
-                        className="text-xs h-8 gap-1.5 border-violet-500/30 text-violet-600 hover:bg-violet-500/10"
-                      >
-                        <Sparkles className="size-3.5" />
-                        <span>Explain with AI Tutor</span>
+                          {aiState.loading ? (
+                            <div className="flex items-center gap-2 text-muted-foreground text-xs py-1">
+                              <Loader2 className="size-3 animate-spin" />
+                              <span>{t("explaining")}</span>
+                            </div>
+                          ) : (
+                            <p className="text-foreground/90 leading-relaxed">{aiState.text}</p>
+                          )}
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRequestAiExplanation(q, studentAnswerVal, q.correctAnswer)}
+                          className="text-xs h-8 gap-1.5"
+                        >
+                          <Sparkles className="size-3.5" />
+                          <span>{t("explain")}</span>
+                        </Button>
+                      )}
+                      <Button asChild variant="secondary" size="sm" className="text-xs h-8 gap-1.5">
+                        <Link
+                          href={`/tutor?q=${encodeURIComponent(String(q.prompt || q.question || ""))}&your=${encodeURIComponent(String(studentAnswerVal ?? ""))}&correct=${encodeURIComponent(String(q.correctAnswer ?? ""))}`}
+                        >
+                          <Brain className="size-3.5" />
+                          {t("fixWithTutor")}
+                        </Link>
                       </Button>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </Card>
               );
             })}
@@ -782,18 +897,18 @@ export function GuestQuizPlayer({
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t">
             <Button variant="outline" onClick={handleRestart} className="gap-2 text-xs">
               <RotateCcw className="size-3.5" />
-              <span>Retake Assessment</span>
+              <span>{t("retake")}</span>
             </Button>
 
             {onExit ? (
               <Button onClick={onExit} className="gap-2 text-xs">
-                <span>Exit to Dashboard</span>
+                <span>{t("returnHub")}</span>
                 <ArrowRight className="size-3.5" />
               </Button>
             ) : (
               <Button asChild className="gap-2 text-xs">
                 <Link href="/live-quiz">
-                  <span>Return to Quiz Hub</span>
+                  <span>{t("returnHub")}</span>
                   <ArrowRight className="size-3.5" />
                 </Link>
               </Button>
@@ -808,55 +923,52 @@ export function GuestQuizPlayer({
   // ACTIVE ASSESSMENT PLAYER VIEW
   // ---------------------------------------------------------------------------
   const progressPct = ((currentIndex + 1) / activeQuestions.length) * 100;
-  const isLastQuestion = currentIndex + 1 === activeQuestions.length;
+  const questionLimit = mode === "battle" ? Math.min(BATTLE_DUEL_QUESTIONS, activeQuestions.length) : activeQuestions.length;
+  const isLastQuestion = currentIndex + 1 === questionLimit;
+
+  const skin = MODE_SKIN[mode] ?? MODE_SKIN.classic;
+  const empireStage = EMPIRE_STAGES[Math.min(EMPIRE_STAGES.length - 1, Math.max(0, empireScore - 1))] ?? EMPIRE_STAGES[0];
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6" id="active-assessment-container">
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between gap-4 bg-card/60 backdrop-blur-md p-4 rounded-2xl border border-border/80 shadow-xs">
-        <div className="flex items-center gap-3">
+    <div className={`mode-rise mx-auto max-w-3xl space-y-4 ${skin.shell}`} id="active-assessment-container">
+      <div className={`flex items-center justify-between gap-4 backdrop-blur-md p-4 rounded-2xl border shadow-xs ${skin.hud}`}>
+        <div className="flex items-center gap-3 min-w-0">
           {onExit && (
             <Button variant="ghost" size="sm" onClick={onExit} className="h-8 px-2 text-xs">
               <ChevronLeft className="size-4 mr-1" /> Exit
             </Button>
           )}
-          <div>
-            <h1 className="text-base font-bold text-foreground leading-tight truncate max-w-[240px] sm:max-w-md">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-wider font-semibold opacity-70">{mode}</p>
+            <h1 className="text-base font-bold leading-tight truncate max-w-[240px] sm:max-w-md">
               {quizTitle}
             </h1>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+            <div className="flex items-center gap-2 text-xs opacity-80 mt-0.5">
               <span>
-                Question {currentIndex + 1} of {activeQuestions.length}
+                {t("qLabel", { n: currentIndex + 1 })} / {activeQuestions.length}
               </span>
-              <span>·</span>
-              <Badge variant="outline" className="text-[10px] font-mono">
-                {currentQ.points || 1} Pt
-              </Badge>
             </div>
           </div>
         </div>
 
-        {/* Timer & Gamification Status */}
-        <div className="flex items-center gap-3">
-          {mode === "heist" && (
-            <div className="flex items-center gap-2 bg-yellow-500/10 px-3 py-1 rounded-lg border border-yellow-500/20 text-xs">
-              <Coins className="size-3.5 text-yellow-600" />
-              <span className="font-bold text-yellow-600">{vaultGold} G</span>
-              <Badge className="bg-yellow-500 text-black text-[10px]">x{streakCombo}</Badge>
-            </div>
-          )}
-
-          {mode === "royale" && (
-            <div className="flex items-center gap-2 bg-amber-500/10 px-3 py-1 rounded-lg border border-amber-500/20 text-xs">
-              <Shield className="size-3.5 text-amber-600" />
-              <span className="font-bold text-amber-600">{shields}%</span>
-              <span className="text-muted-foreground">HP: {hp}</span>
-            </div>
-          )}
-
+        <div className="flex items-center gap-3 shrink-0">
+          <ModeStatusChips
+            mode={mode}
+            vaultGold={vaultGold}
+            hearts={hearts}
+            hasShield={hasShield}
+            classicPoints={score}
+            battleYou={battleYou}
+            battleThem={battleThem}
+            empireTier={EMPIRE_TIERS[empireTier]}
+          />
           <div
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold ${
-              timeLeft <= 5 ? "bg-rose-500/10 text-rose-600 animate-pulse" : "bg-muted text-foreground"
+              timeLeft <= 5
+                ? "mode-urgent bg-rose-500 text-white"
+                : mode === "heist"
+                  ? "bg-yellow-400 text-zinc-900"
+                  : "bg-black/10 dark:bg-white/10"
             }`}
           >
             <Clock className="size-3.5" />
@@ -865,11 +977,43 @@ export function GuestQuizPlayer({
         </div>
       </div>
 
-      {/* Progress Bar */}
-      <Progress value={progressPct} className="h-2 rounded-full" />
+      {lastAward && (
+        <div className="mode-rise rounded-xl border bg-card/80 px-4 py-2 text-xs font-medium">{lastAward}</div>
+      )}
+
+      {mode === "empire" && (
+        <div className="mode-rise rounded-xl border border-emerald-300/50 bg-emerald-50/70 dark:bg-emerald-950/40 px-4 py-3 text-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold">{EMPIRE_TIERS[empireTier]}</span>
+            <span>Power {empirePower(empireTier, resources)}</span>
+          </div>
+          <div className="grid grid-cols-4 gap-2 text-center">
+            <span>Wood {resources.wood}</span>
+            <span>Stone {resources.stone}</span>
+            <span>Gold {resources.gold}</span>
+            <span>Food {resources.food}</span>
+          </div>
+          <Button size="sm" className="w-full h-8 text-xs" disabled={!canUpgradeEmpire(empireTier, resources)} onClick={tryEmpireUpgrade}>
+            Upgrade to {EMPIRE_TIERS[Math.min(EMPIRE_TIERS.length - 1, empireTier + 1)]}
+          </Button>
+        </div>
+      )}
+
+      {heistChoiceOpen && (
+        <div className="mode-rise rounded-xl border border-yellow-500/40 bg-zinc-950/80 text-yellow-50 p-4 space-y-3">
+          <p className="text-sm font-semibold">You earned {pendingGold} gold. What now?</p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Button size="sm" variant="secondary" onClick={() => finishHeistChoice("save")}>Save</Button>
+            <Button size="sm" variant="secondary" onClick={() => finishHeistChoice("invest")}>Invest (50% +200)</Button>
+            <Button size="sm" variant="secondary" onClick={() => finishHeistChoice("raid")}>Raid pot (+300 / −100)</Button>
+          </div>
+        </div>
+      )}
+
+      <Progress value={progressPct} className={`h-2 rounded-full ${mode === "heist" ? "bg-yellow-900/40" : ""}`} />
 
       {/* Main Question Card */}
-      <Card className="border-border/80 shadow-md p-6 sm:p-8 space-y-6">
+      <Card className={`shadow-md p-6 sm:p-8 space-y-6 ${mode === "heist" || mode === "royale" || mode === "battle" ? "bg-black/30 border-white/10 text-inherit" : "border-border/80"}`}>
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1.5 flex-1">
             {currentQ.topic && (
@@ -877,7 +1021,7 @@ export function GuestQuizPlayer({
                 {currentQ.topic}
               </Badge>
             )}
-            <h2 className="text-xl sm:text-2xl font-bold leading-snug text-foreground">{questionPrompt}</h2>
+            <h2 className={`text-xl sm:text-2xl font-bold leading-snug ${mode === "heist" || mode === "royale" || mode === "battle" ? "text-white" : "text-foreground"}`}>{questionPrompt}</h2>
           </div>
 
           <Button
@@ -885,7 +1029,7 @@ export function GuestQuizPlayer({
             size="icon"
             onClick={() => setFlaggedQuestions((prev) => ({ ...prev, [currentIndex]: !prev[currentIndex] }))}
             className={`size-8 shrink-0 ${flaggedQuestions[currentIndex] ? "text-amber-500" : "text-muted-foreground"}`}
-            title="Flag for review"
+            title={t("flag")}
           >
             <Flag className="size-4" />
           </Button>
@@ -897,10 +1041,10 @@ export function GuestQuizPlayer({
             size="sm"
             variant="outline"
             onClick={handleUseFiftyFifty}
-            className="w-full text-xs font-semibold gap-1.5 border-yellow-500/40 text-yellow-600 hover:bg-yellow-500/10"
+            className="w-full text-xs font-semibold gap-1.5 border-yellow-500/40 text-yellow-500 hover:bg-yellow-500/10 mode-shimmer"
           >
             <Zap className="size-3.5" />
-            <span>Use 50:50 Answer Eliminator</span>
+            <span>{t("fiftyFifty")}</span>
           </Button>
         )}
 
@@ -924,7 +1068,7 @@ export function GuestQuizPlayer({
               const isSelected = selectedOption === idx;
               let btnStyle = "border-border/80 bg-card hover:border-primary/60 hover:bg-muted/30 text-foreground";
               if (isSelected) {
-                btnStyle = "border-primary bg-primary/10 text-primary font-bold ring-2 ring-primary/30";
+                btnStyle = `${skin.optionOn} font-bold`;
               }
 
               return (
@@ -932,7 +1076,8 @@ export function GuestQuizPlayer({
                   key={idx}
                   type="button"
                   onClick={() => handleSelectOption(idx)}
-                  className={`p-4 rounded-xl border text-left text-sm transition-all flex items-start gap-3 ${btnStyle} focus:outline-none`}
+                  className={`mode-opt p-4 rounded-xl border text-left text-sm transition-transform duration-200 hover:scale-[1.02] flex items-start gap-3 ${btnStyle} focus:outline-none ${isSelected ? "mode-combo" : ""}`}
+                  style={{ animationDelay: `${idx * 70}ms` }}
                 >
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-xs font-mono font-bold">
                     {String.fromCharCode(65 + idx)}
@@ -984,7 +1129,7 @@ export function GuestQuizPlayer({
             <Input
               value={textAnswer}
               onChange={(e) => handleTextAnswerChange(e.target.value)}
-              placeholder="Enter exact keyword or phrase..."
+              placeholder={t("typeKeyword")}
               className="h-12 text-sm bg-card"
             />
           </div>
@@ -1000,7 +1145,7 @@ export function GuestQuizPlayer({
             <Textarea
               value={textAnswer}
               onChange={(e) => handleTextAnswerChange(e.target.value)}
-              placeholder="Type your structured essay response here..."
+              placeholder={t("typeEssay")}
               className="min-h-[160px] text-sm bg-card leading-relaxed"
             />
           </div>
@@ -1010,7 +1155,7 @@ export function GuestQuizPlayer({
         <div className="flex items-center justify-between gap-4 pt-6 border-t">
           <Button variant="outline" onClick={handlePrev} disabled={currentIndex === 0} className="gap-2 text-xs">
             <ChevronLeft className="size-4" />
-            <span>Previous</span>
+            <span>{t("previous")}</span>
           </Button>
 
           <div className="flex items-center gap-2">
@@ -1032,8 +1177,8 @@ export function GuestQuizPlayer({
             ))}
           </div>
 
-          <Button onClick={handleNext} className="gap-2 text-xs font-bold">
-            <span>{isLastQuestion ? "Submit Assessment" : "Next Question"}</span>
+          <Button onClick={handleNext} disabled={heistChoiceOpen} className="gap-2 text-xs font-bold">
+            <span>{isLastQuestion ? t("submitQuiz") : t("nextQuestion")}</span>
             <ChevronRight className="size-4" />
           </Button>
         </div>

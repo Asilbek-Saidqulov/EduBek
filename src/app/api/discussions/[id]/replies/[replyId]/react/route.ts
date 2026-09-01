@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 import { withErrorHandler, notFound } from "@/lib/errors";
 import { getAuthContext } from "@/features/auth";
 import { db } from "@/lib/db";
-import { addReaction, removeReaction } from "@/features/collaboration";
+import { addReaction, removeReaction } from "@/features/discussions";
 import { z } from "zod";
 
 const schema = z.object({

@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { withErrorHandler } from "@/lib/errors";
 import { getAuthContext } from "@/features/auth";
-import { createReply, listReplies } from "@/features/collaboration";
+import { createReply, listReplies } from "@/features/discussions";
 import { z } from "zod";
 
 const postSchema = z.object({

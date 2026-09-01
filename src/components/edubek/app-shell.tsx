@@ -63,14 +63,22 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
   }, []);
 
   const primaryNavItems = [
-    { href: "/dashboard", label: tNav("dashboard"), icon: LayoutDashboard },
-    { href: "/tutor", label: tNav("tutor"), icon: BrainCircuit },
+    { href: "/dashboard", label: tNav("home"), icon: LayoutDashboard },
+    { href: "/tutor", label: tNav("learn"), icon: BrainCircuit },
+    { href: "/live-quiz", label: tNav("practice"), icon: Gamepad2 },
+    { href: "/classrooms", label: tNav("class"), icon: Users },
+  ];
+
+  const roles = user?.platformRoles ?? user?.roles ?? [];
+  const isStaff = roles.some((r: string) => /teacher|admin|creator/i.test(String(r)));
+
+  const moreNavItems = [
     { href: "/discover", label: tNav("discover"), icon: Compass },
     { href: "/library", label: tNav("library"), icon: FolderOpen },
     { href: "/marketplace", label: tNav("marketplace"), icon: Store },
-    { href: "/live-quiz", label: tNav("liveQuiz"), icon: Gamepad2 },
-    { href: "/ai-workspace", label: tNav("aiWorkspace"), icon: Sparkles },
-    { href: "/classrooms", label: tNav("classrooms"), icon: Users },
+    ...(isStaff
+      ? [{ href: "/live-quiz?tab=create", label: tNav("create"), icon: Sparkles }]
+      : []),
   ];
 
   const secondaryNavItems = [
@@ -132,7 +140,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                   EduBek
                 </span>
                 <span className="text-[10px] font-medium text-muted-foreground -mt-1 tracking-wider uppercase">
-                  Learning OS
+                  {tNav("productTag")}
                 </span>
               </div>
             )}
@@ -155,11 +163,11 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
             className={`w-full flex items-center gap-2.5 rounded-lg border border-border/80 bg-muted/40 px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors ${
               collapsed ? "justify-center px-2" : "justify-between"
             }`}
-            title="Search EduBek (Press /)"
+            title={tNav("search")}
           >
             <div className="flex items-center gap-2">
               <Search className="h-4 w-4 shrink-0" />
-              {!collapsed && <span>Search EduBek...</span>}
+              {!collapsed && <span>{tNav("search")}</span>}
             </div>
             {!collapsed && (
               <kbd className="rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
@@ -175,7 +183,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
           <div>
             {!collapsed && (
               <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
-                Ecosystem
+                {tNav("sections.main")}
               </p>
             )}
             <div className="space-y-1">
@@ -201,11 +209,39 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
             </div>
           </div>
 
-          {/* Tools & Account */}
           <div>
             {!collapsed && (
               <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
-                Workspace & Tools
+                {tNav("sections.more")}
+              </p>
+            )}
+            <div className="space-y-1">
+              {moreNavItems.map((item) => {
+                const Icon = item.icon;
+                const active = isNavActive(item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all ${
+                      active
+                        ? "bg-primary text-primary-foreground shadow-xs font-semibold"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    } ${collapsed ? "justify-center px-2" : ""}`}
+                  >
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-primary-foreground" : "text-muted-foreground group-hover:text-foreground"}`} />
+                    {!collapsed && <span className="truncate">{item.label}</span>}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            {!collapsed && (
+              <p className="px-2 pb-1.5 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider">
+                {tNav("sections.account")}
               </p>
             )}
             <div className="space-y-1">
@@ -248,7 +284,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                   </div>
                   <div className="flex items-center gap-1 text-muted-foreground font-mono text-[11px]">
                     <Coins className="h-3 w-3 text-amber-500" />
-                    <span>{user?.balanceEduTokens ?? 1250} EDU</span>
+                    <span>{typeof user?.balanceEduTokens === "number" ? user.balanceEduTokens : "—"}</span>
                   </div>
                 </div>
               </Link>
@@ -257,7 +293,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
                 onClick={handleLogout}
-                title="Log out"
+                title={tNav("logOutTitle")}
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -276,7 +312,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                 size="icon"
                 className="h-7 w-7 text-muted-foreground hover:text-destructive"
                 onClick={handleLogout}
-                title="Log out"
+                title={tNav("logOutTitle")}
               >
                 <LogOut className="h-3.5 w-3.5" />
               </Button>
@@ -318,7 +354,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
               className="hidden md:flex items-center gap-2 rounded-lg border border-border/80 bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
             >
               <Search className="h-3.5 w-3.5" />
-              <span>Search platform...</span>
+              <span>{tNav("searchPlatform")}</span>
               <kbd className="rounded border bg-background px-1 font-mono text-[10px]">
                 /
               </kbd>
@@ -328,11 +364,10 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
             <Link
               href="/wallet"
               className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
-              title="EduTokens Balance"
+              title={tNav("tokenBalance")}
             >
               <Coins className="h-3.5 w-3.5" />
-              <span>{user?.balanceEduTokens ?? 1250}</span>
-              <span className="text-[10px] text-amber-600/70 font-normal">EDU</span>
+              <span>{typeof user?.balanceEduTokens === "number" ? user.balanceEduTokens : "—"}</span>
             </Link>
 
             {/* Notification Bell */}
@@ -366,7 +401,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
               </div>
 
               <div className="flex-1 overflow-y-auto space-y-1">
-                {[...primaryNavItems, ...secondaryNavItems].map((item) => {
+                {[...primaryNavItems, ...moreNavItems, ...secondaryNavItems].map((item) => {
                   const Icon = item.icon;
                   const active = isNavActive(item.href);
                   return (
@@ -402,9 +437,30 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
         )}
 
         {/* Main Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-24 lg:pb-8">
           {children}
         </main>
+
+        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-background/95 backdrop-blur-md">
+          <div className="grid grid-cols-4">
+            {primaryNavItems.map((item) => {
+              const Icon = item.icon;
+              const active = isNavActive(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${
+                    active ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
       </div>
     </div>
   );

@@ -1719,6 +1719,9 @@ model Classroom {
   id           String             @id @default(cuid())
   name         String
   description  String?
+  subject      String?
+  grade        String?
+  joinCode     String?            @unique
   teacherId    String
   orgId        String?
   status       String             @default("active")
@@ -1735,6 +1738,7 @@ model Classroom {
   @@index([teacherId])
   @@index([orgId])
   @@index([status])
+  @@index([joinCode])
 }
 
 model ClassroomStudent {
@@ -1753,10 +1757,13 @@ model ClassroomStudent {
 model Assignment {
   id           String              @id @default(cuid())
   classroomId  String
-  resourceId   String
+  resourceId   String?
+  assessmentId String?
   teacherId    String
   title        String
   instructions String?
+  opensAt      DateTime?
+  dueAt        DateTime?
   dueDate      DateTime?
   visibility   String              @default("published")
   maxAttempts  Int                 @default(1)
@@ -1767,7 +1774,8 @@ model Assignment {
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   classroom    Classroom           @relation(fields: [classroomId], references: [id], onDelete: Cascade)
-  resource     Resource            @relation("AssignmentResource", fields: [resourceId], references: [id], onDelete: Cascade)
+  resource     Resource?           @relation("AssignmentResource", fields: [resourceId], references: [id], onDelete: SetNull)
+  assessment   Assessment?         @relation("AssignmentAssessment", fields: [assessmentId], references: [id], onDelete: SetNull)
   attempts     AssignmentAttempt[]
 
   @@index([classroomId])
@@ -1989,6 +1997,7 @@ model Assessment {
   attempts               AssessmentAttempt[]
   questions              AssessmentQuestion[]
   certificates           Certificate[]
+  assignedWork           Assignment[]         @relation("AssignmentAssessment")
 
   @@index([ownerId])
   @@index([orgId])
@@ -6711,4 +6720,91 @@ model AIGovernanceModel {
 
   @@unique([provider, model])
   @@index([status])
+}
+
+
+model EconomyJournalEntry {
+  id            String               @id @default(cuid())
+  journalCode   String
+  description   String
+  referenceType String?
+  referenceId   String?
+  metadata      String?
+  postedAt      DateTime             @default(now())
+  lines         EconomyJournalLine[]
+
+  @@index([journalCode])
+  @@index([referenceType, referenceId])
+}
+
+model EconomyJournalLine {
+  id          String               @id @default(cuid())
+  entryId     String
+  account     String
+  subAccount  String?
+  currency    String
+  direction   String
+  amountMinor BigInt
+  createdAt   DateTime             @default(now())
+  entry       EconomyJournalEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@index([entryId])
+}
+
+model EconomyOrder {
+  id              String   @id @default(cuid())
+  buyerId         String
+  listingId       String?
+  status          String   @default("CREATED")
+  amountUzs       BigInt   @default(0)
+  currency        String   @default("UZS")
+  snapshot        String   @default("{}")
+  provider        String?
+  idempotencyKey  String?  @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([buyerId])
+  @@index([status])
+}
+
+model EconomyPaymentIntent {
+  id         String   @id @default(cuid())
+  orderId    String
+  provider   String
+  status     String   @default("CREATED")
+  amountUzs  BigInt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([orderId])
+}
+
+model EconomyPaymentEvent {
+  id          String   @id @default(cuid())
+  provider    String
+  eventId     String
+  payload     String
+  processedAt DateTime @default(now())
+
+  @@unique([provider, eventId])
+}
+
+model EconomyCreatorBalance {
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  pendingUzs     BigInt   @default(0)
+  availableUzs   BigInt   @default(0)
+  payoutLockedUzs BigInt  @default(0)
+  updatedAt      DateTime @updatedAt
+}
+
+model EconomyEntitlement {
+  id         String   @id @default(cuid())
+  userId     String
+  listingId  String
+  orderId    String?
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, listingId])
 }

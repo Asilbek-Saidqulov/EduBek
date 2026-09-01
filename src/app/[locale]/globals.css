@@ -195,3 +195,83 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Game mode motion — respect reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .mode-rise,
+  .mode-opt,
+  .mode-glow,
+  .mode-float,
+  .mode-pulse,
+  .mode-combo,
+  .mode-shimmer,
+  .mode-urgent,
+  .mode-stage,
+  .mode-shine::after {
+    animation: none !important;
+  }
+}
+
+@keyframes mode-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes mode-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes mode-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(251 191 36 / 0.35); }
+  50% { box-shadow: 0 0 22px 2px rgb(251 191 36 / 0.45); }
+}
+@keyframes mode-pulse-bar {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+@keyframes mode-combo {
+  0% { transform: scale(0.7); }
+  60% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+@keyframes mode-shimmer {
+  0% { background-position: -120% 0; }
+  100% { background-position: 120% 0; }
+}
+@keyframes mode-urgent {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+@keyframes mode-stage {
+  from { transform: scaleY(0.3); opacity: 0.4; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+@keyframes mode-shine-sweep {
+  from { transform: translateX(-120%) rotate(12deg); }
+  to { transform: translateX(220%) rotate(12deg); }
+}
+
+.mode-rise { animation: mode-rise 0.45s ease-out both; }
+.mode-opt { animation: mode-rise 0.4s ease-out both; }
+.mode-float { animation: mode-float 3s ease-in-out infinite; }
+.mode-glow { animation: mode-glow 1.8s ease-in-out infinite; }
+.mode-pulse { animation: mode-pulse-bar 1.2s ease-in-out infinite; }
+.mode-combo { animation: mode-combo 0.35s ease-out; }
+.mode-urgent { animation: mode-urgent 0.7s ease-in-out infinite; }
+.mode-stage { animation: mode-stage 0.35s ease-out both; transform-origin: bottom; }
+
+.mode-shine { position: relative; overflow: hidden; }
+.mode-shine::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% auto;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent);
+  animation: mode-shine-sweep 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.mode-shimmer {
+  background-image: linear-gradient(110deg, rgb(250 204 21 / 0.15) 0%, rgb(250 204 21 / 0.45) 45%, rgb(250 204 21 / 0.15) 90%);
+  background-size: 200% 100%;
+  animation: mode-shimmer 2s linear infinite;
+}

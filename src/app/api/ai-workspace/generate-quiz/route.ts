@@ -1,3 +1,4 @@
+import { assertSkuCaps } from "@/features/economy/sku-guard";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateStructuredJson, AiError } from "@/lib/ai";
@@ -33,6 +34,10 @@ const quizOutputSchema = z.object({
 
 const EDU_TOKENS_PER_GENERATION = 10;
 
+async function _skuGate(body: any) {
+  assertSkuCaps("ai.quiz.generate.v1", { chars: JSON.stringify(body || {}).length });
+}
+
 export async function POST(req: NextRequest) {
   try {
     // 1. Rate Limiting
@@ -51,7 +56,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Validate input payload
-    const body = await req.json().catch(() => null);
+    const body = await req.json();
+    _skuGate(body);
     const parsedInput = requestSchema.safeParse(body);
     if (!parsedInput.success) {
       return NextResponse.json(

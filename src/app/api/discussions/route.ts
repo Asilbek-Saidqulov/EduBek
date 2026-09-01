@@ -5,7 +5,7 @@
 import { NextResponse } from "next/server";
 import { withErrorHandler } from "@/lib/errors";
 import { getAuthContext } from "@/features/auth";
-import { createDiscussion, listDiscussions } from "@/features/collaboration";
+import { createDiscussion, listDiscussions } from "@/features/discussions";
 import { z } from "zod";
 
 const createSchema = z.object({

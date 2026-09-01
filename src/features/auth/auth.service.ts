@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { conflict, unauthorized, forbidden } from "@/lib/errors";
 import bcrypt from "bcryptjs";
 import { createHash, randomBytes } from "crypto";
+import { signSessionPayload } from "@/lib/session-token";
 import {
   type LoginInput,
   type RegisterInput,
@@ -43,16 +44,14 @@ export function buildSessionTokens(user: {
   const refreshToken = randomBytes(32).toString("hex");
   const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-  const sessionToken = Buffer.from(
-    JSON.stringify({
+  const sessionToken = signSessionPayload({
       userId: user.id,
       email: user.email,
       platformRoles: user.roles,
       sessionId,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(expiresAt.getTime() / 1000),
-    })
-  ).toString("base64");
+    });
 
   const sessionTokenHash = createHash("sha256")
     .update(sessionToken)

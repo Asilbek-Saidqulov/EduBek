@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { applyEduDelta } from "@/features/wallet";
 import { badRequest, forbidden, notFound, conflict } from "@/lib/errors";
 import type {
   CreateQuizInput,
@@ -744,6 +745,21 @@ export class QuizService {
       return { updatedAttempt, updatedProfile };
     });
 
+    let eduAwarded = 0;
+    try {
+      const pct = accuracy;
+      eduAwarded = pct >= 90 ? 15 : pct >= 70 ? 10 : 5;
+      await applyEduDelta({
+        userId,
+        delta: eduAwarded,
+        reason: "quiz_completion",
+        referenceType: "QuizAttempt",
+        referenceId: attemptId,
+      });
+    } catch (err) {
+      console.error("[quiz] EDU award failed", err);
+    }
+
     return {
       attemptId: updatedAttempt.id,
       quizId: attempt.quizId,
@@ -760,6 +776,7 @@ export class QuizService {
       newTotalXp: updatedProfile.xp,
       newLevel: updatedProfile.level,
       questionResults,
+      eduAwarded,
     };
   }
 

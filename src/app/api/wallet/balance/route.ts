@@ -3,6 +3,7 @@ import { getAuthContext } from "@/features/auth";
 import { getUserAiCredits } from "@/features/economy/credits";
 import { getCreatorAccount } from "@/features/economy/creator";
 import { getUserSubscription } from "@/features/economy/subscriptions";
+import { getWalletBalance } from "@/features/wallet";
 
 export async function GET(req: NextRequest) {
   try {
@@ -22,14 +23,16 @@ export async function GET(req: NextRequest) {
     const userId = authContext.userId;
 
     // Fetch AI Credits (available, reserved, totalConsumed, lots, expiringSoon)
+    const prismaWallet = await getWalletBalance(userId).catch(() => null);
     const aiCredits = await getUserAiCredits(userId);
     const creator = await getCreatorAccount(userId);
     const subscription = getUserSubscription(userId);
 
     return NextResponse.json({
       // Backward compatibility fields
-      balance: aiCredits.availableUnits,
-      fiatBalance: Number(creator.availableUzs) || 0,
+      balance: prismaWallet?.wallet.eduTokensBalance ?? aiCredits.availableUnits,
+      eduTokensBalance: prismaWallet?.wallet.eduTokensBalance ?? 0,
+      fiatBalance: prismaWallet?.wallet.fiatBalance ?? Number(creator.availableUzs) || 0,
       lockedEduTokens: aiCredits.reservedUnits,
       currency: "UZS",
       walletId: aiCredits.id,
