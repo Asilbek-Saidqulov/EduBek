@@ -41,6 +41,7 @@ const registerSchema = z
       .min(1, { message: "Email is required" })
       .email({ message: "Invalid email address" })
       .max(254, { message: "Email is too long" }),
+    role: z.enum(["student", "teacher"]),
     password: z
       .string()
       .min(8, { message: "Password must be at least 8 characters" })
@@ -77,7 +78,7 @@ export function RegisterForm() {
   // strip it before sending.
   const form = useForm<RegisterValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: { name: "", email: "", password: "", confirmPassword: "", role: "student" },
     mode: "onSubmit",
   });
 
@@ -92,6 +93,7 @@ export function RegisterForm() {
           name: values.name,
           email: values.email,
           password: values.password,
+          role: values.role,
           locale,
         }),
         credentials: "same-origin",
@@ -166,6 +168,35 @@ export function RegisterForm() {
                   {...field}
                 />
               </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="role"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t("register.roleLabel")}</FormLabel>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  className={`rounded-xl border p-3 text-left ${field.value === "student" ? "border-primary bg-primary/5" : ""}`}
+                  onClick={() => field.onChange("student")}
+                >
+                  <div className="font-medium">{t("register.roleStudent")}</div>
+                  <div className="text-xs text-muted-foreground">{t("register.roleStudentHint")}</div>
+                </button>
+                <button
+                  type="button"
+                  className={`rounded-xl border p-3 text-left ${field.value === "teacher" ? "border-primary bg-primary/5" : ""}`}
+                  onClick={() => field.onChange("teacher")}
+                >
+                  <div className="font-medium">{t("register.roleTeacher")}</div>
+                  <div className="text-xs text-muted-foreground">{t("register.roleTeacherHint")}</div>
+                </button>
+              </div>
               <FormMessage />
             </FormItem>
           )}

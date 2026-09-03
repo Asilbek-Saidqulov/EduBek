@@ -7,12 +7,31 @@ import {
   notFound,
   conflict,
 } from "@/lib/errors";
-import { type AuthContext } from "@/features/auth";
+import { type AuthContext, requireAuth } from "@/features/auth";
 import { generateStructuredJson, generateText, getGeneralModel } from "@/lib/ai";
 
-// -----------------------------------------------------------------------------
-// Schemas
-// -----------------------------------------------------------------------------
+function isAdmin(ctx: AuthContext) {
+  return ctx.platformRoles.some((r) =>
+    ["ADMIN", "SUPER_ADMIN", "admin", "super_admin"].includes(r)
+  );
+}
+
+function requireUserId(ctx: AuthContext): string {
+  requireAuth(ctx);
+  if (!ctx.userId) throw unauthorized("Authentication required");
+  return ctx.userId;
+}
+
+const questionTypeEnum = z.enum([
+  "multiple_choice",
+  "multiple_select",
+  "true_false",
+  "short_answer",
+  "essay",
+  "matching",
+  "ordering",
+  "fill_blank",
+]);
 
 export const listBankQuestionsQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -26,20 +45,9 @@ export const listBankQuestionsQuerySchema = z.object({
 export type ListBankQuestionsQuery = z.infer<typeof listBankQuestionsQuerySchema>;
 
 export const createBankQuestionBodySchema = z.object({
-  questionType: z
-    .enum([
-      "multiple_choice",
-      "multiple_select",
-      "true_false",
-      "short_answer",
-      "essay",
-      "matching",
-      "ordering",
-      "fill_blank",
-    ])
-    .default("multiple_choice"),
+  questionType: questionTypeEnum.default("multiple_choice"),
   prompt: z.string().min(1, "Question prompt is required"),
-  payload: z.record(z.any()).optional(),
+  payload: z.record(z.string(), z.any()).optional(),
   subject: z.string().optional(),
   grade: z.string().optional(),
   difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
@@ -54,7 +62,7 @@ export const createAssessmentBodySchema = z.object({
   description: z.string().max(2000).optional(),
   instructions: z.string().max(4000).optional(),
   assessmentType: z.enum(["quiz", "exam", "practice"]).default("quiz"),
-  duration: z.number().int().min(30).max(86400).optional(), // in seconds
+  duration: z.number().int().min(30).max(86400).optional(),
   passingScore: z.number().min(0).max(100).optional(),
   maxAttempts: z.number().int().min(1).max(100).default(1),
   shuffleQuestions: z.boolean().default(false),
@@ -86,31 +94,21 @@ export const listAssessmentsQuerySchema = z.object({
 export type ListAssessmentsQuery = z.infer<typeof listAssessmentsQuerySchema>;
 
 export const addQuestionsBodySchema = z.object({
-  questions: z.array(
-    z.object({
-      questionId: z.string().optional(), // existing BankQuestion id
-      // Or inline question payload if creating fresh
-      questionType: z
-        .enum([
-          "multiple_choice",
-          "multiple_select",
-          "true_false",
-          "short_answer",
-          "essay",
-          "matching",
-          "ordering",
-          "fill_blank",
-        ])
-        .default("multiple_choice"),
-      prompt: z.string().optional(),
-      payload: z.record(z.any()).optional(),
-      points: z.number().int().min(1).default(1),
-      order: z.number().int().default(0),
-      difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
-      subject: z.string().optional(),
-      overrides: z.string().optional(),
-    }),
-  ).min(1, "At least one question must be provided"),
+  questions: z
+    .array(
+      z.object({
+        questionId: z.string().optional(),
+        questionType: questionTypeEnum.default("multiple_choice"),
+        prompt: z.string().optional(),
+        payload: z.record(z.string(), z.any()).optional(),
+        points: z.number().int().min(1).default(1),
+        order: z.number().int().default(0),
+        difficulty: z.enum(["easy", "medium", "hard"]).default("medium"),
+        subject: z.string().optional(),
+        overrides: z.string().optional(),
+      })
+    )
+    .min(1, "At least one question must be provided"),
 });
 export type AddQuestionsBody = z.infer<typeof addQuestionsBodySchema>;
 
@@ -118,9 +116,9 @@ export const submitAttemptBodySchema = z.object({
   responses: z.array(
     z.object({
       questionId: z.string(),
-      answer: z.any().optional(), // could be string, array of indices, boolean, etc.
+      answer: z.any().optional(),
       timeSpentMs: z.number().int().min(0).default(0),
-    }),
+    })
   ),
 });
 export type SubmitAttemptBody = z.infer<typeof submitAttemptBodySchema>;
@@ -141,19 +139,12 @@ export const gradeResponseBodySchema = z.object({
 });
 export type GradeResponseBody = z.infer<typeof gradeResponseBodySchema>;
 
-// -----------------------------------------------------------------------------
-// Assessment Service Methods
-// -----------------------------------------------------------------------------
+export async function createAssessment(authCtx: AuthContext, body: CreateAssessmentBody) {
+  const userId = requireUserId(authCtx);
 
-export async function createAssessment(
-  authCtx: AuthContext,
-  body: CreateAssessmentBody,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
-  const assessment = await db.assessment.create({
+  return db.assessment.create({
     data: {
-      ownerId: authCtx.user.id,
+      ownerId: userId,
       title: body.title,
       description: body.description,
       instructions: body.instructions,
@@ -174,53 +165,30 @@ export async function createAssessment(
       status: "draft",
     },
     include: {
-      questions: {
-        include: {
-          question: true,
-        },
-      },
+      questions: { include: { question: true } },
       rubric: true,
     },
   });
-
-  return assessment;
 }
 
-export async function listAssessments(
-  authCtx: AuthContext,
-  query: ListAssessmentsQuery,
-) {
+export async function listAssessments(authCtx: AuthContext, query: ListAssessmentsQuery) {
   const { page, pageSize, search, status, assessmentType, classroomId, orgId, mineOnly } = query;
   const skip = (page - 1) * pageSize;
+  const where: Record<string, unknown> = {};
 
-  const where: any = {};
-
-  if (mineOnly || (authCtx.user && !authCtx.user.role?.includes("admin"))) {
-    // If not admin, restrict to published or own
-    if (mineOnly) {
-      if (!authCtx.user) throw unauthorized("Authentication required");
-      where.ownerId = authCtx.user.id;
-    } else if (authCtx.user) {
-      where.OR = [
-        { ownerId: authCtx.user.id },
-        { status: "published" },
-      ];
-    } else {
-      where.status = "published";
-    }
+  if (mineOnly) {
+    const userId = requireUserId(authCtx);
+    where.ownerId = userId;
+  } else if (authCtx.userId && !isAdmin(authCtx)) {
+    where.OR = [{ ownerId: authCtx.userId }, { status: "published" }];
+  } else if (!authCtx.userId) {
+    where.status = "published";
   }
 
-  if (status && status !== "all") {
-    where.status = status;
-  }
-
-  if (assessmentType && assessmentType !== "all") {
-    where.assessmentType = assessmentType;
-  }
-
+  if (status && status !== "all") where.status = status;
+  if (assessmentType && assessmentType !== "all") where.assessmentType = assessmentType;
   if (classroomId) where.classroomId = classroomId;
   if (orgId) where.orgId = orgId;
-
   if (search) {
     where.OR = [
       { title: { contains: search, mode: "insensitive" } },
@@ -235,112 +203,78 @@ export async function listAssessments(
       take: pageSize,
       orderBy: { updatedAt: "desc" },
       include: {
-        owner: { select: { id: true, name: true, email: true, role: true } },
+        owner: { select: { id: true, name: true, email: true, primaryRole: true } },
         _count: { select: { questions: true, attempts: true } },
       },
     }),
     db.assessment.count({ where }),
   ]);
 
-  return {
-    items,
-    total,
-    page,
-    pageSize,
-    totalPages: Math.ceil(total / pageSize),
-  };
+  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
 
 export async function getAssessment(authCtx: AuthContext, id: string) {
   const assessment = await db.assessment.findUnique({
     where: { id },
     include: {
-      owner: { select: { id: true, name: true, email: true, role: true } },
-      questions: {
-        orderBy: { order: "asc" },
-        include: {
-          question: true,
-        },
-      },
-      rubric: {
-        include: { criteria: true },
-      },
+      owner: { select: { id: true, name: true, email: true, primaryRole: true } },
+      questions: { orderBy: { order: "asc" }, include: { question: true } },
+      rubric: { include: { criteria: true } },
       _count: { select: { attempts: true } },
     },
   });
-
   if (!assessment) throw notFound("Assessment not found");
 
-  const isOwner = authCtx.user && authCtx.user.id === assessment.ownerId;
-  const isAdmin = authCtx.user && (authCtx.user.role === "admin" || authCtx.user.role === "super_admin");
-
-  // If draft or archived, only owner/admin can view full draft details
-  if (assessment.status !== "published" && !isOwner && !isAdmin) {
+  const owner = authCtx.userId === assessment.ownerId;
+  if (assessment.status !== "published" && !owner && !isAdmin(authCtx)) {
     throw forbidden("Assessment is not published");
   }
-
   return assessment;
 }
 
-export async function updateAssessment(
-  authCtx: AuthContext,
-  id: string,
-  body: UpdateAssessmentBody,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+export async function updateAssessment(authCtx: AuthContext, id: string, body: UpdateAssessmentBody) {
+  const userId = requireUserId(authCtx);
   const existing = await db.assessment.findUnique({ where: { id } });
   if (!existing) throw notFound("Assessment not found");
+  if (existing.ownerId !== userId && !isAdmin(authCtx)) {
+    throw forbidden("Not authorized to update this assessment");
+  }
 
-  const isOwner = authCtx.user.id === existing.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-  if (!isOwner && !isAdmin) throw forbidden("Not authorized to update this assessment");
-
-  const data: any = { ...body };
+  const data: Record<string, unknown> = { ...body };
   if (body.openAt !== undefined) data.openAt = body.openAt ? new Date(body.openAt) : null;
   if (body.closeAt !== undefined) data.closeAt = body.closeAt ? new Date(body.closeAt) : null;
 
-  const updated = await db.assessment.update({
+  return db.assessment.update({
     where: { id },
     data,
     include: {
-      questions: {
-        include: { question: true },
-        orderBy: { order: "asc" },
-      },
+      questions: { include: { question: true }, orderBy: { order: "asc" } },
       rubric: true,
     },
   });
-
-  return updated;
 }
 
-export async function addQuestions(
-  authCtx: AuthContext,
-  assessmentId: string,
-  body: AddQuestionsBody,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+export async function addQuestions(authCtx: AuthContext, assessmentId: string, body: AddQuestionsBody) {
+  const userId = requireUserId(authCtx);
   const assessment = await db.assessment.findUnique({ where: { id: assessmentId } });
   if (!assessment) throw notFound("Assessment not found");
-
-  const isOwner = authCtx.user.id === assessment.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-  if (!isOwner && !isAdmin) throw forbidden("Not authorized to modify this assessment");
+  if (assessment.ownerId !== userId && !isAdmin(authCtx)) {
+    throw forbidden("Not authorized to modify this assessment");
+  }
 
   const results = [];
   let currentOrder = (await db.assessmentQuestion.count({ where: { assessmentId } })) || 0;
 
   for (const item of body.questions) {
     let qId = item.questionId;
-
     if (!qId) {
-      // Create a fresh BankQuestion
-      const payloadStr = typeof item.payload === "string" ? item.payload : JSON.stringify(item.payload || { prompt: item.prompt || "" });
-      const createdBankQ = await db.bankQuestion.create({
+      const payloadStr =
+        typeof item.payload === "string"
+          ? item.payload
+          : JSON.stringify(item.payload || { prompt: item.prompt || "" });
+      const created = await db.bankQuestion.create({
         data: {
-          ownerId: authCtx.user.id,
+          ownerId: userId,
           questionType: item.questionType || "multiple_choice",
           payload: payloadStr,
           subject: item.subject,
@@ -348,22 +282,12 @@ export async function addQuestions(
           points: item.points || 1,
         },
       });
-      qId = createdBankQ.id;
+      qId = created.id;
     }
 
-    // Upsert AssessmentQuestion link
     const link = await db.assessmentQuestion.upsert({
-      where: {
-        assessmentId_questionId: {
-          assessmentId,
-          questionId: qId,
-        },
-      },
-      update: {
-        order: item.order ?? currentOrder++,
-        points: item.points ?? 1,
-        overrides: item.overrides,
-      },
+      where: { assessmentId_questionId: { assessmentId, questionId: qId } },
+      update: { order: item.order ?? currentOrder++, points: item.points ?? 1, overrides: item.overrides },
       create: {
         assessmentId,
         questionId: qId,
@@ -371,99 +295,65 @@ export async function addQuestions(
         points: item.points ?? 1,
         overrides: item.overrides,
       },
-      include: {
-        question: true,
-      },
+      include: { question: true },
     });
-
     results.push(link);
   }
 
   return { success: true, count: results.length, questions: results };
 }
 
-export async function removeQuestion(
-  authCtx: AuthContext,
-  assessmentId: string,
-  questionId: string,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+export async function removeQuestion(authCtx: AuthContext, assessmentId: string, questionId: string) {
+  const userId = requireUserId(authCtx);
   const assessment = await db.assessment.findUnique({ where: { id: assessmentId } });
   if (!assessment) throw notFound("Assessment not found");
-
-  const isOwner = authCtx.user.id === assessment.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-  if (!isOwner && !isAdmin) throw forbidden("Not authorized to modify this assessment");
-
-  await db.assessmentQuestion.deleteMany({
-    where: {
-      assessmentId,
-      questionId,
-    },
-  });
-
+  if (assessment.ownerId !== userId && !isAdmin(authCtx)) {
+    throw forbidden("Not authorized to modify this assessment");
+  }
+  await db.assessmentQuestion.deleteMany({ where: { assessmentId, questionId } });
   return { success: true, removedQuestionId: questionId };
 }
 
 export async function publishAssessment(authCtx: AuthContext, id: string) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+  const userId = requireUserId(authCtx);
   const assessment = await db.assessment.findUnique({
     where: { id },
     include: { _count: { select: { questions: true } } },
   });
   if (!assessment) throw notFound("Assessment not found");
-
-  const isOwner = authCtx.user.id === assessment.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-  if (!isOwner && !isAdmin) throw forbidden("Not authorized to publish this assessment");
-
+  if (assessment.ownerId !== userId && !isAdmin(authCtx)) {
+    throw forbidden("Not authorized to publish this assessment");
+  }
   if (assessment._count.questions === 0) {
     throw badRequest("Cannot publish an assessment with no questions");
   }
-
-  const updated = await db.assessment.update({
+  return db.assessment.update({
     where: { id },
-    data: {
-      status: "published",
-      publishedAt: new Date(),
-    },
+    data: { status: "published", publishedAt: new Date() },
   });
-
-  return updated;
 }
 
 export async function archiveAssessment(authCtx: AuthContext, id: string) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+  const userId = requireUserId(authCtx);
   const assessment = await db.assessment.findUnique({ where: { id } });
   if (!assessment) throw notFound("Assessment not found");
-
-  const isOwner = authCtx.user.id === assessment.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-  if (!isOwner && !isAdmin) throw forbidden("Not authorized to archive this assessment");
-
-  const updated = await db.assessment.update({
-    where: { id },
-    data: { status: "archived" },
-  });
-
-  return updated;
+  if (assessment.ownerId !== userId && !isAdmin(authCtx)) {
+    throw forbidden("Not authorized to archive this assessment");
+  }
+  return db.assessment.update({ where: { id }, data: { status: "archived" } });
 }
 
 export async function duplicateAssessment(authCtx: AuthContext, id: string) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+  const userId = requireUserId(authCtx);
   const original = await db.assessment.findUnique({
     where: { id },
     include: { questions: true },
   });
   if (!original) throw notFound("Assessment not found");
 
-  const duplicated = await db.assessment.create({
+  return db.assessment.create({
     data: {
-      ownerId: authCtx.user.id,
+      ownerId: userId,
       title: `${original.title} (Copy)`,
       description: original.description,
       instructions: original.instructions,
@@ -485,96 +375,8 @@ export async function duplicateAssessment(authCtx: AuthContext, id: string) {
         })),
       },
     },
-    include: {
-      questions: { include: { question: true } },
-    },
+    include: { questions: { include: { question: true } } },
   });
-
-  return duplicated;
-}
-
-export async function startAttempt(authCtx: AuthContext, assessmentId: string) {
-  if (!authCtx.user) throw unauthorized("Authentication required to take assessment");
-
-  const assessment = await db.assessment.findUnique({
-    where: { id: assessmentId },
-    include: {
-      questions: {
-        include: { question: true },
-        orderBy: { order: "asc" },
-      },
-    },
-  });
-
-  if (!assessment) throw notFound("Assessment not found");
-
-  const isOwner = authCtx.user.id === assessment.ownerId;
-  if (assessment.status !== "published" && !isOwner) {
-    throw forbidden("Assessment is not currently published");
-  }
-
-  const now = new Date();
-  if (assessment.openAt && now < assessment.openAt) {
-    throw badRequest("Assessment is not open yet");
-  }
-  if (assessment.closeAt && now > assessment.closeAt) {
-    throw badRequest("Assessment is closed");
-  }
-
-  // Check existing attempts
-  const existingAttempts = await db.assessmentAttempt.findMany({
-    where: {
-      assessmentId,
-      studentId: authCtx.user.id,
-    },
-    orderBy: { attemptNumber: "desc" },
-  });
-
-  // Check if there's an in-progress attempt to resume
-  const activeAttempt = existingAttempts.find(
-    (a) => a.status === "in_progress" || a.status === "paused",
-  );
-  if (activeAttempt) {
-    // Return the resumed active attempt
-    return {
-      attempt: activeAttempt,
-      resumed: true,
-      assessment: sanitizeAssessmentForStudent(assessment),
-    };
-  }
-
-  if (existingAttempts.length >= assessment.maxAttempts && !isOwner) {
-    throw conflict("Maximum number of attempts reached for this assessment");
-  }
-
-  let orderedQuestionIds = assessment.questions.map((q) => q.questionId);
-  if (assessment.shuffleQuestions) {
-    orderedQuestionIds = [...orderedQuestionIds].sort(() => Math.random() - 0.5);
-  }
-
-  const expiresAt = assessment.duration
-    ? new Date(Date.now() + assessment.duration * 1000)
-    : null;
-
-  const totalMaxPoints = assessment.questions.reduce((sum, q) => sum + (q.points || 1), 0);
-
-  const attempt = await db.assessmentAttempt.create({
-    data: {
-      assessmentId,
-      studentId: authCtx.user.id,
-      attemptNumber: existingAttempts.length + 1,
-      status: "in_progress",
-      expiresAt,
-      pointsMax: totalMaxPoints,
-      questionOrder: JSON.stringify(orderedQuestionIds),
-    },
-  });
-
-  return {
-    attempt,
-    resumed: false,
-    assessment: sanitizeAssessmentForStudent(assessment),
-  };
 }
 
 export function sanitizeAssessmentForStudent(assessment: any) {
@@ -589,17 +391,16 @@ export function sanitizeAssessmentForStudent(assessment: any) {
     questions: assessment.questions.map((aq: any) => {
       let parsedPayload: any = {};
       try {
-        parsedPayload = typeof aq.question.payload === "string" ? JSON.parse(aq.question.payload) : aq.question.payload;
+        parsedPayload =
+          typeof aq.question.payload === "string" ? JSON.parse(aq.question.payload) : aq.question.payload;
       } catch {
         parsedPayload = {};
       }
-
-      // Hide correct answers / answer keys from active quiz player
       const sanitizedPayload = { ...parsedPayload };
       delete sanitizedPayload.correctAnswer;
       delete sanitizedPayload.answerKey;
       delete sanitizedPayload.explanation;
-      if (sanitizedPayload.options && Array.isArray(sanitizedPayload.options)) {
+      if (Array.isArray(sanitizedPayload.options)) {
         sanitizedPayload.options = sanitizedPayload.options.map((opt: any) => {
           if (typeof opt === "object" && opt !== null) {
             const { isCorrect, ...rest } = opt;
@@ -608,7 +409,6 @@ export function sanitizeAssessmentForStudent(assessment: any) {
           return opt;
         });
       }
-
       return {
         id: aq.id,
         questionId: aq.questionId,
@@ -621,72 +421,98 @@ export function sanitizeAssessmentForStudent(assessment: any) {
   };
 }
 
-export async function submitAttempt(
-  authCtx: AuthContext,
-  attemptId: string,
-  body: SubmitAttemptBody,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
+export async function startAttempt(authCtx: AuthContext, assessmentId: string) {
+  const userId = requireUserId(authCtx);
+  const assessment = await db.assessment.findUnique({
+    where: { id: assessmentId },
+    include: { questions: { include: { question: true }, orderBy: { order: "asc" } } },
+  });
+  if (!assessment) throw notFound("Assessment not found");
+  if (assessment.status !== "published" && assessment.ownerId !== userId) {
+    throw forbidden("Assessment is not currently published");
+  }
 
-  const attempt = await db.assessmentAttempt.findUnique({
-    where: { id: attemptId },
-    include: {
-      assessment: {
-        include: {
-          questions: {
-            include: { question: true },
-          },
-        },
-      },
+  const now = new Date();
+  if (assessment.openAt && now < assessment.openAt) throw badRequest("Assessment is not open yet");
+  if (assessment.closeAt && now > assessment.closeAt) throw badRequest("Assessment is closed");
+
+  const existingAttempts = await db.assessmentAttempt.findMany({
+    where: { assessmentId, studentId: userId },
+    orderBy: { attemptNumber: "desc" },
+  });
+  const activeAttempt = existingAttempts.find((a) => a.status === "in_progress" || a.status === "paused");
+  if (activeAttempt) {
+    return { attempt: activeAttempt, resumed: true, assessment: sanitizeAssessmentForStudent(assessment) };
+  }
+  if (existingAttempts.length >= assessment.maxAttempts && assessment.ownerId !== userId) {
+    throw conflict("Maximum number of attempts reached for this assessment");
+  }
+
+  let orderedQuestionIds = assessment.questions.map((q) => q.questionId);
+  if (assessment.shuffleQuestions) {
+    orderedQuestionIds = [...orderedQuestionIds].sort(() => Math.random() - 0.5);
+  }
+  const expiresAt = assessment.duration ? new Date(Date.now() + assessment.duration * 1000) : null;
+  const totalMaxPoints = assessment.questions.reduce((sum, q) => sum + (q.points || 1), 0);
+
+  const attempt = await db.assessmentAttempt.create({
+    data: {
+      assessmentId,
+      studentId: userId,
+      attemptNumber: existingAttempts.length + 1,
+      status: "in_progress",
+      expiresAt,
+      pointsMax: totalMaxPoints,
+      questionOrder: JSON.stringify(orderedQuestionIds),
     },
   });
 
+  return { attempt, resumed: false, assessment: sanitizeAssessmentForStudent(assessment) };
+}
+
+export async function submitAttempt(authCtx: AuthContext, attemptId: string, body: SubmitAttemptBody) {
+  const userId = requireUserId(authCtx);
+  const attempt = await db.assessmentAttempt.findUnique({
+    where: { id: attemptId },
+    include: { assessment: { include: { questions: { include: { question: true } } } } },
+  });
   if (!attempt) throw notFound("Attempt not found");
-  if (attempt.studentId !== authCtx.user.id && authCtx.user.role !== "admin") {
+  if (attempt.studentId !== userId && !isAdmin(authCtx)) {
     throw forbidden("Cannot submit attempt belonging to another user");
   }
-  if (attempt.status === "submitted" || attempt.status === "graded") {
-    return attempt; // Idempotent return
-  }
+  if (attempt.status === "submitted" || attempt.status === "graded") return attempt;
 
   let totalPointsAwarded = 0;
   let totalPointsMax = 0;
-
   const responsesToCreate: any[] = [];
 
   for (const aq of attempt.assessment.questions) {
     const qPoints = aq.points || 1;
     totalPointsMax += qPoints;
-
     const studentResp = body.responses.find((r) => r.questionId === aq.questionId);
     const rawAnswer = studentResp ? studentResp.answer : null;
     const answerStr = typeof rawAnswer === "string" ? rawAnswer : JSON.stringify(rawAnswer ?? null);
-    const timeSpent = studentResp?.timeSpentMs ?? 0;
-
     let parsedPayload: any = {};
     try {
-      parsedPayload = typeof aq.question.payload === "string" ? JSON.parse(aq.question.payload) : aq.question.payload;
+      parsedPayload =
+        typeof aq.question.payload === "string" ? JSON.parse(aq.question.payload) : aq.question.payload;
     } catch {
       parsedPayload = {};
     }
 
-    // Auto-grading logic
     let isCorrect: boolean | null = null;
     let pointsAwarded = 0;
-
     const qType = aq.question.questionType;
     if (qType === "multiple_choice" || qType === "true_false") {
       const correctVal = parsedPayload.correctAnswer ?? parsedPayload.answerKey;
-      if (correctVal !== undefined && rawAnswer !== null && rawAnswer !== undefined) {
+      if (correctVal !== undefined && rawAnswer != null) {
         isCorrect = String(correctVal).trim().toLowerCase() === String(rawAnswer).trim().toLowerCase();
         pointsAwarded = isCorrect ? qPoints : 0;
       }
     } else if (qType === "multiple_select") {
       const correctArr = parsedPayload.correctAnswers || parsedPayload.answerKey || [];
       if (Array.isArray(correctArr) && Array.isArray(rawAnswer)) {
-        const sorted1 = [...correctArr].map(String).sort();
-        const sorted2 = [...rawAnswer].map(String).sort();
-        isCorrect = JSON.stringify(sorted1) === JSON.stringify(sorted2);
+        isCorrect = JSON.stringify([...correctArr].map(String).sort()) === JSON.stringify([...rawAnswer].map(String).sort());
         pointsAwarded = isCorrect ? qPoints : 0;
       }
     } else if (qType === "short_answer" || qType === "fill_blank") {
@@ -694,16 +520,11 @@ export async function submitAttempt(
         ? parsedPayload.acceptableAnswers
         : [parsedPayload.correctAnswer || ""];
       if (typeof rawAnswer === "string") {
-        isCorrect = acceptable.some(
-          (ans) => ans.trim().toLowerCase() === rawAnswer.trim().toLowerCase(),
-        );
+        isCorrect = acceptable.some((ans) => ans.trim().toLowerCase() === rawAnswer.trim().toLowerCase());
         pointsAwarded = isCorrect ? qPoints : 0;
       }
     }
-
-    if (pointsAwarded > 0) {
-      totalPointsAwarded += pointsAwarded;
-    }
+    if (pointsAwarded > 0) totalPointsAwarded += pointsAwarded;
 
     responsesToCreate.push({
       attemptId,
@@ -715,30 +536,23 @@ export async function submitAttempt(
       isCorrect,
       gradedBy: isCorrect !== null ? "auto" : null,
       gradedAt: isCorrect !== null ? new Date() : null,
-      timeSpentMs: timeSpent,
+      timeSpentMs: studentResp?.timeSpentMs ?? 0,
     });
   }
 
-  // Upsert all responses
   for (const resp of responsesToCreate) {
     await db.assessmentResponse.upsert({
-      where: {
-        attemptId_questionId: {
-          attemptId: resp.attemptId,
-          questionId: resp.questionId,
-        },
-      },
+      where: { attemptId_questionId: { attemptId: resp.attemptId, questionId: resp.questionId } },
       update: resp,
       create: resp,
     });
   }
 
   const scorePct = totalPointsMax > 0 ? (totalPointsAwarded / totalPointsMax) * 100 : 100;
-  const passed = attempt.assessment.passingScore !== null && attempt.assessment.passingScore !== undefined
-    ? scorePct >= attempt.assessment.passingScore
-    : scorePct >= 60;
+  const passed =
+    attempt.assessment.passingScore != null ? scorePct >= attempt.assessment.passingScore : scorePct >= 60;
 
-  const updatedAttempt = await db.assessmentAttempt.update({
+  return db.assessmentAttempt.update({
     where: { id: attemptId },
     data: {
       status: "graded",
@@ -750,44 +564,28 @@ export async function submitAttempt(
       pointsMax: totalPointsMax,
       passed,
     },
-    include: {
-      responses: true,
-    },
+    include: { responses: true },
   });
-
-  return updatedAttempt;
 }
 
-export async function listAttempts(
-  authCtx: AuthContext,
-  query: ListAttemptsQuery,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+export async function listAttempts(authCtx: AuthContext, query: ListAttemptsQuery) {
+  const userId = requireUserId(authCtx);
   const { assessmentId, studentId, status, page, pageSize } = query;
   const skip = (page - 1) * pageSize;
-
-  const where: any = {};
+  const where: Record<string, unknown> = {};
 
   if (assessmentId) {
     where.assessmentId = assessmentId;
-    // Check if user is owner of assessment or student
     const assessment = await db.assessment.findUnique({ where: { id: assessmentId } });
-    if (assessment && assessment.ownerId !== authCtx.user.id && authCtx.user.role !== "admin") {
-      // Regular user can only view their own attempts
-      where.studentId = authCtx.user.id;
+    if (assessment && assessment.ownerId !== userId && !isAdmin(authCtx)) {
+      where.studentId = userId;
     }
-  } else if (authCtx.user.role !== "admin") {
-    where.studentId = authCtx.user.id;
+  } else if (!isAdmin(authCtx)) {
+    where.studentId = userId;
   }
 
-  if (studentId && (authCtx.user.role === "admin" || authCtx.user.id === studentId)) {
-    where.studentId = studentId;
-  }
-
-  if (status && status !== "all") {
-    where.status = status;
-  }
+  if (studentId && (isAdmin(authCtx) || userId === studentId)) where.studentId = studentId;
+  if (status && status !== "all") where.status = status;
 
   const [items, total] = await Promise.all([
     db.assessmentAttempt.findMany({
@@ -803,44 +601,23 @@ export async function listAttempts(
     db.assessmentAttempt.count({ where }),
   ]);
 
-  return {
-    items,
-    total,
-    page,
-    pageSize,
-    totalPages: Math.ceil(total / pageSize),
-  };
+  return { items, total, page, pageSize, totalPages: Math.ceil(total / pageSize) };
 }
 
 export async function getAttempt(authCtx: AuthContext, attemptId: string) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+  const userId = requireUserId(authCtx);
   const attempt = await db.assessmentAttempt.findUnique({
     where: { id: attemptId },
     include: {
       student: { select: { id: true, name: true, email: true } },
-      assessment: {
-        include: {
-          questions: {
-            include: { question: true },
-            orderBy: { order: "asc" },
-          },
-        },
-      },
+      assessment: { include: { questions: { include: { question: true }, orderBy: { order: "asc" } } } },
       responses: true,
     },
   });
-
   if (!attempt) throw notFound("Attempt not found");
-
-  const isStudent = authCtx.user.id === attempt.studentId;
-  const isOwner = authCtx.user.id === attempt.assessment.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-
-  if (!isStudent && !isOwner && !isAdmin) {
-    throw forbidden("Not authorized to view this attempt");
-  }
-
+  const allowed =
+    userId === attempt.studentId || userId === attempt.assessment.ownerId || isAdmin(authCtx);
+  if (!allowed) throw forbidden("Not authorized to view this attempt");
   return attempt;
 }
 
@@ -848,38 +625,25 @@ export async function gradeResponse(
   authCtx: AuthContext,
   attemptId: string,
   questionId: string,
-  body: GradeResponseBody,
+  body: GradeResponseBody
 ) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+  const userId = requireUserId(authCtx);
   const attempt = await db.assessmentAttempt.findUnique({
     where: { id: attemptId },
-    include: {
-      assessment: true,
-      responses: true,
-    },
+    include: { assessment: true, responses: true },
   });
-
   if (!attempt) throw notFound("Attempt not found");
-
-  const isOwner = authCtx.user.id === attempt.assessment.ownerId;
-  const isAdmin = authCtx.user.role === "admin" || authCtx.user.role === "super_admin";
-  if (!isOwner && !isAdmin) {
+  if (attempt.assessment.ownerId !== userId && !isAdmin(authCtx)) {
     throw forbidden("Not authorized to grade this attempt");
   }
 
   const updatedResponse = await db.assessmentResponse.upsert({
-    where: {
-      attemptId_questionId: {
-        attemptId,
-        questionId,
-      },
-    },
+    where: { attemptId_questionId: { attemptId, questionId } },
     update: {
       pointsAwarded: body.pointsAwarded,
       isCorrect: body.isCorrect ?? body.pointsAwarded > 0,
       feedback: body.feedback,
-      gradedBy: authCtx.user.id,
+      gradedBy: userId,
       gradedAt: new Date(),
     },
     create: {
@@ -889,19 +653,16 @@ export async function gradeResponse(
       pointsAwarded: body.pointsAwarded,
       isCorrect: body.isCorrect ?? body.pointsAwarded > 0,
       feedback: body.feedback,
-      gradedBy: authCtx.user.id,
+      gradedBy: userId,
       gradedAt: new Date(),
     },
   });
 
-  // Recalculate total attempt score
   const allResponses = await db.assessmentResponse.findMany({ where: { attemptId } });
   const totalAwarded = allResponses.reduce((sum, r) => sum + (r.pointsAwarded || 0), 0);
   const totalMax = attempt.pointsMax || 100;
   const scorePct = (totalAwarded / totalMax) * 100;
-  const passed = attempt.assessment.passingScore !== null
-    ? scorePct >= attempt.assessment.passingScore
-    : scorePct >= 60;
+  const passed = attempt.assessment.passingScore != null ? scorePct >= attempt.assessment.passingScore : scorePct >= 60;
 
   const updatedAttempt = await db.assessmentAttempt.update({
     where: { id: attemptId },
@@ -917,40 +678,20 @@ export async function gradeResponse(
   return { response: updatedResponse, attempt: updatedAttempt };
 }
 
-// -----------------------------------------------------------------------------
-// Question Bank Service Methods
-// -----------------------------------------------------------------------------
-
-export async function listBankQuestions(
-  authCtx: AuthContext,
-  query: ListBankQuestionsQuery,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
+export async function listBankQuestions(authCtx: AuthContext, query: ListBankQuestionsQuery) {
+  const userId = requireUserId(authCtx);
   const { page, pageSize, search, subject, difficulty, questionType, status } = query;
   const skip = (page - 1) * pageSize;
-
-  const where: any = {
-    ownerId: authCtx.user.id,
-  };
-
+  const where: Record<string, unknown> = { ownerId: userId };
   if (subject) where.subject = subject;
   if (difficulty && difficulty !== "all") where.difficulty = difficulty;
   if (questionType) where.questionType = questionType;
   if (status && status !== "all") where.status = status;
   else where.status = "active";
-
-  if (search) {
-    where.payload = { contains: search, mode: "insensitive" };
-  }
+  if (search) where.payload = { contains: search, mode: "insensitive" };
 
   const [items, total] = await Promise.all([
-    db.bankQuestion.findMany({
-      where,
-      skip,
-      take: pageSize,
-      orderBy: { updatedAt: "desc" },
-    }),
+    db.bankQuestion.findMany({ where, skip, take: pageSize, orderBy: { updatedAt: "desc" } }),
     db.bankQuestion.count({ where }),
   ]);
 
@@ -962,10 +703,7 @@ export async function listBankQuestions(
       } catch {
         parsedPayload = {};
       }
-      return {
-        ...q,
-        parsedPayload,
-      };
+      return { ...q, parsedPayload };
     }),
     total,
     page,
@@ -974,17 +712,13 @@ export async function listBankQuestions(
   };
 }
 
-export async function createBankQuestion(
-  authCtx: AuthContext,
-  body: CreateBankQuestionBody,
-) {
-  if (!authCtx.user) throw unauthorized("Authentication required");
-
-  const payloadStr = typeof body.payload === "string" ? body.payload : JSON.stringify(body.payload || { prompt: body.prompt });
-
-  const question = await db.bankQuestion.create({
+export async function createBankQuestion(authCtx: AuthContext, body: CreateBankQuestionBody) {
+  const userId = requireUserId(authCtx);
+  const payloadStr =
+    typeof body.payload === "string" ? body.payload : JSON.stringify(body.payload || { prompt: body.prompt });
+  return db.bankQuestion.create({
     data: {
-      ownerId: authCtx.user.id,
+      ownerId: userId,
       questionType: body.questionType,
       payload: payloadStr,
       subject: body.subject,
@@ -996,198 +730,84 @@ export async function createBankQuestion(
       status: "active",
     },
   });
-
-  return question;
 }
 
-// -----------------------------------------------------------------------------
-// AI Generation Helpers (Powered by OpenRouter DeepSeek V4 Flash)
-// -----------------------------------------------------------------------------
-
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 2000): Promise<T> {
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number = 45000): Promise<T> {
   return Promise.race([
     promise,
-    new Promise<T>((_, reject) =>
-      setTimeout(() => reject(new Error("AI generation timeout")), timeoutMs)
-    ),
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error("AI generation timeout")), timeoutMs)),
   ]);
 }
 
 export async function generateAssessment(authCtx: AuthContext, body: any) {
+  requireUserId(authCtx);
   const topic = body.topic || "General Knowledge";
-  const questionCount = body.questionCount || 5;
+  const questionCount = Math.min(Math.max(Number(body.questionCount) || 5, 1), 15);
+  const language = body.language || "English";
+  if (!process.env.OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not set");
 
-  if (process.env.OPENROUTER_API_KEY) {
-    try {
-      const prompt = `Create a structured ${body.assessmentType || "quiz"} on the topic: "${topic}".
+  const prompt = `Create a ${body.assessmentType || "quiz"} about "${topic}".
 Subject: ${body.subject || "General"}
-Target Grade: ${body.grade || "Secondary / University"}
-Question count: ${questionCount}
-Language: ${body.language || "English"}
+Grade: ${body.grade || "Secondary"}
+Write exactly ${questionCount} questions, all text in ${language}.
 
-Respond ONLY with valid JSON conforming to:
-{
-  "title": string,
-  "description": string,
-  "instructions": string,
-  "assessmentType": "quiz" | "exam" | "practice",
-  "passingScore": number (0-100),
-  "durationMinutes": number,
-  "questions": [
-    {
-      "questionType": "multiple_choice" | "true_false" | "short_answer",
-      "prompt": string,
-      "points": number,
-      "difficulty": "easy" | "medium" | "hard",
-      "payload": {
-        "options": [string, string, string, string],
-        "correctAnswer": string,
-        "explanation": string
-      }
-    }
-  ]
-}`;
+Return ONLY a JSON object.
+{"title":"string","description":"string","instructions":"string","assessmentType":"quiz","passingScore":70,"durationMinutes":20,"questions":[{"questionType":"multiple_choice","prompt":"string","points":1,"difficulty":"medium","payload":{"options":["A","B","C","D"],"correctAnswer":"A","explanation":"string"}}]}`;
 
-      const { data } = await withTimeout(
-        generateStructuredJson<any>({
-          prompt,
-          model: getGeneralModel(),
-          maxTokens: 3500,
-          temperature: 0.3,
-        }),
-        2500
-      );
-
-      return { success: true, ...data };
-    } catch (e) {
-      console.warn("[generateAssessment] OpenRouter error, using fallback outline:", e);
-    }
-  }
-
-  // Fallback structure
-  return {
-    success: true,
-    title: `${topic} Assessment`,
-    description: `Comprehensive evaluation of core concepts in ${topic}.`,
-    instructions: "Answer all questions carefully within the allocated time.",
-    assessmentType: body.assessmentType || "quiz",
-    passingScore: 70,
-    durationMinutes: body.durationMinutes || 30,
-    questions: Array.from({ length: questionCount }).map((_, i) => ({
-      questionType: "multiple_choice",
-      prompt: `Key fundamental concept #${i + 1} regarding ${topic}?`,
-      points: 1,
-      difficulty: "medium",
-      payload: {
-        options: [
-          `Primary foundational principle of ${topic}`,
-          `Secondary factor in modern application`,
-          `Historical misconception`,
-          `Unrelated alternative approach`,
-        ],
-        correctAnswer: `Primary foundational principle of ${topic}`,
-        explanation: `This represents the core principle established under ${topic}.`,
-      },
-    })),
-  };
+  const { data } = await withTimeout(
+    generateStructuredJson<any>({
+      prompt,
+      systemPrompt: "JSON only.",
+      model: getGeneralModel(),
+      maxTokens: 8000,
+      temperature: 0.2,
+    }),
+    60000
+  );
+  if (!data?.questions?.length) throw new Error("AI returned no questions");
+  return { success: true, ...data };
 }
 
 export async function generateQuestions(authCtx: AuthContext, body: any) {
+  requireUserId(authCtx);
   const topic = body.topic || "General Knowledge";
-  const count = body.count || 5;
+  const count = Math.min(Math.max(Number(body.count) || 5, 1), 15);
+  if (!process.env.OPENROUTER_API_KEY) throw new Error("OPENROUTER_API_KEY is not set");
 
-  if (process.env.OPENROUTER_API_KEY) {
-    try {
-      const prompt = `Generate ${count} ${body.difficulty || "medium"} difficulty educational questions on "${topic}".
+  const prompt = `Generate ${count} ${body.difficulty || "medium"} questions on "${topic}".
 Type: ${body.questionType || "multiple_choice"}
 Language: ${body.language || "English"}
+Return ONLY JSON: {"questions":[{"questionType":"multiple_choice","prompt":"string","difficulty":"medium","points":1,"payload":{"options":["A","B","C","D"],"correctAnswer":"A","explanation":"string"}}]}`;
 
-Respond ONLY with valid JSON conforming to:
-{
-  "questions": [
-    {
-      "questionType": "${body.questionType || "multiple_choice"}",
-      "prompt": string,
-      "difficulty": "${body.difficulty || "medium"}",
-      "points": 1,
-      "payload": {
-        "options": [string, string, string, string],
-        "correctAnswer": string,
-        "explanation": string
-      }
-    }
-  ]
-}`;
-
-      const { data } = await withTimeout(
-        generateStructuredJson<{ questions: any[] }>({
-          prompt,
-          model: getGeneralModel(),
-          maxTokens: 3000,
-          temperature: 0.3,
-        }),
-        2500
-      );
-
-      return { success: true, questions: data.questions || [] };
-    } catch (e) {
-      console.warn("[generateQuestions] OpenRouter error, using fallback:", e);
-    }
-  }
-
-  return {
-    success: true,
-    questions: Array.from({ length: count }).map((_, i) => ({
-      questionType: body.questionType || "multiple_choice",
-      prompt: `What is a primary takeaway #${i + 1} from studying ${topic}?`,
-      difficulty: body.difficulty || "medium",
-      points: 1,
-      payload: {
-        options: [
-          `Core mechanism #${i + 1} of ${topic}`,
-          `Alternative perspective A`,
-          `Alternative perspective B`,
-          `None of the above`,
-        ],
-        correctAnswer: `Core mechanism #${i + 1} of ${topic}`,
-        explanation: `Understanding this principle is essential for mastery of ${topic}.`,
-      },
-    })),
-  };
+  const { data } = await withTimeout(
+    generateStructuredJson<{ questions: any[] }>({
+      prompt,
+      systemPrompt: "JSON only.",
+      model: getGeneralModel(),
+      maxTokens: count * 350,
+      temperature: 0.2,
+    }),
+    60000
+  );
+  return { success: true, questions: data.questions || [] };
 }
 
 export async function generateExplanation(authCtx: AuthContext, body: any) {
-  if (process.env.OPENROUTER_API_KEY) {
-    try {
-      const prompt = `Explain clearly why the correct answer is "${body.correctAnswer}" for the question:
-"${body.questionPrompt}"
-Student's answer was: "${body.studentAnswer || "None"}".
-Provide a helpful, pedagogical explanation and a tip for remembering this concept.
-Respond in ${body.language || "English"}.`;
-
-      const { text } = await withTimeout(
-        generateText({
-          prompt,
-          model: getGeneralModel(),
-          maxTokens: 1000,
-          temperature: 0.3,
-        }),
-        2500
-      );
-
-      return {
-        success: true,
-        explanation: text,
-      };
-    } catch (e) {
-      console.warn("[generateExplanation] OpenRouter error, using fallback:", e);
-    }
+  requireUserId(authCtx);
+  if (!process.env.OPENROUTER_API_KEY) {
+    return {
+      success: true,
+      explanation: `The correct answer is "${body.correctAnswer}".`,
+    };
   }
-
-  return {
-    success: true,
-    explanation: `The correct answer is "${body.correctAnswer}". This follows directly from the foundational principles established in the curriculum. To remember this, focus on how "${body.correctAnswer}" directly addresses the requirements in the prompt.`,
-  };
+  const prompt = `Explain why "${body.correctAnswer}" is correct for: "${body.questionPrompt}".
+Student answered: "${body.studentAnswer || "None"}".
+Language: ${body.language || "English"}.`;
+  const { text } = await withTimeout(
+    generateText({ prompt, model: getGeneralModel(), maxTokens: 1000, temperature: 0.3 }),
+    45000
+  );
+  return { success: true, explanation: text };
 }
 
 export async function generatePracticeQuiz(authCtx: AuthContext, body: any) {
@@ -1202,27 +822,14 @@ export async function generatePracticeQuiz(authCtx: AuthContext, body: any) {
 export async function generateRubric(authCtx: AuthContext, body: any) {
   const topic = body.topic || "Educational Assessment";
   const maxPoints = body.maxPoints || 100;
-
   return {
     success: true,
     name: `${topic} Evaluation Rubric`,
     maxPoints,
     criteria: [
-      {
-        name: "Conceptual Understanding",
-        maxPoints: Math.round(maxPoints * 0.4),
-        description: "Demonstrates thorough grasp of key ideas, definitions, and underlying principles.",
-      },
-      {
-        name: "Application & Problem Solving",
-        maxPoints: Math.round(maxPoints * 0.4),
-        description: "Applies theoretical concepts effectively to practical scenarios with accurate analysis.",
-      },
-      {
-        name: "Clarity & Organization",
-        maxPoints: Math.round(maxPoints * 0.2),
-        description: "Presents answers with logical structure, concise reasoning, and accurate terminology.",
-      },
+      { name: "Conceptual Understanding", maxPoints: Math.round(maxPoints * 0.4), description: "Key ideas and principles." },
+      { name: "Application & Problem Solving", maxPoints: Math.round(maxPoints * 0.4), description: "Apply concepts to problems." },
+      { name: "Clarity & Organization", maxPoints: Math.round(maxPoints * 0.2), description: "Clear structure and terms." },
     ],
   };
 }

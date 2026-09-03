@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
+import { notFound } from "next/navigation";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -9,9 +10,6 @@ import { ThemeProvider } from "@/components/edubek/theme-provider";
 import { QueryProvider } from "@/components/edubek/query-provider";
 import { routing, getDir, type Locale } from "@/i18n/routing";
 
-// Geist ships both Latin and Cyrillic subsets. Cyrillic is required for
-// Uzbek (Cyrillic variant) and Russian — otherwise those locales fall
-// back to system fonts and look broken.
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin", "cyrillic"],
@@ -22,7 +20,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin", "cyrillic"],
 });
 
-// Enable static rendering for all locales
+function resolveLocale(locale: string | undefined): Locale {
+  if (locale && routing.locales.includes(locale as Locale)) {
+    return locale as Locale;
+  }
+  return routing.defaultLocale;
+}
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
@@ -32,7 +36,9 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
+
   const title = "EduBek — Connected Learning Ecosystem";
   const description =
     "EduBek is a connected learning ecosystem uniting interactive quizzes, knowledge discovery, contextual AI assistance, teacher workspaces, and an educational marketplace.";
@@ -88,12 +94,14 @@ export default async function LocaleLayout({
   children: React.ReactNode;
   params: Promise<{ locale: string }>;
 }>) {
-  const { locale } = await params;
+  const { locale: rawLocale } = await params;
+  const locale = resolveLocale(rawLocale);
 
-  // Enable static rendering
+  if (!routing.locales.includes(locale)) {
+    notFound();
+  }
+
   setRequestLocale(locale);
-
-  // Load messages for the current locale
   const messages = await getMessages();
 
   return (
@@ -102,6 +110,7 @@ export default async function LocaleLayout({
       dir={getDir(locale)}
       suppressHydrationWarning
       className="scroll-smooth"
+      data-scroll-behavior="smooth"
     >
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}

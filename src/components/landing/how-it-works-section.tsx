@@ -154,7 +154,7 @@ export function HowItWorksSection() {
                   </div>
                   <div>
                     <span className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
-                      {t("stage", { num: current.num })}
+                      {t("stage", { num: current?.num ?? 1 })}
                     </span>
                     <h4 className="text-lg font-bold text-foreground">{current.previewTitle}</h4>
                   </div>

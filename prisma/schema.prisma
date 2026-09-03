@@ -16,6 +16,7 @@ model User {
   name                 String?
   username             String?                      @unique
   avatarUrl            String?
+  primaryRole          String?                      @default("student")
   bio                  String?
   country              String?
   timezone             String?

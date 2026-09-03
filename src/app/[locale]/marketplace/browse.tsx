@@ -259,7 +259,7 @@ export function MarketplaceBrowse() {
           </div>
         ) : listings.length === 0 ? (
           <EmptyState
-            icon={Store}
+            icon={<Store className="h-6 w-6" />}
             title={t("emptyTitle")}
             description={t("emptyDescription")}
             action={

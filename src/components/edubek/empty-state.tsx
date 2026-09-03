@@ -5,12 +5,17 @@ import { FolderOpen } from "lucide-react";
 export interface EmptyStateProps {
   title: string;
   description?: string;
-  icon?: React.ReactNode;
+  icon?: React.ReactNode | React.ComponentType<{ className?: string }>;
   action?: React.ReactNode;
   className?: string;
 }
 
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
+  const iconNode =
+    typeof icon === "function"
+      ? React.createElement(icon, { className: "h-6 w-6" })
+      : icon;
+
   return (
     <div
       className={cn(
@@ -19,10 +24,12 @@ export function EmptyState({ title, description, icon, action, className }: Empt
       )}
     >
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
-        {icon || <FolderOpen className="h-6 w-6" />}
+        {iconNode || <FolderOpen className="h-6 w-6" />}
       </div>
       <h3 className="text-base font-semibold tracking-tight">{title}</h3>
-      {description && <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">{description}</p>}
+      {description && (
+        <p className="mt-1.5 max-w-sm text-sm text-muted-foreground">{description}</p>
+      )}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );

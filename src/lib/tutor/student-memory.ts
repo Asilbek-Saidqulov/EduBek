@@ -322,10 +322,10 @@ export async function getStudentMemory(
         locale: true,
         profile: {
           select: {
-            bio: true,
+            displayName: true,
           },
         },
-        preferences: {
+        userPreferences: {
           select: {
             preferredDifficulty: true,
             preferredLanguage: true,
@@ -337,8 +337,8 @@ export async function getStudentMemory(
 
     if (user) {
       profile.name = user.name || undefined;
-      profile.locale = user.preferences?.preferredLanguage || user.locale || "uz";
-      profile.preferredDifficulty = user.preferences?.preferredDifficulty || "medium";
+      profile.locale = user.userPreferences?.preferredLanguage || user.locale || "uz";
+      profile.preferredDifficulty = user.userPreferences?.preferredDifficulty || "medium";
     }
 
     // 2. Fetch Candidate Memory Pool from Database (top 50 active memories)

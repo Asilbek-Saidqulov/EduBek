@@ -105,6 +105,7 @@ export async function registerUser(
 
   // Hash password
   const passwordHash = await bcrypt.hash(input.password, 10);
+  const primaryRole = input.role === "teacher" ? "teacher" : "student";
 
   // Create user with profile, default role, and wallet
   const createdUser = await (db as any).user.create({
@@ -115,19 +116,20 @@ export async function registerUser(
       username,
       locale: input.locale || "uz",
       country: input.country || "UZ",
+      primaryRole,
       profile: {
         create: {
           displayName: input.name.trim(),
         },
       },
       roles: {
-        create: [{ role: "user" }],
+        create: [{ role: "user" }, { role: primaryRole }],
       },
       wallet: {
         create: {
-          eduTokensBalance: 250,
+          eduTokensBalance: 0,
           fiatBalance: 0,
-          currency: "USD",
+          currency: "UZS",
         },
       },
     },

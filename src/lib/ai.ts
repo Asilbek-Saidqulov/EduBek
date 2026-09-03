@@ -126,6 +126,29 @@ export function cleanModelOutputText(rawText: string): string {
   return cleaned || rawText.trim();
 }
 
+function extractJson(text: string): string {
+  let s = cleanModelOutputText(text)
+    .replace(/```json/gi, "")
+    .replace(/```/g, "")
+    .trim();
+
+  const startObj = s.indexOf("{");
+  const startArr = s.indexOf("[");
+  let start = -1;
+  if (startObj === -1) start = startArr;
+  else if (startArr === -1) start = startObj;
+  else start = Math.min(startObj, startArr);
+
+  const endObj = s.lastIndexOf("}");
+  const endArr = s.lastIndexOf("]");
+  const end = Math.max(endObj, endArr);
+
+  if (start >= 0 && end > start) s = s.slice(start, end + 1);
+
+  s = s.replace(/,\s*([}\]])/g, "$1");
+  return s;
+}
+
 /**
  * Clean markdown json blocks and parse
  */
@@ -134,7 +157,7 @@ function parseJsonSafely<T>(rawText: string, schema?: z.ZodType<T>): T {
   let parsed: any;
 
   try {
-    parsed = JSON.parse(cleanedText);
+    parsed = JSON.parse(extractJson(rawText));
   } catch {
     // Strip markdown code fences if present
     const stripped = cleanedText

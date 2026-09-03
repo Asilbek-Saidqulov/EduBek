@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
       // Backward compatibility fields
       balance: prismaWallet?.wallet.eduTokensBalance ?? aiCredits.availableUnits,
       eduTokensBalance: prismaWallet?.wallet.eduTokensBalance ?? 0,
-      fiatBalance: prismaWallet?.wallet.fiatBalance ?? Number(creator.availableUzs) || 0,
+      fiatBalance: prismaWallet?.wallet.fiatBalance ?? (Number(creator.availableUzs) || 0),
       lockedEduTokens: aiCredits.reservedUnits,
       currency: "UZS",
       walletId: aiCredits.id,

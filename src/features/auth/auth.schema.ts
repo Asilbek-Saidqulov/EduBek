@@ -30,6 +30,7 @@ export const registerBodySchema = z.object({
     .optional(),
   locale: z.enum(["en", "uz", "ru"]).optional().default("uz"),
   country: z.string().max(10).optional().default("UZ"),
+  role: z.enum(["student", "teacher"]).default("student"),
 });
 
 export const refreshBodySchema = z.object({

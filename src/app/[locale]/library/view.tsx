@@ -161,11 +161,14 @@ export function LibraryView() {
         </div>
       ) : resources.length === 0 ? (
         <EmptyState
-          icon={Library}
+          icon={<Library className="h-6 w-6" />}
           title={t("emptyTitle")}
           description={t("emptyDescription")}
-          ctaLabel={t("goToMarketplace")}
-          ctaHref="/marketplace"
+          action={
+            <Button asChild>
+              <Link href="/marketplace">{t("goToMarketplace")}</Link>
+            </Button>
+          }
         />
       ) : (
         <>

@@ -61,3 +61,27 @@ export async function listPurchases(ctx: AuthContext) {
   });
   return { success: true, items };
 }
+
+export async function getPurchase(ctx: AuthContext, id: string) {
+  requireAuth(ctx);
+  const row = await db.marketplacePurchase.findUnique({
+    where: { id },
+    include: { listing: true },
+  });
+  if (!row) throw notFound("Purchase not found");
+  if (row.buyerId !== ctx.userId && !ctx.platformRoles?.includes("ADMIN")) {
+    throw notFound("Purchase not found");
+  }
+  return row;
+}
+
+export async function refundPurchase(ctx: AuthContext, id: string) {
+  requireAuth(ctx);
+  const row = await getPurchase(ctx, id);
+  return {
+    success: false,
+    code: "REFUND_DISABLED",
+    message: "Marketplace refunds stay off until the UZS refund path is live.",
+    purchaseId: row.id,
+  };
+}

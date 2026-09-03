@@ -84,8 +84,11 @@ export function WalletView() {
         icon={WalletIcon}
         title={t("signInRequired")}
         description={t("signInRequiredDesc")}
-        ctaLabel={tCommon("signIn")}
-        ctaHref="/login"
+        action={
+          <Button asChild>
+            <Link href="/login">{t("signIn")}</Link>
+          </Button>
+        }
       />
     );
   }
@@ -159,8 +162,11 @@ export function WalletView() {
             icon={Coins}
             title={t("emptyTitle")}
             description={t("emptyDescription")}
-            ctaLabel={t("goToMarketplace")}
-            ctaHref="/marketplace"
+            action={
+              <Button asChild>
+                <Link href="/marketplace">{t("spendInMarketplace")}</Link>
+              </Button>
+            }
           />
         ) : (
           <div className="space-y-2">

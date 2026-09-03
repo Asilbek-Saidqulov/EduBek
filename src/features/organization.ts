@@ -11,6 +11,14 @@ export const createInvitationBodySchema = z.object({
   email: z.string().email(),
   roleName: z.string().optional(),
 });
+
+export const orgSlugParamsSchema = z.object({
+  slug: z.string().min(1).optional(),
+  organizationSlug: z.string().min(1).optional(),
+}).transform((v) => ({
+  slug: v.slug || v.organizationSlug || "",
+}));
+
 export type CreateInvitationBody = z.infer<typeof createInvitationBodySchema>;
 
 async function requireOwnerAdmin(userId: string, orgId: string) {

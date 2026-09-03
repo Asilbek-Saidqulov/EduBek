@@ -165,10 +165,17 @@ export function GameModePicker({
         const on = selected === mode.id;
         const darkText = mode.id === "royale" || mode.id === "heist";
         return (
-          <button
+          <div 
+            role="button" 
+            tabIndex={0}
             key={mode.id}
-            type="button"
             onClick={() => onSelect(mode.id)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onSelect(mode.id);
+              }
+            }}
             className={`mode-shine relative overflow-hidden rounded-2xl border text-left p-5 min-h-[220px] flex flex-col justify-between transition-all duration-300 ${skin.card} ${on ? `${skin.selected} ${mode.id === "royale" || mode.id === "heist" ? "mode-glow" : ""}` : "hover:-translate-y-1 hover:shadow-lg"}`}
           >
             <div className={`pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br ${skin.glow} to-transparent ${on ? "mode-pulse" : ""}`} />
@@ -221,7 +228,7 @@ export function GameModePicker({
                 {multiplayerLabel}
               </Button>
             </div>
-          </button>
+          </div>
         );
       })}
     </div>
