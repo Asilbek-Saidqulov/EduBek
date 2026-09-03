@@ -17620,7 +17620,13 @@
       "practice": "Mashq",
       "practiceDesc": "Kviz va o‘yin rejimlari",
       "classes": "Sinflar",
-      "classesDesc": "Sinflaringiz va topshiriqlar"
+      "classesDesc": "Sinflaringiz va topshiriqlar",
+      "openClass": "Sinfni ochish",
+      "openClassDesc": "Sinf va topshiriqlarni ko‘rish",
+      "createQuiz": "Savollar yaratish",
+      "createQuizDesc": "AI yordamida yangi savollar yarating",
+      "previewTutor": "Repetitor",
+      "previewTutorDesc": "Repetitorni sinab ko‘ring"
     },
     "continue": {
       "title": "Davom etish",
@@ -17637,7 +17643,8 @@
       "emptyStudent": "Hali sinfga qo‘shilmagansiz.",
       "emptyTeacher": "Hali sinf yo‘q.",
       "join": "Qo‘shilish",
-      "create": "Sinf yaratish"
+      "create": "Sinf yaratish",
+      "meta": "{students} o‘quvchi, {assignments} topshiriq"
     },
     "credits": {
       "title": "AI kreditlar",

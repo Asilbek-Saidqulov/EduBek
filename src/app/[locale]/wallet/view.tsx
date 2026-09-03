@@ -86,7 +86,7 @@ export function WalletView() {
         description={t("signInRequiredDesc")}
         action={
           <Button asChild>
-            <Link href="/login">{t("signIn")}</Link>
+            <Link href="/login">{tCommon("signIn")}</Link>
           </Button>
         }
       />

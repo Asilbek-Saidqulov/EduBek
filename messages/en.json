@@ -17585,7 +17585,7 @@
       "openClassDesc": "Students, tasks, and gradebook",
       "createQuiz": "Create quiz",
       "createQuizDesc": "Make a quiz for your class or the marketplace.",
-      "PreviewTutor": "Preview tutor",
+      "PreviewTutor": "Tutor",
       "PreviewTutorDesc": "See how the AI tutor can help your students."
     },
     "continue": {
@@ -17603,7 +17603,8 @@
       "emptyTeacher": "You haven't created any classes yet. Create one to start teaching.",
       "emptyStudent": "You haven't joined any classes yet. Ask your teacher for a class code to join.",
       "create": "Create class",
-      "join": "Join class"
+      "join": "Join class",
+      "meta": "{students} students • {assignment} tasks"
     },
     "credits": {
       "title": "AI credits",

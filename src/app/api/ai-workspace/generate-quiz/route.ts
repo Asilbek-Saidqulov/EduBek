@@ -27,7 +27,6 @@ const quizOutputSchema = z.object({
         .array(z.string().min(1, "Option cannot be empty"))
         .length(4, "Must have exactly 4 options"),
       correctIndex: z.number().int().min(0).max(3),
-      explanation: z.string().min(5, "Explanation must be at least 5 characters"),
     })
   ).min(1, "At least one question must be generated"),
 });
@@ -115,9 +114,8 @@ Rules:
 1. Each question must test genuine conceptual understanding or problem-solving.
 2. Every question must have exactly 4 plausible, mutually exclusive options.
 3. correctIndex MUST accurately correspond to the single correct option (0, 1, 2, or 3).
-4. Provide a clear, educational, step-by-step explanation for why the correct option is true and how to derive it.
-5. Difficulty: ${difficulty}.
-6. Total questions: ${count}.`;
+4. Difficulty: ${difficulty}.
+5. Total questions: ${count}.`;
 
     const userPrompt = `Generate a ${count}-question multiple choice quiz on the topic: "${topic}".
 Difficulty level: ${difficulty}.
@@ -129,8 +127,7 @@ Return valid JSON with the structure:
     {
       "question": "Question text...",
       "options": ["Option A", "Option B", "Option C", "Option D"],
-      "correctIndex": 0,
-      "explanation": "Step-by-step reasoning..."
+      "correctIndex": 0,    
     }
   ]
 }`;

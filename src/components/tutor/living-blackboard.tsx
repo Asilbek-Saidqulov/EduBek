@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -18,6 +18,10 @@ import {
   FileCode,
   Layers,
   ChevronRight,
+  ChevronDown,
+  Copy,
+  Check,
+  List,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type {
@@ -37,11 +41,9 @@ interface LivingBlackboardProps {
   isSaving?: boolean;
 }
 
-// Safe SVG Renderer with basic sanitization
 function SafeSvgDiagram({ svg, caption }: { svg: string; caption?: string }) {
   const sanitizedSvg = useMemo(() => {
     if (!svg) return "";
-    // Basic SVG cleanup: ensure it doesn't contain script or foreignObject tags
     return svg
       .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
       .replace(/<foreignObject[\s\S]*?>[\s\S]*?<\/foreignObject>/gi, "")
@@ -50,7 +52,7 @@ function SafeSvgDiagram({ svg, caption }: { svg: string; caption?: string }) {
   }, [svg]);
 
   return (
-    <div className="my-4 rounded-2xl border border-border/80 bg-card p-4 sm:p-6 shadow-sm overflow-hidden">
+    <div className="my-4 rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-6 overflow-hidden">
       <div
         className="w-full flex items-center justify-center min-h-[160px] max-h-[420px] overflow-auto [&>svg]:max-w-full [&>svg]:h-auto text-foreground"
         dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
@@ -68,46 +70,46 @@ const sectionConfig = {
   concept: {
     icon: BookOpen,
     labelKey: "sectionConcept",
-    badgeClass: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
-    borderClass: "border-l-emerald-500",
+    badgeClass: "bg-emerald-500/20 text-emerald-200 border-emerald-400/30",
+    rail: "from-emerald-400 to-emerald-600",
   },
   explanation: {
     icon: Sparkles,
     labelKey: "sectionExplanation",
-    badgeClass: "bg-sky-500/15 text-sky-700 dark:text-sky-300 border-sky-500/30",
-    borderClass: "border-l-sky-500",
+    badgeClass: "bg-sky-500/20 text-sky-200 border-sky-400/30",
+    rail: "from-sky-400 to-sky-600",
   },
   derivation: {
     icon: BrainCircuit,
     labelKey: "sectionDerivation",
-    badgeClass: "bg-violet-500/15 text-violet-700 dark:text-violet-300 border-violet-500/30",
-    borderClass: "border-l-violet-500",
+    badgeClass: "bg-violet-500/20 text-violet-200 border-violet-400/30",
+    rail: "from-violet-400 to-violet-600",
   },
   example: {
     icon: FileCode,
     labelKey: "sectionExample",
-    badgeClass: "bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30",
-    borderClass: "border-l-amber-500",
+    badgeClass: "bg-amber-500/20 text-amber-200 border-amber-400/30",
+    rail: "from-amber-400 to-amber-600",
   },
   diagram: {
     icon: Layers,
     labelKey: "sectionDiagram",
-    badgeClass: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/30",
-    borderClass: "border-l-indigo-500",
+    badgeClass: "bg-indigo-500/20 text-indigo-200 border-indigo-400/30",
+    rail: "from-indigo-400 to-indigo-600",
   },
   checkpoint: {
     icon: CheckCircle2,
     labelKey: "sectionCheckpoint",
-    badgeClass: "bg-teal-500/15 text-teal-700 dark:text-teal-300 border-teal-500/30",
-    borderClass: "border-l-teal-500",
+    badgeClass: "bg-teal-500/20 text-teal-200 border-teal-400/30",
+    rail: "from-teal-400 to-teal-600",
   },
   summary: {
     icon: Bookmark,
     labelKey: "sectionSummary",
-    badgeClass: "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/30",
-    borderClass: "border-l-rose-500",
+    badgeClass: "bg-rose-500/20 text-rose-200 border-rose-400/30",
+    rail: "from-rose-400 to-rose-600",
   },
-};
+} as const;
 
 export function LivingBlackboard({
   document,
@@ -119,6 +121,8 @@ export function LivingBlackboard({
   isSaving = false,
 }: LivingBlackboardProps) {
   const t = useTranslations("tutor");
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleAnswerCheckpoint = (checkpointId: string, answeredIndex: number) => {
     dispatch({
@@ -132,59 +136,54 @@ export function LivingBlackboard({
     dispatch({ type: "CLEAR_DOCUMENT" });
   };
 
+  const copySection = async (section: BlackboardSection) => {
+    const text = `${section.title}\n\n${section.content || ""}`.trim();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(section.id);
+      setTimeout(() => setCopiedId(null), 1500);
+    } catch {
+      /* ignore */
+    }
+  };
+
   const starterSuggestions = [
-    {
-      title: t("starter1Title"),
-      desc: t("starter1Desc"),
-      prompt: t("starter1Prompt"),
-    },
-    {
-      title: t("starter2Title"),
-      desc: t("starter2Desc"),
-      prompt: t("starter2Prompt"),
-    },
-    {
-      title: t("starter3Title"),
-      desc: t("starter3Desc"),
-      prompt: t("starter3Prompt"),
-    },
+    { title: t("starter1Title"), desc: t("starter1Desc"), prompt: t("starter1Prompt") },
+    { title: t("starter2Title"), desc: t("starter2Desc"), prompt: t("starter2Prompt") },
+    { title: t("starter3Title"), desc: t("starter3Desc"), prompt: t("starter3Prompt") },
   ];
 
   return (
-    <div className="flex flex-col h-full bg-background rounded-2xl border border-border/80 shadow-sm overflow-hidden">
-      {/* Top Header / Document Toolbar */}
-      <header className="px-5 py-3.5 border-b border-border/70 bg-card/60 backdrop-blur flex flex-wrap items-center justify-between gap-3 shrink-0">
+    <div className="flex flex-col h-full rounded-2xl border border-emerald-900/40 shadow-xl overflow-hidden bg-[#13261c] text-emerald-50">
+      <header className="px-5 py-3.5 border-b border-white/10 bg-black/25 backdrop-blur flex flex-wrap items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-emerald-400/15 text-emerald-200 flex items-center justify-center shrink-0">
             <Compass className="w-5 h-5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-foreground truncate">
+              <h2 className="text-base sm:text-lg font-bold truncate">
                 {document.title || t("untitledLesson")}
               </h2>
               {document.subject && (
-                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground">
+                <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-white/10">
                   {document.subject}
                 </span>
               )}
             </div>
-            <p className="text-xs text-muted-foreground truncate">
-              {document.topic
-                ? `${t("topic")}: ${document.topic}`
-                : t("blackboardSubtitle")}
+            <p className="text-xs text-emerald-100/60 truncate">
+              {document.topic ? `${t("topic")}: ${document.topic}` : t("blackboardSubtitle")}
             </p>
           </div>
         </div>
 
-        {/* Action Buttons Toolbar */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             type="button"
             disabled={!canUndo}
             onClick={() => dispatch({ type: "UNDO" })}
             title={t("undo")}
-            className="p-2 rounded-lg border border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/60 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+            className="p-2 rounded-lg border border-white/10 text-emerald-100/70 hover:bg-white/10 disabled:opacity-40"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -193,7 +192,7 @@ export function LivingBlackboard({
             disabled={!canRedo}
             onClick={() => dispatch({ type: "REDO" })}
             title={t("redo")}
-            className="p-2 rounded-lg border border-border/70 text-muted-foreground hover:text-foreground hover:bg-muted/60 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+            className="p-2 rounded-lg border border-white/10 text-emerald-100/70 hover:bg-white/10 disabled:opacity-40"
           >
             <RotateCw className="w-4 h-4" />
           </button>
@@ -202,17 +201,16 @@ export function LivingBlackboard({
             onClick={handleClear}
             disabled={document.sections.length === 0}
             title={t("clear")}
-            className="p-2 rounded-lg border border-border/70 text-muted-foreground hover:text-rose-600 hover:bg-rose-500/10 disabled:opacity-40 disabled:pointer-events-none transition-colors"
+            className="p-2 rounded-lg border border-white/10 text-emerald-100/70 hover:text-rose-300 hover:bg-rose-500/10 disabled:opacity-40"
           >
             <Trash2 className="w-4 h-4" />
           </button>
-
           {onSaveToLibrary && (
             <button
               type="button"
               onClick={onSaveToLibrary}
               disabled={isSaving || document.sections.length === 0}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors ml-1"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-500 text-emerald-950 text-xs font-semibold hover:bg-emerald-400 disabled:opacity-50 ml-1"
             >
               <Bookmark className="w-3.5 h-3.5" />
               <span>{isSaving ? t("saving") : t("save")}</span>
@@ -221,27 +219,23 @@ export function LivingBlackboard({
         </div>
       </header>
 
-      {/* Main Living Document Scroll Canvas */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-5 bg-[radial-gradient(circle_at_top,_rgba(52,211,153,0.08),_transparent_42%),linear-gradient(to_bottom,_rgba(255,255,255,0.03)_1px,_transparent_1px)] bg-[length:100%_100%,100%_28px]">
         {document.sections.length === 0 ? (
-          /* Empty Educational State */
           <div className="max-w-2xl mx-auto py-8 sm:py-12 text-center space-y-8">
             <div className="space-y-3">
-              <div className="w-14 h-14 mx-auto rounded-2xl bg-primary/10 text-primary flex items-center justify-center">
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-400/15 text-emerald-200 flex items-center justify-center">
                 <BrainCircuit className="w-7 h-7" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold tracking-tight">
                 {t("emptyTitle")}
               </h3>
-              <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
+              <p className="text-sm text-emerald-100/70 max-w-lg mx-auto leading-relaxed">
                 {t("emptyDescription")}
               </p>
             </div>
-
-            {/* Quick Starters */}
             {onQuickPrompt && (
               <div className="space-y-3 pt-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                <span className="text-xs font-semibold uppercase tracking-wider text-emerald-100/50">
                   {t("quickStartTopics")}
                 </span>
                 <div className="grid gap-3 sm:grid-cols-3 text-left">
@@ -250,17 +244,13 @@ export function LivingBlackboard({
                       key={idx}
                       type="button"
                       onClick={() => onQuickPrompt(starter.prompt)}
-                      className="p-4 rounded-xl border border-border/80 bg-card hover:border-primary/50 hover:bg-muted/40 transition-all text-left group flex flex-col justify-between"
+                      className="p-4 rounded-xl border border-white/10 bg-black/20 hover:border-emerald-400/40 hover:bg-black/35 transition-all text-left group"
                     >
-                      <div>
-                        <h4 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors mb-1">
-                          {starter.title}
-                        </h4>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
-                          {starter.desc}
-                        </p>
-                      </div>
-                      <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-primary">
+                      <h4 className="text-sm font-semibold mb-1 group-hover:text-emerald-200">
+                        {starter.title}
+                      </h4>
+                      <p className="text-xs text-emerald-100/55 line-clamp-2">{starter.desc}</p>
+                      <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-emerald-300">
                         <span>{t("startLesson")}</span>
                         <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </div>
@@ -271,67 +261,140 @@ export function LivingBlackboard({
             )}
           </div>
         ) : (
-          /* Structured Sections List */
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="max-w-4xl mx-auto space-y-4">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+              <List className="w-3.5 h-3.5 shrink-0 text-emerald-200/70" />
+              {document.sections.map((section) => {
+                const cfg = sectionConfig[section.type] || sectionConfig.explanation;
+                return (
+                  <button
+                    key={section.id}
+                    type="button"
+                    onClick={() =>
+                      window.document
+                        .getElementById(`section-${section.id}`)
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                    className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full border border-white/10 bg-black/20 hover:bg-black/40"
+                  >
+                    {t(cfg.labelKey as any)}
+                  </button>
+                );
+              })}
+            </div>
+
             {document.sections.map((section: BlackboardSection) => {
               const cfg = sectionConfig[section.type] || sectionConfig.explanation;
               const Icon = cfg.icon;
+              const isClosed = !!collapsed[section.id];
 
               return (
                 <article
                   key={section.id}
                   id={`section-${section.id}`}
-                  className={`rounded-2xl border bg-card p-5 sm:p-7 transition-all duration-300 shadow-sm relative ${
+                  className={`relative rounded-2xl border bg-black/25 p-5 sm:p-6 transition-all duration-300 ${
                     section.highlighted
-                      ? "ring-2 ring-primary/60 border-primary/50 bg-primary/[0.02]"
-                      : "border-border/80 hover:border-border"
-                  } ${cfg.borderClass} border-l-4`}
+                      ? "border-emerald-400/50 ring-2 ring-emerald-400/30"
+                      : "border-white/10"
+                  }`}
                 >
-                  {/* Section Top Tag */}
-                  <div className="flex items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-2">
+                  <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-full bg-gradient-to-b ${cfg.rail}`} />
+
+                  <div className="flex items-start justify-between gap-2 mb-3 pl-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <span
                         className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-lg border ${cfg.badgeClass}`}
                       >
                         <Icon className="w-3.5 h-3.5" />
                         {t(cfg.labelKey as any) || section.type}
                       </span>
-                      <h3 className="text-base sm:text-lg font-bold text-foreground">
-                        {section.title}
-                      </h3>
+                      <h3 className="text-base sm:text-lg font-bold truncate">{section.title}</h3>
                     </div>
-
-                    <span className="text-[11px] font-mono text-muted-foreground/70">
-                      #{section.order}
-                    </span>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => copySection(section)}
+                        className="p-1.5 rounded-md text-emerald-100/60 hover:bg-white/10"
+                        title="Copy"
+                      >
+                        {copiedId === section.id ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-300" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCollapsed((prev) => ({ ...prev, [section.id]: !prev[section.id] }))
+                        }
+                        className="p-1.5 rounded-md text-emerald-100/60 hover:bg-white/10"
+                      >
+                        {isClosed ? (
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Markdown + LaTeX content */}
-                  {section.content && (
-                    <div className="prose prose-slate dark:prose-invert max-w-none text-foreground/90 leading-relaxed text-sm sm:text-base font-normal">
-                      <ReactMarkdown
-                        remarkPlugins={[remarkMath]}
-                        rehypePlugins={[rehypeKatex]}
-                      >
-                        {section.content}
-                      </ReactMarkdown>
+                  {!isClosed && (
+                    <div className="pl-2 space-y-4">
+                      {section.content && (
+                        <div className="prose prose-invert max-w-none text-emerald-50/90 leading-relaxed text-sm sm:text-base">
+                          <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
+                            {section.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
+
+                      {section.diagramData && (
+                        <SafeSvgDiagram
+                          svg={section.diagramData.svg}
+                          caption={section.diagramData.caption}
+                        />
+                      )}
+
+                      {section.checkpointData && (
+                        <InteractiveCheckpointCard
+                          checkpoint={section.checkpointData}
+                          onAnswer={handleAnswerCheckpoint}
+                        />
+                      )}
+
+                      {onQuickPrompt && (
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onQuickPrompt(`${t("quickStepExamplePrompt")} (${section.title})`)
+                            }
+                            className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 hover:bg-white/10"
+                          >
+                            {t("quickStepExample")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onQuickPrompt(`${t("quickAddDiagramPrompt")} (${section.title})`)
+                            }
+                            className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 hover:bg-white/10"
+                          >
+                            {t("quickAddDiagram")}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onQuickPrompt(`${t("quickAddQuizPrompt")} (${section.title})`)
+                            }
+                            className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 hover:bg-white/10"
+                          >
+                            {t("quickAddQuiz")}
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
-
-                  {/* Embedded Diagram if present */}
-                  {section.diagramData && (
-                    <SafeSvgDiagram
-                      svg={section.diagramData.svg}
-                      caption={section.diagramData.caption}
-                    />
-                  )}
-
-                  {/* Embedded Checkpoint if present */}
-                  {section.checkpointData && (
-                    <InteractiveCheckpointCard
-                      checkpoint={section.checkpointData}
-                      onAnswer={handleAnswerCheckpoint}
-                    />
                   )}
                 </article>
               );

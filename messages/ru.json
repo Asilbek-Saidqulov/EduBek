@@ -17603,7 +17603,8 @@
       "emptyStudent": "Вы ещё не в классе.",
       "emptyTeacher": "Классов пока нет.",
       "join": "Присоединиться",
-      "create": "Создать класс"
+      "create": "Создать класс",
+      "meta": "{students} учеников, {assignments} заданий"
     },
     "credits": {
       "title": "AI-кредиты",
