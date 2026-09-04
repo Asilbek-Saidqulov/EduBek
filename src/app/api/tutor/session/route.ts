@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db as prisma } from "@/lib/db";
 import { getAuthContext } from "@/features/auth";
+import { cleanModelOutputText } from "@/lib/ai";
 import {
   chatCompletion,
   getTutorModel,
@@ -610,8 +611,12 @@ STUDENT MESSAGE:
 
     const executedTools: Array<{ name: string; args: any; result: any }> = [];
     const clientMutations: any[] = [];
-    let assistantText = chatResult.text || "";
-
+    let assistantText = cleanModelOutputText(chatResult.text || "");
+    assistantText = assistantText
+      .replace(/<\/?think>/gi, "")
+      .replace(/^[\s\S]*?<\/think>/i, "")
+      .trim();
+      
     // Execute any tool calls returned by Qwen3.5-Flash
     if (chatResult.toolCalls && chatResult.toolCalls.length > 0) {
       for (const call of chatResult.toolCalls) {

@@ -4,7 +4,12 @@ import createNextIntlPlugin from "next-intl/plugin";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
-  output: "standalone",
+  // Standalone output causes Vercel builds to fail with:
+  // ENOENT: no such file or directory, open '/vercel/path0/.next/next-server.js.nft.json'
+  // Only enable standalone for self-hosted container builds when explicitly requested.
+  ...(process.env.BUILD_STANDALONE === "true" && !process.env.VERCEL
+    ? { output: "standalone" as const }
+    : {}),  
   async rewrites() {
     const realtime = process.env.REALTIME_URL || "http://127.0.0.1:3001";
     return [{ source: "/api/socket/io", destination: `${realtime}/api/socket/io` },
