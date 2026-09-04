@@ -292,11 +292,15 @@ export async function getClassroom(authCtx: AuthContext, classroomId: string) {
     }));
   } else {
     // For student: query student's attempts for each assignment in this classroom
-    const assignmentIds = classroom.assignments.map((a) => a.id);
+    const assessmentIds = classroom.assignments.map((a) => a.assessmentId).filter(Boolean) as string[];
     const studentAttempts = await db.assessmentAttempt.findMany({
       where: {
-        assignmentId: { in: assignmentIds },
+        assessmentId: { in: assessmentIds },
         studentId: userId,
+      },
+      include: {
+        student: { select: { id: true, name: true, username: true } },
+        assessment: { select: { title: true } },
       },
       orderBy: { attemptNumber: "desc" },
     });
@@ -306,7 +310,7 @@ export async function getClassroom(authCtx: AuthContext, classroomId: string) {
     formattedAssignments = classroom.assignments
       .filter((a) => a.status === "active" || a.status === "published")
       .map((a) => {
-        const attempts = studentAttempts.filter((att) => att.assignmentId === a.id);
+        const attempts = studentAttempts.filter((att) => att.assessmentId === a.assessmentId);
         const activeAttempt = attempts.find((att) => att.status === "in_progress" || att.status === "paused");
         const completedAttempts = attempts.filter((att) => att.status === "graded" || att.status === "submitted");
         const bestScore = completedAttempts.length > 0
@@ -784,7 +788,7 @@ export async function getClassroomAnalytics(authCtx: AuthContext, classroomId: s
 
   const attempts = await db.assessmentAttempt.findMany({
     where: {
-      assignmentId: { in: assignmentIds },
+      assessmentId: { in: classroom.assignments.map((a) => a.assessmentId).filter(Boolean) as string[] },
       status: { in: ["graded", "submitted"] },
     },
     include: {
@@ -817,9 +821,9 @@ export async function getClassroomAnalytics(authCtx: AuthContext, classroomId: s
 
   const recentActivity = safeAttempts.map((att) => ({
     attemptId: att.id,
-    assignmentId: att.assignmentId,
+    assignmentId: classroom.assignments.find((a) => a.assessmentId === att.assessmentId)?.id,
+    assessmentTitle: att.assessment?.title,
     student: att.student,
-    assessmentTitle: att.assessment.title,
     score: att.score,
     passed: att.passed,
     submittedAt: att.submittedAt,

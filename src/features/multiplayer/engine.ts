@@ -20,6 +20,14 @@ import {
   validateAnswerTiming,
   sanitizeAndValidateAnswerFormat,
 } from "./anti-cheat";
+import { 
+  applyModeAnswer, 
+  initialModeState, 
+  resolveHeistAction, 
+  tryEmpireUpgrade, 
+  type HeistAction 
+} from "./mode-rules";
+import { empirePower } from "./mode-rules";
 
 export interface GameRoomOptions {
   roomId: string;
@@ -163,6 +171,7 @@ export class GameRoom {
       joinedAt: now,
       lastSeenAt: now,
       disconnectedAt: null,
+      modeState: initialModeState(),
     };
 
     this.players.set(id, newPlayer);
@@ -404,6 +413,27 @@ export class GameRoom {
       player.currentStreak = 0;
     }
 
+    player.modeState = player.modeState || initialModeState();
+    const modeRes = applyModeAnswer(
+      this.gameMode as any,
+      player.modeState,
+      scoreResult.isCorrect,
+      timing.responseMs,
+      player.currentStreak
+    );
+    player.modeState = modeRes.state;
+    if (this.gameMode === "classic" || this.gameMode === "battle" || this.gameMode === "royale") {
+      player.score += modeRes.scoreDelta;
+      player.lastPointsEarned = modeRes.scoreDelta;
+      record.basePoints = modeRes.scoreDelta > 0 ? 500 : 0;
+      record.speedBonus = Math.max(0, modeRes.scoreDelta - 500);
+      record.pointsAwarded = modeRes.scoreDelta;
+    } else {
+      player.score = modeRes.displayScore;
+      player.lastPointsEarned = modeRes.scoreDelta;
+    }
+    if (modeRes.eliminated) player.status = "eliminated";
+
     player.accuracy = player.answeredCount > 0
       ? Math.round((player.correctCount / player.answeredCount) * 100)
       : 0;
@@ -473,6 +503,29 @@ export class GameRoom {
       result: this.lastQuestionResult,
       leaderboard: newLeaderboard,
     });
+
+    if (this.gameMode === "royale") {
+      const alive = Array.from(this.players.values()).filter((p) => p.status !== "eliminated" && p.role !== "spectator");
+      if (alive.length <= 1) this.status = "finished";
+    }
+  }
+
+  public resolveHeist(playerId: string, action: HeistAction) {
+    const player = this.players.get(playerId);
+    if (!player || this.gameMode !== "heist") throw new Error("Heist action not allowed");
+    player.modeState = resolveHeistAction(player.modeState || initialModeState(), action);
+    player.score = player.modeState.gold;
+    this.notify("heist:resolved", { playerId, gold: player.score, action });
+    return player.modeState;
+  }
+
+  public upgradeEmpire(playerId: string) {
+    const player = this.players.get(playerId);
+    if (!player || this.gameMode !== "empire") throw new Error("Upgrade not allowed");
+    player.modeState = tryEmpireUpgrade(player.modeState || initialModeState());
+    player.score = empirePower(player.modeState.empireTier, player.modeState.resources);
+    this.notify("empire:upgraded", { playerId, tier: player.modeState.empireTier, resources: player.modeState.resources });
+    return player.modeState;
   }
 
   public nextQuestion(requesterId: string): void {
@@ -575,13 +628,17 @@ export class GameRoom {
       roundEndsAt: this.roundLockAt ? this.roundLockAt.toISOString() : null,
       serverTime: new Date().toISOString(),
       activeQuestion: this.status === "in_progress" ? this.getSanitizedCurrentQuestion() : null,
-      lastQuestionResult: this.status === "question_results" || this.status === "finished" ? this.lastQuestionResult : null,
+      lastQuestionResult:
+        this.status === "question_results" || this.status === "finished"
+          ? this.lastQuestionResult
+          : null,
       leaderboard,
       myPlayerId: playerId,
       isHost,
       hasSubmittedAnswer: Boolean(playerId && this.roundAnswers.has(playerId)),
       canStart: this.status === "lobby" && this.players.size >= 1 && this.questions.length > 0,
       reconnectGraceMs: this.reconnectGraceMs,
+      modeHud: player?.modeState || null,
     };
   }
 

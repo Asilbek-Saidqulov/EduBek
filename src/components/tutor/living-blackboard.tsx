@@ -283,7 +283,7 @@ export function LivingBlackboard({
               })}
             </div>
 
-            {document.sections.map((section: BlackboardSection) => {
+            {document.sections.map((section: BlackboardSection, index) => {
               const cfg = sectionConfig[section.type] || sectionConfig.explanation;
               const Icon = cfg.icon;
               const isClosed = !!collapsed[section.id];
@@ -292,11 +292,12 @@ export function LivingBlackboard({
                 <article
                   key={section.id}
                   id={`section-${section.id}`}
-                  className={`relative rounded-2xl border bg-black/25 p-5 sm:p-6 transition-all duration-300 ${
+                  className={`board-section-in relative rounded-2xl border bg-black/25 p-5 sm:p-6 transition-all duration-300 ${
                     section.highlighted
                       ? "border-emerald-400/50 ring-2 ring-emerald-400/30"
                       : "border-white/10"
                   }`}
+                  style={{ animationDelay: `${index * 140}ms` }}
                 >
                   <div className={`absolute left-0 top-3 bottom-3 w-1 rounded-full bg-gradient-to-b ${cfg.rail}`} />
 

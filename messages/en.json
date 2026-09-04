@@ -83,7 +83,7 @@
     "starter1Prompt": "Teach me Newton's Second Law of Motion with step-by-step derivation, formula breakdown, and an interactive checkpoint.",
     "starter2Title": "Quadratic Formula Proof",
     "starter2Desc": "Step-by-step derivation by completing the square.",
-    "starter2Prompt": "Derive the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ step-by-step with LaTeX equations and concept checks.",
+    "starter2Prompt": "Derive the quadratic formula $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}'{2a}'$ step-by-step with LaTeX equations and concept checks.",
     "starter3Title": "Sorting Algorithms",
     "starter3Desc": "Compare time complexities with visual diagrams.",
     "starter3Prompt": "Explain QuickSort vs MergeSort with time complexity breakdown, visual flowchart, and a concept check.",

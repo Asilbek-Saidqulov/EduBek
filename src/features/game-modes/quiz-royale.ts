@@ -1,78 +1,42 @@
-// Auto-generated module for @/features/game-modes/quiz-royale
-import { z } from "zod";
-import { db } from "@/lib/db";
+import {
+  ROYALE_START_HEARTS,
+  applyRoyaleMistake,
+  royaleShieldEarned,
+} from "@/features/multiplayer/mode-rules";
+import type { AuthoritativePlayer } from "@/features/multiplayer/types";
 
-export async function generateRoyaleAnalytics(...args: any[]): Promise<any> {
+export function generateRoyaleAnalytics(players: AuthoritativePlayer[]) {
+  const alive = players.filter((p) => p.status !== "eliminated");
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    alive: alive.length,
+    eliminated: players.length - alive.length,
+    winnerId: alive.length === 1 ? alive[0].id : null,
   };
 }
-export type generateRoyaleAnalytics = any;
-export async function generateRoyaleDashboard(...args: any[]): Promise<any> {
+
+export function generateRoyaleDashboard(players: AuthoritativePlayer[]) {
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    analytics: generateRoyaleAnalytics(players),
+    players: players.map((p) => ({
+      id: p.id,
+      name: p.displayName,
+      hearts: p.modeState?.hearts ?? ROYALE_START_HEARTS,
+      shield: !!p.modeState?.shield,
+      status: p.status,
+      streak: p.currentStreak,
+    })),
   };
 }
-export type generateRoyaleDashboard = any;
-export async function getRoyaleStatus(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+
+export { applyRoyaleMistake, royaleShieldEarned, ROYALE_START_HEARTS };
+export const ROYALE_RULES = { startHearts: ROYALE_START_HEARTS, streakForShield: 5 };
+export const generateRoyaleMatchSummary = generateRoyaleAnalytics;
+export function buildRoyaleLeaderboard(players: AuthoritativePlayer[] = []) {
+  return generateRoyaleDashboard(players).players;
 }
-export type getRoyaleStatus = any;
-export async function buildRoyaleLeaderboard(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getRules() {
+  return ROYALE_RULES;
 }
-export type buildRoyaleLeaderboard = any;
-export const ROYALE_RULES: any = {};
-export type ROYALE_RULES = any;
-export async function getRules(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getRoyaleStatus() {
+  return { mode: "royale", ...ROYALE_RULES };
 }
-export type getRules = any;
-export async function generateRoyaleMatchSummary(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type generateRoyaleMatchSummary = any;

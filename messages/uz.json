@@ -83,7 +83,7 @@
     "starter1Prompt": "Menga Nyutonning ikkinchi qonunini bosqichma-bosqich isboti, formulalari va sinov savoli bilan o'rgat.",
     "starter2Title": "Kvadrat tenglama formulasi",
     "starter2Desc": "To'la kvadratga ajratish orqali formulani chiqarish.",
-    "starter2Prompt": "Kvadrat tenglama $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$ formulasini LaTeX formulalari va tushuntirish bilan doskaga yozib o'rgat.",
+    "starter2Prompt": "Kvadrat tenglama $x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}'{2a}'$ formulasini LaTeX formulalari va tushuntirish bilan doskaga yozib o'rgat.",
     "starter3Title": "Saralash algoritmlari",
     "starter3Desc": "QuickSort va MergeSort taqqoslashi hamda diagrammalar.",
     "starter3Prompt": "QuickSort va MergeSort algoritmlarini murakkabligi, vizual diagrammasi va sinov savollari bilan tushuntir.",

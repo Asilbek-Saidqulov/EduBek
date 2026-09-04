@@ -110,3 +110,147 @@ export function simulateBattleOpponent(isPlayerCorrect: boolean, playerMs: numbe
   const opponentPts = classicScore(opponentCorrect, opponentMs).totalPoints;
   return { opponentCorrect, opponentMs, playerPts, opponentPts };
 }
+
+export type HeistAction = "save" | "invest" | "steal";
+
+export type PlayerModeState = {
+  gold: number;
+  pendingGold: number;
+  hearts: number;
+  shield: boolean;
+  resources: Resources;
+  empireTier: number;
+  battlePoints: number;
+};
+
+export function initialModeState(): PlayerModeState {
+  return {
+    gold: 0,
+    pendingGold: 0,
+    hearts: ROYALE_START_HEARTS,
+    shield: false,
+    resources: emptyResources(),
+    empireTier: 0,
+    battlePoints: 0,
+  };
+}
+
+export type ModeAnswerResult = {
+  scoreDelta: number;
+  displayScore: number;
+  eliminated: boolean;
+  state: PlayerModeState;
+};
+
+export function applyModeAnswer(
+  mode: LiveGameMode,
+  state: PlayerModeState,
+  isCorrect: boolean,
+  responseMs: number,
+  streakAfter: number
+): ModeAnswerResult {
+  const next: PlayerModeState = {
+    ...state,
+    resources: { ...state.resources },
+  };
+  let scoreDelta = 0;
+  let eliminated = false;
+
+  if (mode === "classic" || mode === "battle") {
+    const scored = classicScore(isCorrect, responseMs);
+    scoreDelta = scored.totalPoints;
+    if (mode === "battle") next.battlePoints += scoreDelta;
+  }
+
+  if (mode === "royale") {
+    if (isCorrect) {
+      if (royaleShieldEarned(streakAfter)) next.shield = true;
+    } else {
+      const hit = applyRoyaleMistake(next.hearts, next.shield);
+      next.hearts = hit.hearts;
+      next.shield = hit.hasShield;
+      eliminated = hit.eliminated;
+    }
+    scoreDelta = classicScore(isCorrect, responseMs).totalPoints;
+  }
+
+  if (mode === "heist" && isCorrect) {
+    next.pendingGold += HEIST_CORRECT_GOLD;
+  }
+
+  if (mode === "empire" && isCorrect) {
+    const gain = resourcesForCorrectAnswer();
+    next.resources.wood += gain.wood;
+    next.resources.stone += gain.stone;
+    next.resources.gold += gain.gold;
+    next.resources.food += gain.food;
+  }
+
+  const displayScore = displayModeScore(mode, next, scoreDelta);
+  return { scoreDelta, displayScore, eliminated, state: next };
+}
+
+export function displayModeScore(mode: LiveGameMode, state: PlayerModeState, classicDelta = 0): number {
+  if (mode === "heist") return state.gold;
+  if (mode === "empire") return empirePower(state.empireTier, state.resources);
+  if (mode === "battle") return state.battlePoints;
+  return classicDelta;
+}
+
+export function resolveHeistAction(
+  state: PlayerModeState,
+  action: HeistAction,
+  rng = Math.random
+): PlayerModeState {
+  const pending = state.pendingGold;
+  const next = { ...state, pendingGold: 0 };
+  if (pending <= 0) return next;
+  if (action === "save") {
+    next.gold += pending;
+    return next;
+  }
+  if (action === "invest") {
+    const r = resolveHeistInvest(rng);
+    next.gold += pending + r.goldDelta;
+    return next;
+  }
+  const r = resolveHeistRaid(rng);
+  next.gold = Math.max(0, next.gold + pending + r.goldDelta);
+  return next;
+}
+
+export function tryEmpireUpgrade(state: PlayerModeState): PlayerModeState {
+  const up = applyEmpireUpgrade(state.empireTier, state.resources);
+  return { ...state, empireTier: up.tierIndex, resources: up.resources };
+}
+
+export type BracketMatch = { id: string; a: string | null; b: string | null; winnerId: string | null };
+
+export function buildBattleBracket(playerIds: string[]): BracketMatch[] {
+  const ids = [...playerIds];
+  while (ids.length < 2 || (ids.length & (ids.length - 1)) !== 0) ids.push(`bye-${ids.length}`);
+  const matches: BracketMatch[] = [];
+  for (let i = 0; i < ids.length; i += 2) {
+    matches.push({
+      id: `m-${i / 2}`,
+      a: ids[i] || null,
+      b: ids[i + 1] || null,
+      winnerId: null,
+    });
+  }
+  return matches;
+}
+
+export function classicAchievements(input: {
+  score: number;
+  correctCount: number;
+  answeredCount: number;
+  longestStreak: number;
+}) {
+  const accuracy = input.answeredCount ? Math.round((input.correctCount / input.answeredCount) * 100) : 0;
+  const badges: string[] = [];
+  if (accuracy === 100 && input.answeredCount >= 3) badges.push("perfect");
+  if (input.longestStreak >= 5) badges.push("on_fire");
+  if (input.score >= 5000) badges.push("high_score");
+  return { accuracy, badges };
+}

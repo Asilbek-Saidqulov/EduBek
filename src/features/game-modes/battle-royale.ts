@@ -1,186 +1,45 @@
-// Auto-generated module for @/features/game-modes/battle-royale
-import { z } from "zod";
-import { db } from "@/lib/db";
+import { buildBattleBracket, BATTLE_DUEL_QUESTIONS } from "@/features/multiplayer/mode-rules";
+import type { AuthoritativePlayer } from "@/features/multiplayer/types";
 
-export async function getAdvancementEvents(...args: any[]): Promise<any> {
+export function getByes(playerIds: string[]) {
+  const size = 2 ** Math.ceil(Math.log2(Math.max(2, playerIds.length)));
+  return Math.max(0, size - playerIds.length);
+}
+
+export function getAdvancementEvents(playerIds: string[]) {
+  return buildBattleBracket(playerIds);
+}
+
+export function generateBattleDashboard(players: AuthoritativePlayer[]) {
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    bracket: buildBattleBracket(players.map((p) => p.id)),
+    duelQuestions: BATTLE_DUEL_QUESTIONS,
+    scores: players.map((p) => ({ id: p.id, name: p.displayName, points: p.modeState?.battlePoints ?? p.score })),
   };
 }
-export type getAdvancementEvents = any;
-export async function getByes(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+
+export { buildBattleBracket, BATTLE_DUEL_QUESTIONS };
+export type BattleRoyaleLeaderboardType = "points" | "bracket";
+export const getBracket = getAdvancementEvents;
+export const getTournament = generateBattleDashboard;
+export const generateDashboard = generateBattleDashboard;
+export const generateAnalytics = generateBattleDashboard;
+export function buildLeaderboard(players: AuthoritativePlayer[] = []) {
+  return generateBattleDashboard(players).scores;
 }
-export type getByes = any;
-export async function getTournament(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getChampionship() {
+  return { title: "EduBek Battle Royale", duelQuestions: BATTLE_DUEL_QUESTIONS };
 }
-export type getTournament = any;
-export async function generateAnalytics(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function listDuels(playerIds: string[] = []) {
+  return buildBattleBracket(playerIds);
 }
-export type generateAnalytics = any;
-export async function getBracket(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getWalkovers() { return []; }
+export function getTieResolutions() { return []; }
+export function getReplayTimeline() { return []; }
+export function getBalancePresets() { return { duelQuestions: BATTLE_DUEL_QUESTIONS }; }
+export function getBattleRoyaleStatus() {
+  return { mode: "battle", ready: true };
 }
-export type getBracket = any;
-export async function getChampionship(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getRules() {
+  return { duelQuestions: BATTLE_DUEL_QUESTIONS, format: "single-elim" };
 }
-export type getChampionship = any;
-export async function generateDashboard(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type generateDashboard = any;
-export async function listDuels(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type listDuels = any;
-export async function buildLeaderboard(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type buildLeaderboard = any;
-export const BattleRoyaleLeaderboardType: any = {};
-export type BattleRoyaleLeaderboardType = any;
-export async function getRules(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type getRules = any;
-export async function getBalancePresets(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type getBalancePresets = any;
-export async function getBattleRoyaleStatus(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type getBattleRoyaleStatus = any;
-export async function getWalkovers(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type getWalkovers = any;
-export async function getTieResolutions(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type getTieResolutions = any;
-export async function getReplayTimeline(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type getReplayTimeline = any;

@@ -318,6 +318,38 @@ export class SocketGateway {
         }
       });
 
+      socket.on("heist:action", ({ action }, callback) => {
+        try {
+          const roomId = authSocket.data.currentRoomId;
+          const playerId = authSocket.data.playerId;
+          if (!roomId || !playerId) throw new Error("Not in an active room");
+          const room = this.roomManager.getRoomById(roomId);
+          if (!room) throw new Error("Room not found");
+          const state = room.resolveHeist(playerId, action);
+          socket.emit("heist:resolved", { playerId, state });
+          if (typeof callback === "function") callback({ success: true, state });
+        } catch (err: any) {
+          socket.emit("error", { message: err.message || "Heist action failed" });
+          if (typeof callback === "function") callback({ success: false, error: err.message });
+        }
+      });
+
+      socket.on("empire:upgrade", (_payload, callback) => {
+        try {
+          const roomId = authSocket.data.currentRoomId;
+          const playerId = authSocket.data.playerId;
+          if (!roomId || !playerId) throw new Error("Not in an active room");
+          const room = this.roomManager.getRoomById(roomId);
+          if (!room) throw new Error("Room not found");
+          const state = room.upgradeEmpire(playerId);
+          socket.emit("empire:upgraded", { playerId, state });
+          if (typeof callback === "function") callback({ success: true, state });
+        } catch (err: any) {
+          socket.emit("error", { message: err.message || "Upgrade failed" });
+          if (typeof callback === "function") callback({ success: false, error: err.message });
+        }
+      });
+
       // -----------------------------------------------------------------------
       // NEXT QUESTION (Host only)
       // -----------------------------------------------------------------------

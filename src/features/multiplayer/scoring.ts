@@ -1,3 +1,4 @@
+import { classicScore } from "./mode-rules";
 import { AuthoritativeQuestion, AuthoritativePlayer, LeaderboardEntry } from "./types";
 
 export interface ScoreCalculationResult {
@@ -129,33 +130,13 @@ export function calculateAuthoritativeScore(
     };
   }
 
-  // Base points scale (default 1000 per question if points is 1)
-  const basePoints = Math.max(100, (question.points || 1) * 1000);
-
-  // Speed bonus: up to 500 bonus points based on how quickly the answer was submitted
-  const duration = Math.max(1000, question.durationMs || 30000);
-  const clampedResponseMs = Math.min(Math.max(0, responseMs), duration);
-  const remainingRatio = (duration - clampedResponseMs) / duration;
-  const speedBonus = Math.floor(basePoints * 0.5 * Math.max(0, remainingRatio));
-
-  // Streak bonus: +100 for 3 in a row, +200 for 4, capped at +500
-  let streakBonus = 0;
-  if (currentStreak >= 2) {
-    // on next correct answer this will be streak >= 3
-    const effectiveStreak = currentStreak + 1;
-    if (effectiveStreak >= 3) {
-      streakBonus = Math.min(500, (effectiveStreak - 2) * 100);
-    }
-  }
-
-  const totalPoints = basePoints + speedBonus + streakBonus;
-
+  const scored = classicScore(true, responseMs);
   return {
     isCorrect: true,
-    basePoints,
-    speedBonus,
-    streakBonus,
-    totalPoints,
+    basePoints: scored.basePoints,
+    speedBonus: scored.speedBonus,
+    streakBonus: 0,
+    totalPoints: scored.totalPoints,
   };
 }
 

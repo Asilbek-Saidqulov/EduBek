@@ -415,7 +415,7 @@ export async function getStudentMemory(
         where: { userId },
         include: {
           concept: {
-            select: { name: true, domain: true },
+            select: { name: true, subject: true },
           },
         },
         orderBy: { updatedAt: "desc" },
@@ -426,7 +426,7 @@ export async function getStudentMemory(
 
       for (const m of masteries) {
         const conceptName = m.concept?.name || "Concept";
-        const domain = m.concept?.domain || "";
+        const domain = m.concept?.subject || "";
 
         // If targetTopic is provided, prioritize matching concepts
         let isTopicRelevant = true;

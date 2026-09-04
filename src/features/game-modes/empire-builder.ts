@@ -1,96 +1,51 @@
-// Auto-generated module for @/features/game-modes/empire-builder
-import { z } from "zod";
-import { db } from "@/lib/db";
+import {
+  EMPIRE_TIERS,
+  tryEmpireUpgrade,
+  empirePower,
+} from "@/features/multiplayer/mode-rules";
+import type { AuthoritativePlayer } from "@/features/multiplayer/types";
 
-export async function generateEmpireAnalytics(...args: any[]): Promise<any> {
+export const BUILDING_DEFS = EMPIRE_TIERS.map((name, index) => ({ name, index }));
+
+export function generateEmpireAnalytics(players: AuthoritativePlayer[]) {
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    maxTier: Math.max(0, ...players.map((p) => p.modeState?.empireTier ?? 0)),
+    powers: players.map((p) => empirePower(p.modeState?.empireTier ?? 0, p.modeState?.resources ?? { wood: 0, stone: 0, gold: 0, food: 0 })),
   };
 }
-export type generateEmpireAnalytics = any;
-export const BUILDING_DEFS: any = {};
-export type BUILDING_DEFS = any;
-export async function generateEmpireDashboard(...args: any[]): Promise<any> {
+
+export function generateEmpireDashboard(players: AuthoritativePlayer[]) {
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    analytics: generateEmpireAnalytics(players),
+    empires: players.map((p) => ({
+      id: p.id,
+      name: p.displayName,
+      tier: EMPIRE_TIERS[p.modeState?.empireTier ?? 0],
+      resources: p.modeState?.resources,
+      power: p.score,
+    })),
   };
 }
-export type generateEmpireDashboard = any;
-export const EMPIRE_EVENTS: any = {};
-export type EMPIRE_EVENTS = any;
-export async function buildEmpireLeaderboard(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+
+export { tryEmpireUpgrade, empirePower };
+export const RESOURCE_CONFIGS = { wood: { start: 20 }, stone: { start: 20 }, gold: { start: 10 }, food: { start: 20 } };
+export const UPGRADE_DEFS = [
+  { from: "Hut", to: "Village" },
+  { from: "Village", to: "Town" },
+  { from: "Town", to: "City" },
+  { from: "City", to: "Empire" },
+];
+export const EMPIRE_EVENTS = [{ id: "harvest" }, { id: "storm" }];
+export const generateEmpireMatchSummary = generateEmpireAnalytics;
+export function buildEmpireLeaderboard(players: AuthoritativePlayer[] = []) {
+  return generateEmpireDashboard(players).empires;
 }
-export type buildEmpireLeaderboard = any;
-export async function produceResources(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function produceResources() {
+  return { wood: 20, stone: 20, gold: 10, food: 20 };
 }
-export type produceResources = any;
-export const RESOURCE_CONFIGS: any = {};
-export type RESOURCE_CONFIGS = any;
-export async function getRules(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getRules() {
+  return { tiers: EMPIRE_TIERS, upgrades: UPGRADE_DEFS };
 }
-export type getRules = any;
-export async function getEmpireStatus(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getEmpireStatus() {
+  return { mode: "empire", ready: true };
 }
-export type getEmpireStatus = any;
-export async function generateEmpireMatchSummary(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type generateEmpireMatchSummary = any;
-export const UPGRADE_DEFS: any = {};
-export type UPGRADE_DEFS = any;

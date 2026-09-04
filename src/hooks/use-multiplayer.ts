@@ -320,6 +320,18 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
     socket.emit("room:state:request");
   }, [socket]);
 
+  const resolveHeist = useCallback((action: "save" | "invest" | "steal") => {
+    socket?.emit("heist:action", { action }, () => {
+      socket?.emit("room:state:request");
+    });
+  }, [socket]);
+
+  const upgradeEmpire = useCallback(() => {
+    socket?.emit("empire:upgrade", {}, () => {
+      socket?.emit("room:state:request");
+    });
+  }, [socket]);
+
   return {
     socket,
     connectionStatus,
@@ -337,5 +349,7 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
     nextQuestion,
     leaveRoom,
     requestState,
+    resolveHeist,
+    upgradeEmpire,
   };
 }

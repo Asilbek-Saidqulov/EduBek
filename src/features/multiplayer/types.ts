@@ -16,7 +16,7 @@ export type PlayerStatus =
 
 export type PlayerRole = "host" | "co_host" | "player" | "spectator";
 
-export type GameMode = "classic" | "royale" | "heist" | "empire";
+export type GameMode = "classic" | "royale" | "heist" | "empire" | "battle";
 
 export interface AuthoritativeQuestion {
   id: string;
@@ -88,6 +88,15 @@ export interface AuthoritativePlayer {
   joinedAt: Date;
   lastSeenAt: Date;
   disconnectedAt: Date | null;
+  modeState?: {
+    gold: number;
+    pendingGold: number;
+    hearts: number;
+    shield: boolean;
+    resources: {wood: number; stone: number; gold: number; food: number};
+    empireTier: number;
+    battlePoints: number;
+  }
 }
 
 export interface LeaderboardEntry {
@@ -150,4 +159,5 @@ export interface RoomStateSnapshot {
   hasSubmittedAnswer: boolean;
   canStart: boolean;
   reconnectGraceMs?: number;
+  modeHud?: AuthoritativePlayer["modeState"] | null;
 }

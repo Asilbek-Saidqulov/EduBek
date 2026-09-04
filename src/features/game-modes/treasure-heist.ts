@@ -1,88 +1,44 @@
-// Auto-generated module for @/features/game-modes/treasure-heist
-import { z } from "zod";
-import { db } from "@/lib/db";
+import {
+  resolveHeistAction,
+  type HeistAction,
+} from "@/features/multiplayer/mode-rules";
+import type { AuthoritativePlayer } from "@/features/multiplayer/types";
 
-export async function generateTreasureAnalytics(...args: any[]): Promise<any> {
+export function generateTreasureAnalytics(players: AuthoritativePlayer[]) {
+  const gold = players.map((p) => p.modeState?.gold ?? p.score);
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    richest: Math.max(0, ...gold),
+    totalGold: gold.reduce((s, n) => s + n, 0),
   };
 }
-export type generateTreasureAnalytics = any;
-export async function generateTreasureDashboard(...args: any[]): Promise<any> {
+
+export function generateTreasureDashboard(players: AuthoritativePlayer[]) {
   return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
+    analytics: generateTreasureAnalytics(players),
+    vaults: players.map((p) => ({
+      id: p.id,
+      name: p.displayName,
+      gold: p.modeState?.gold ?? 0,
+      pending: p.modeState?.pendingGold ?? 0,
+    })),
   };
 }
-export type generateTreasureDashboard = any;
-export async function getTreasureHeistStatus(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+
+export { resolveHeistAction };
+export type { HeistAction };
+export const generateTreasureMatchSummary = generateTreasureAnalytics;
+export function buildTreasureLeaderboard(players: AuthoritativePlayer[] = []) {
+  return generateTreasureDashboard(players).vaults;
 }
-export type getTreasureHeistStatus = any;
-export async function getEventDefinitions(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getRules() {
+  return { earnOnCorrect: 100, actions: ["save", "invest", "steal"] };
 }
-export type getEventDefinitions = any;
-export async function buildTreasureLeaderboard(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getTreasureHeistStatus() {
+  return { mode: "heist", ready: true, ...getRules() };
 }
-export type buildTreasureLeaderboard = any;
-export async function getRules(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
+export function getEventDefinitions() {
+  return [
+    { id: "invest_win", label: "Invest payout" },
+    { id: "steal_fail", label: "Failed steal" },
+  ];
 }
-export type getRules = any;
-export async function generateTreasureMatchSummary(...args: any[]): Promise<any> {
-  return {
-    success: true,
-    data: [],
-    items: [],
-    list: [],
-    results: [],
-    stats: { total: 0, active: 0, score: 100 },
-    timestamp: new Date().toISOString(),
-  };
-}
-export type generateTreasureMatchSummary = any;
