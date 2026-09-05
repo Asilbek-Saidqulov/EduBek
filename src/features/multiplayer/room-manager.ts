@@ -18,6 +18,7 @@ export interface CreateRoomInput {
   questions?: AuthoritativeQuestion[];
   resultsDurationMs?: number;
   autoAdvance?: boolean;
+  code?: string; // Optional custom room code
 }
 
 export class RoomManager {
@@ -62,7 +63,7 @@ export class RoomManager {
    * Creates a new multiplayer room, builds authoritative questions, and persists LiveSession in DB.
    */
   public async createRoom(input: CreateRoomInput): Promise<GameRoom> {
-    const code = this.generateRoomCode();
+    const code = (input.code || this.generateRoomCode()).trim();
     let questions: AuthoritativeQuestion[] = input.questions || [];
 
     // If quizId provided, fetch quiz questions from database

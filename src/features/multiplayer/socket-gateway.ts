@@ -1,7 +1,6 @@
 import { Server as SocketIOServer, Socket } from "socket.io";
 import type { Server as HTTPServer } from "http";
 import { RoomManager } from "./room-manager";
-import { GameRoom } from "./engine";
 import { checkActionRateLimit } from "./anti-cheat";
 import { PlayerAnswerSubmission } from "./types";
 
@@ -81,7 +80,6 @@ export class SocketGateway {
         let displayName = authPayload.displayName || `Player_${socket.id.substring(0, 4)}`;
         let isGuest = true;
 
-        // 1. Try to extract session from edubek_session cookie
         if (cookieHeader) {
           const match = cookieHeader.match(/edubek_session=([^;]+)/);
           if (match && match[1]) {
@@ -95,12 +93,11 @@ export class SocketGateway {
                 isGuest = false;
               }
             } catch {
-              // Ignore cookie parse error, fallback to guest
+              // guest
             }
           }
         }
 
-        // 2. Try auth.token if provided
         if (!userId && authPayload.token) {
           try {
             const decoded = Buffer.from(authPayload.token, "base64").toString("utf-8");
@@ -116,7 +113,6 @@ export class SocketGateway {
           }
         }
 
-        // 3. Guest player configuration
         if (!userId) {
           userId = authPayload.guestId || `guest_${socket.id.substring(0, 8)}`;
           isGuest = true;
@@ -130,7 +126,7 @@ export class SocketGateway {
         };
 
         next();
-      } catch (err) {
+      } catch {
         next(new Error("Socket authentication error"));
       }
     });
@@ -145,9 +141,54 @@ export class SocketGateway {
 
       console.log(`[SocketGateway] Client connected: socket=${socket.id}, user=${userId}, isGuest=${isGuest}`);
 
-      // -----------------------------------------------------------------------
-      // JOIN ROOM
-      // -----------------------------------------------------------------------
+      socket.on("room:create", async (payload: any, callback) => {
+        try {
+          const code = String(payload?.code || "").trim().toUpperCase();
+          if (!code) {
+            if (typeof callback === "function") callback({ success: false, error: "Room code required" });
+            return;
+          }
+          if (!payload?.questions?.length) {
+            if (typeof callback === "function") callback({ success: false, error: "Questions required" });
+            return;
+          }
+
+          let room = this.roomManager.getRoomByCode(code);
+          if (!room) {
+            room = await this.roomManager.createRoom({
+              code,
+              hostId: userId || socket.id,
+              title: payload.title || "Live quiz",
+              gameMode: payload.gameMode || "classic",
+              questions: payload.questions,
+            });
+          }
+
+          const { player } = room.addOrUpdatePlayer({
+            userId,
+            socketId: socket.id,
+            displayName: displayName || "Host",
+            isGuest,
+            role: "host",
+          });
+
+          authSocket.data.currentRoomId = room.roomId;
+          authSocket.data.playerId = player.id;
+          socket.join(room.roomId);
+
+          const snapshot = room.getStateSnapshot(player.id);
+          socket.emit("room:state", snapshot);
+          if (typeof callback === "function") {
+            callback({ success: true, data: snapshot });
+          }
+        } catch (err: any) {
+          console.error("[SocketGateway] room:create", err);
+          if (typeof callback === "function") {
+            callback({ success: false, error: err.message || "Failed to create room" });
+          }
+        }
+      });
+
       socket.on("room:join", async (payload: { code: string; displayName?: string; avatarUrl?: string }, callback) => {
         try {
           if (!checkActionRateLimit(socket.id, 20, 5000)) {
@@ -182,13 +223,11 @@ export class SocketGateway {
 
           authSocket.data.currentRoomId = room.roomId;
           authSocket.data.playerId = player.id;
-
           socket.join(room.roomId);
 
           const snapshot = room.getStateSnapshot(player.id);
           socket.emit("room:state", snapshot);
 
-          // Broadcast player joined / reconnected to room
           socket.to(room.roomId).emit(isNew ? "player:joined" : "player:reconnected", {
             player: {
               playerId: player.id,
@@ -211,9 +250,6 @@ export class SocketGateway {
         }
       });
 
-      // -----------------------------------------------------------------------
-      // READY STATE
-      // -----------------------------------------------------------------------
       socket.on("room:ready", (payload: { ready: boolean }, callback) => {
         try {
           const roomId = authSocket.data.currentRoomId;
@@ -243,9 +279,6 @@ export class SocketGateway {
         }
       });
 
-      // -----------------------------------------------------------------------
-      // START MATCH (Host only)
-      // -----------------------------------------------------------------------
       socket.on("room:start", (_payload, callback) => {
         try {
           const roomId = authSocket.data.currentRoomId;
@@ -259,7 +292,6 @@ export class SocketGateway {
           if (!room) return;
 
           room.startCountdown(playerId);
-
           this.io?.to(roomId).emit("game:countdown", {
             durationSeconds: 3,
             message: "Match is starting...",
@@ -272,9 +304,6 @@ export class SocketGateway {
         }
       });
 
-      // -----------------------------------------------------------------------
-      // SUBMIT ANSWER
-      // -----------------------------------------------------------------------
       socket.on("question:answer", (submission: PlayerAnswerSubmission, callback) => {
         try {
           if (!checkActionRateLimit(socket.id, 10, 2000)) {
@@ -295,7 +324,6 @@ export class SocketGateway {
 
           const { record, isFirstSubmission } = room.submitAnswer(playerId, submission);
 
-          // Return result to submitting player only (Anti-cheat: don't broadcast to other players yet)
           socket.emit("question:answer:ack", {
             success: true,
             isFirstSubmission,
@@ -350,9 +378,6 @@ export class SocketGateway {
         }
       });
 
-      // -----------------------------------------------------------------------
-      // NEXT QUESTION (Host only)
-      // -----------------------------------------------------------------------
       socket.on("question:next", (_payload, callback) => {
         try {
           const roomId = authSocket.data.currentRoomId;
@@ -370,9 +395,6 @@ export class SocketGateway {
         }
       });
 
-      // -----------------------------------------------------------------------
-      // STATE REQUEST (Full snapshot sync)
-      // -----------------------------------------------------------------------
       socket.on("room:state:request", (_payload, callback) => {
         const roomId = authSocket.data.currentRoomId;
         const playerId = authSocket.data.playerId;
@@ -386,9 +408,6 @@ export class SocketGateway {
         if (typeof callback === "function") callback({ success: true, data: snapshot });
       });
 
-      // -----------------------------------------------------------------------
-      // LEAVE ROOM
-      // -----------------------------------------------------------------------
       socket.on("room:leave", () => {
         const roomId = authSocket.data.currentRoomId;
         const playerId = authSocket.data.playerId;
@@ -403,9 +422,6 @@ export class SocketGateway {
         authSocket.data.playerId = undefined;
       });
 
-      // -----------------------------------------------------------------------
-      // DISCONNECT
-      // -----------------------------------------------------------------------
       socket.on("disconnect", () => {
         console.log(`[SocketGateway] Client disconnected: socket=${socket.id}`);
         const roomId = authSocket.data.currentRoomId;
@@ -419,9 +435,6 @@ export class SocketGateway {
     });
   }
 
-  /**
-   * Broadcasts an authoritative event to a specific room
-   */
   public broadcastToRoom(roomId: string, eventName: string, data: any): void {
     if (this.io) {
       this.io.to(roomId).emit(eventName, data);

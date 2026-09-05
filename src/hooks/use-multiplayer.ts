@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { io, Socket } from "socket.io-client";
-import { RoomStateSnapshot, PlayerAnswerSubmission, LeaderboardEntry, QuestionResultView, SanitizedQuestion } from "@/features/multiplayer/types";
+import type { RoomStateSnapshot, PlayerAnswerSubmission, LeaderboardEntry, QuestionResultView, SanitizedQuestion, AuthoritativeQuestion } from "@/features/multiplayer/types";
 
 export interface UseMultiplayerOptions {
   roomCode?: string;
@@ -10,6 +10,9 @@ export interface UseMultiplayerOptions {
   displayName?: string;
   avatarUrl?: string;
   isHost?: boolean;
+  title?: string;
+  gameMode?: string;
+  questions?: AuthoritativeQuestion[];
   onGameFinished?: (finalLeaderboard: LeaderboardEntry[]) => void;
   onError?: (error: string) => void;
 }
@@ -58,14 +61,21 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
         setConnectionStatus("connected");
         setErrorMessage(null);
 
-        // Auto-join room if code provided
-        if (options.roomCode) {
+        if (!options.roomCode) return;
+
+        if (options.isHost) {
+          if (!options.questions || options.questions.length === 0) {
+            setErrorMessage("No questions to start the room");
+            return;
+          }
+
           socketInstance.emit(
-            "room:join",
+            "room:create",
             {
               code: options.roomCode,
-              displayName: options.displayName,
-              avatarUrl: options.avatarUrl,
+              title: options.title || "Live quiz",
+              gameMode: options.gameMode || "classic",
+              questions: options.questions,
             },
             (res: any) => {
               if (res?.success && res.data) {
@@ -76,7 +86,25 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
               }
             }
           );
+          return;
         }
+
+        socketInstance.emit(
+          "room:join",
+          {
+            code: options.roomCode,
+            displayName: options.displayName,
+            avatarUrl: options.avatarUrl,
+          },
+          (res: any) => {
+            if (res?.success && res.data) {
+              setRoomState(res.data);
+            } else if (res?.error) {
+              setErrorMessage(res.error);
+              options.onError?.(res.error);
+            }
+          }
+        );
       });
 
       socketInstance.on("disconnect", (reason) => {
@@ -245,7 +273,7 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
         socketInstance.disconnect();
       }
     };
-  }, [options.roomCode, options.displayName]);
+  }, [options.roomCode, options.displayName, options.isHost, options.title, options.gameMode, options.questions]);
 
   // Actions
   const joinRoom = useCallback(
