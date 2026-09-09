@@ -93,9 +93,9 @@ export function RoleSwitcherSection() {
       ctaLink: "/marketplace",
       preview: {
         title: t("roles.creator.preview.title"),
-        stat1: { label: t("roles.creator.preview.stat1Label"), value: "$480.00", icon: DollarSign, color: "text-emerald-500" },
-        stat2: { label: t("roles.creator.preview.stat2Label"), value: `312 ${t("roles.creator.preview.students")}`, icon: Users, color: "text-blue-500" },
-        stat3: { label: t("roles.creator.preview.stat3Label"), value: "4.9 ★", icon: Award, color: "text-amber-500" },
+        stat1: { label: t("roles.creator.preview.stat1Label"), value: "—", icon: DollarSign, color: "text-emerald-500" },
+        stat2: { label: t("roles.creator.preview.stat2Label"), value: t("creatorSoon"), icon: Users, color: "text-blue-500" },
+        stat3: { label: t("roles.creator.preview.stat3Label"), value: "—", icon: Award, color: "text-amber-500" },
         detail: t("roles.creator.preview.detail"),
       },
     },
@@ -142,6 +142,11 @@ export function RoleSwitcherSection() {
                 >
                   <Icon className="h-4 w-4" />
                   <span>{r.label}</span>
+                  {roleKey === "creator" && (
+                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${isSelected ? "bg-primary-foreground/20" : "bg-muted"}`}>
+                      {t("creatorSoon")}
+                    </span>
+                  )}
                 </button>
               );
             })}

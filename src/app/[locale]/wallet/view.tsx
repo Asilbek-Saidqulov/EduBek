@@ -18,6 +18,7 @@ import {
   Coins,
   Download,
   Gift,
+  Lock,
   RotateCcw,
   ShoppingCart,
   Wallet as WalletIcon,
@@ -129,6 +130,8 @@ export function WalletView() {
         </CardContent>
       </Card>
 
+      <PlansPanel />
+
       {/* Transaction history */}
       <div>
         <div className="mb-3 flex items-center justify-between">
@@ -221,6 +224,82 @@ export function WalletView() {
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function PlansPanel() {
+  const q = useQuery({
+    queryKey: ["plans"],
+    queryFn: () =>
+      api.get<{
+        paymentsEnabled: boolean;
+        currentPlanId: string;
+        plans: Array<{
+          id: string;
+          name: string;
+          priceUsd: number;
+          paymentsReady: boolean;
+          badge: string;
+          tutorHour: number;
+          generateQuizHour: number;
+          features: string[];
+          highlight?: boolean;
+        }>;
+      }>("/api/plans"),
+    staleTime: 60_000,
+  });
+
+  const data = q.data;
+  if (!data) return null;
+
+  return (
+    <div className="space-y-3">
+      <div>
+        <h2 className="text-sm font-medium uppercase tracking-wider text-muted-foreground">AI plans</h2>
+        <p className="text-xs text-muted-foreground">
+          Everyone is on Free until a payment provider is connected. Practice quizzes stay unlimited.
+        </p>
+      </div>
+      <div className="grid gap-3 md:grid-cols-3">
+        {data.plans.map((plan) => {
+          const locked = !plan.paymentsReady && plan.id !== "free";
+          return (
+            <Card key={plan.id} className={plan.highlight ? "border-primary/40" : ""}>
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between gap-2">
+                  <CardTitle className="text-base">{plan.name}</CardTitle>
+                  <Badge variant={plan.id === "free" ? "default" : "secondary"}>
+                    {locked ? "Disabled" : plan.badge}
+                  </Badge>
+                </div>
+                <CardDescription>
+                  {plan.priceUsd === 0 ? "No charge" : `$${plan.priceUsd}/month`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <ul className="space-y-1 text-xs text-muted-foreground">
+                  {plan.features.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+                <Button className="w-full" size="sm" disabled={locked || plan.id === "free"} variant={locked ? "outline" : "default"}>
+                  {locked ? (
+                    <>
+                      <Lock className="size-3.5" />
+                      Coming when payments are on
+                    </>
+                  ) : plan.id === "free" ? (
+                    "Your plan"
+                  ) : (
+                    "Upgrade"
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
     </div>
   );

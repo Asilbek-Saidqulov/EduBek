@@ -3,6 +3,7 @@ import type { Server as HTTPServer } from "http";
 import { RoomManager } from "./room-manager";
 import { checkActionRateLimit } from "./anti-cheat";
 import { PlayerAnswerSubmission } from "./types";
+import { attachClassicLive } from "./classic-live";
 
 interface AuthenticatedSocket extends Socket {
   data: {
@@ -51,6 +52,7 @@ export class SocketGateway {
 
     this.setupMiddleware();
     this.setupEventHandlers();
+    attachClassicLive(this.io);
 
     console.log("[SocketGateway] Socket.IO server initialized on path /api/socket/io");
     return this.io;

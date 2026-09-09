@@ -21,6 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { useMultiplayer } from "@/hooks/use-multiplayer";
+import { useHttpMultiplayer } from "@/hooks/use-http-multiplayer";
+import { useRealtimeHealth } from "@/hooks/use-realtime-health";
 import { MODE_SKIN, type GameModeType } from "@/components/edubek/game-modes";
 import { ModePlayHud, HeistActionBar, EmpireUpgradeBar } from "@/components/edubek/mode-play-hud";
 
@@ -28,6 +30,7 @@ export interface MultiplayerLivePlayerProps {
   initialCode: string;
   initialDisplayName?: string;
   isHost?: boolean;
+  sessionId?: string;
   onExit?: () => void;
 }
 
@@ -41,16 +44,29 @@ export function MultiplayerLivePlayer({
   initialCode,
   initialDisplayName,
   isHost = false,
+  sessionId,
   onExit,
 }: MultiplayerLivePlayerProps) {
   const [copiedCode, setCopiedCode] = useState(false);
   const [shortAnswerInput, setShortAnswerInput] = useState("");
+  const { online: realtimeOnline, url: realtimeUrl } = useRealtimeHealth();
+  const useSocket = realtimeOnline !== false;
 
-  const mp = useMultiplayer({
+  const socketMp = useMultiplayer({
     roomCode: initialCode,
     displayName: initialDisplayName || "Player",
     isHost,
+    enabled: useSocket,
+    realtimeUrl,
   }) as any;
+  const httpMp = useHttpMultiplayer({
+    roomCode: initialCode,
+    displayName: initialDisplayName || "Player",
+    isHost,
+    sessionId,
+    enabled: !useSocket,
+  }) as any;
+  const mp = useSocket ? socketMp : httpMp;
 
   const {
     connectionStatus,

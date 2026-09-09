@@ -1,14 +1,22 @@
 {
-  "name": "nextjs_tailwind_shadcn_ts",
+  "name": "edubek",
   "version": "0.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
     "dev:realtime": "tsx watch src/server/index.ts",
     "build": "prisma generate && next build",
+    "start": "node scripts/start-unified.cjs",
+    "start:next": "next start -p 3000",
+    "start:realtime": "node scripts/start-production.cjs",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:seed": "tsx scripts/seed.ts",
+    "db:reset": "prisma migrate reset --force"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -76,6 +84,7 @@
     "sharp": "^0.34.3",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "tsx": "^4.22.5",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
@@ -95,7 +104,6 @@
     "cross-env": "^10.1.0",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
-    "tsx": "^4.22.5",
     "typescript": "^5",
     "vitest": "^4.1.9"
   }

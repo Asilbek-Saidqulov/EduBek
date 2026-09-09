@@ -169,12 +169,20 @@ export function DashboardView({
               ) : (
                 <div className="rounded-xl border border-dashed p-5 text-center space-y-3">
                   <p className="text-sm text-muted-foreground">{t("continue.empty")}</p>
-                  <Button asChild size="sm">
-                    <Link href="/tutor">
-                      <Sparkles className="size-3.5" />
-                      {t("continue.start")}
-                    </Link>
-                  </Button>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Button asChild size="sm">
+                      <Link href="/live-quiz?tab=discover&first=1">
+                        <Gamepad2 className="size-3.5" />
+                        {t("continue.firstQuiz")}
+                      </Link>
+                    </Button>
+                    <Button asChild size="sm" variant="outline">
+                      <Link href="/tutor">
+                        <Sparkles className="size-3.5" />
+                        {t("continue.start")}
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardContent>

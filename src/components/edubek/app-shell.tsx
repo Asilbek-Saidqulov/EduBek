@@ -372,9 +372,8 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
 
             {/* Notification Bell */}
             <Button variant="ghost" size="icon" asChild className="relative h-9 w-9 text-muted-foreground">
-              <Link href="/notifications">
+              <Link href="/notifications" title={tNav("notifications")}>
                 <Bell className="h-4 w-4" />
-                <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
               </Link>
             </Button>
 

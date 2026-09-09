@@ -39,6 +39,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mascot } from "@/components/edubek/mascots";
+import { useSearchParams } from "next/navigation";
 import { api } from "@/lib/api-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -97,6 +98,9 @@ interface AssessmentOption {
 export function ClassroomsClient() {
   const t = useTranslations("classrooms");
   const { user } = useCurrentUser();
+  const searchParams = useSearchParams();
+  const roles = user?.platformRoles ?? user?.roles ?? [];
+  const isStaff = roles.some((r: string) => /teacher|admin|creator/i.test(String(r)));
 
   // Navigation & View State
   const [selectedClassroomId, setSelectedClassroomId] = React.useState<string | null>(null);
@@ -125,6 +129,8 @@ export function ClassroomsClient() {
   const [newClassroomGrade, setNewClassroomGrade] = React.useState("");
   const [newClassroomDesc, setNewClassroomDesc] = React.useState("");
   const [joinCodeInput, setJoinCodeInput] = React.useState("");
+  const [joinError, setJoinError] = React.useState<string | null>(null);
+  const [createdJoinCode, setCreatedJoinCode] = React.useState<string | null>(null);
   const [inviteIdentifier, setInviteIdentifier] = React.useState("");
 
   // Assignment Creation Inputs
@@ -160,6 +166,19 @@ export function ClassroomsClient() {
   React.useEffect(() => {
     loadClassrooms();
   }, [loadClassrooms]);
+
+  React.useEffect(() => {
+    const prefill = (searchParams.get("code") || searchParams.get("join") || "").replace(/\s+/g, "").toUpperCase();
+    if (prefill) {
+      setJoinCodeInput(prefill);
+      setShowJoinModal(true);
+      return;
+    }
+    if (searchParams.get("first") === "1") {
+      if (isStaff) setShowCreateModal(true);
+      else setShowJoinModal(true);
+    }
+  }, [searchParams, isStaff]);
 
   // Load selected classroom detail
   const loadClassroomDetail = React.useCallback(async (id: string) => {
@@ -216,6 +235,7 @@ export function ClassroomsClient() {
       setNewClassroomSubject("");
       setNewClassroomGrade("");
       setNewClassroomDesc("");
+      if (created.joinCode) setCreatedJoinCode(created.joinCode);
       await loadClassrooms();
       setSelectedClassroomId(created.id);
     } catch (err: any) {
@@ -228,11 +248,13 @@ export function ClassroomsClient() {
   // Handle Join Classroom
   const handleJoinClassroom = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!joinCodeInput.trim()) return;
+    const code = joinCodeInput.replace(/\s+/g, "").trim().toUpperCase();
+    if (!code) return;
     setSubmitting(true);
+    setJoinError(null);
     try {
       const result = await api.post<{ classroom: any; message: string }>("/api/classrooms/join", {
-        joinCode: joinCodeInput.trim(),
+        joinCode: code,
       });
       setShowJoinModal(false);
       setJoinCodeInput("");
@@ -241,7 +263,7 @@ export function ClassroomsClient() {
         setSelectedClassroomId(result.classroom.id);
       }
     } catch (err: any) {
-      alert(err?.message || "Invalid or expired join code");
+      setJoinError(err?.message || "That code was not found. Ask your teacher for a new one.");
     } finally {
       setSubmitting(false);
     }
@@ -623,11 +645,11 @@ export function ClassroomsClient() {
           {/* Teacher Action Controls & Join Code */}
           <div className="flex flex-wrap items-center gap-3">
             {classroomDetail.isTeacher && classroomDetail.joinCode && (
-              <div className="flex items-center gap-2 rounded-lg border bg-card px-3 py-1.5 shadow-sm">
+              <div className="flex items-center gap-2 rounded-lg border bg-primary/5 px-4 py-2 shadow-sm">
                 <Key className="size-4 text-primary" />
-                <div className="text-xs">
-                  <span className="text-muted-foreground">Join Code: </span>
-                  <span className="font-mono font-bold tracking-wider">{classroomDetail.joinCode}</span>
+                <div>
+                  <div className="text-[10px] uppercase tracking-wide text-muted-foreground">Students join with</div>
+                  <div className="font-mono text-xl font-black tracking-[0.2em]">{classroomDetail.joinCode}</div>
                 </div>
                 <Button
                   size="icon"
@@ -1076,6 +1098,17 @@ export function ClassroomsClient() {
   // ---------------------------------------------------------------------------
   return (
     <div className="container mx-auto max-w-6xl px-4 py-8">
+      {createdJoinCode && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/30 bg-primary/5 px-4 py-3">
+          <div>
+            <p className="text-sm font-semibold">Class created. Share this code</p>
+            <p className="font-mono text-2xl font-black tracking-[0.25em]">{createdJoinCode}</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => void handleCopyCode(createdJoinCode)}>
+            {copiedCode ? "Copied" : "Copy code"}
+          </Button>
+        </div>
+      )}
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -1089,9 +1122,9 @@ export function ClassroomsClient() {
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => setShowJoinModal(true)} className="gap-2">
             <Key className="size-4" />
-            Join with Code
+            Join with code
           </Button>
-          {user && (
+          {isStaff && (
             <Button onClick={() => setShowCreateModal(true)} className="gap-2">
               <Plus className="size-4" />
               {t("createClassroom")}
@@ -1155,20 +1188,35 @@ export function ClassroomsClient() {
             <Mascot name="notebook" size={96} className="text-muted-foreground/40" />
             <div>
               <h3 className="text-lg font-semibold">{t("emptyTitle")}</h3>
-              <p className="mt-1 text-sm text-muted-foreground">{t("emptyDescription")}</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isStaff
+                  ? "Create a class, then share the 6-character code with students."
+                  : "Ask your teacher for the class code, then join here."}
+              </p>
             </div>
-            <div className="flex gap-3 mt-2">
-              <Button variant="outline" onClick={() => setShowJoinModal(true)} className="gap-2">
+            <form onSubmit={handleJoinClassroom} className="mt-2 flex w-full max-w-sm flex-col items-center gap-2">
+              <Input
+                placeholder="e.g. 7KP9X2"
+                value={joinCodeInput}
+                onChange={(e) => {
+                  setJoinCodeInput(e.target.value.toUpperCase());
+                  setJoinError(null);
+                }}
+                className="font-mono text-center tracking-widest text-lg font-bold uppercase"
+                maxLength={10}
+              />
+              {joinError && <p className="text-xs text-destructive">{joinError}</p>}
+              <Button type="submit" disabled={submitting || !joinCodeInput.trim()} className="w-full gap-2">
                 <Key className="size-4" />
-                Join with Code
+                {submitting ? "Joining..." : "Join class"}
               </Button>
-              {user && (
-                <Button onClick={() => setShowCreateModal(true)} className="gap-2">
-                  <Plus className="size-4" />
-                  {t("createClassroom")}
-                </Button>
-              )}
-            </div>
+            </form>
+            {isStaff && (
+              <Button variant="outline" onClick={() => setShowCreateModal(true)} className="gap-2">
+                <Plus className="size-4" />
+                {t("createClassroom")}
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -1207,6 +1255,19 @@ export function ClassroomsClient() {
               <CardContent className="space-y-3">
                 {c.description && (
                   <p className="text-xs text-muted-foreground line-clamp-2">{c.description}</p>
+                )}
+                {c.isTeacher && c.joinCode && (
+                  <button
+                    type="button"
+                    className="flex w-full items-center justify-between rounded-md border bg-muted/40 px-2 py-1.5 text-left"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      void handleCopyCode(c.joinCode!);
+                    }}
+                  >
+                    <span className="text-[10px] uppercase text-muted-foreground">Class code</span>
+                    <span className="font-mono text-sm font-bold tracking-widest">{c.joinCode}</span>
+                  </button>
                 )}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
                   <div className="flex items-center gap-4">
@@ -1331,11 +1392,16 @@ export function ClassroomsClient() {
                   <Input
                     placeholder="e.g. 7KP9X2"
                     value={joinCodeInput}
-                    onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                    onChange={(e) => {
+                      setJoinCodeInput(e.target.value.toUpperCase());
+                      setJoinError(null);
+                    }}
                     className="font-mono text-center tracking-widest text-lg font-bold uppercase"
                     maxLength={10}
                     required
+                    autoFocus
                   />
+                  {joinError && <p className="mt-2 text-xs text-destructive">{joinError}</p>}
                 </div>
               </CardContent>
               <div className="flex items-center justify-end gap-3 p-4 border-t bg-muted/20">

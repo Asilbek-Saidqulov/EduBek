@@ -1,0 +1,13 @@
+# Socket process only. Keep the EduBek website on Vercel.
+# Connect them with two env vars on Vercel (see APPLY.txt).
+services:
+  - type: web
+    name: edubek-realtime
+    runtime: node
+    plan: starter
+    buildCommand: npm ci && npx prisma generate
+    startCommand: npm run start:realtime
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production

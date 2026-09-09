@@ -483,6 +483,10 @@ export async function POST(req: NextRequest) {
     const authContext = await getAuthContext().catch(() => null);
     const userId = authContext?.userId || null;
 
+    const { consumeTutorTurn } = await import("@/lib/usage-policy");
+    const quota = consumeTutorTurn(req, userId);
+    if (!quota.ok) return quota.response;
+
     let workingDoc: BlackboardDocument = initialDoc || {
       id: "doc_default",
       title: studentContext?.topic ? `${studentContext.topic} - Lesson` : "Interactive Lesson",

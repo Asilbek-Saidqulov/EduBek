@@ -328,7 +328,8 @@
     "unfavorited": "Removed from favorites",
     "favoriteError": "Could not update favorite",
     "favorite": "Add to favorites",
-    "unfavorite": "Remove from favorites"
+    "unfavorite": "Remove from favorites",
+    "practice": "Practice"
   },
   "ai": {
     "workspace": "AI Workspace",
@@ -399,7 +400,9 @@
       "askAiTutor": "Ask AI Tutor for deeper breakdown",
       "connectedSyllabus": "Connected to:",
       "syllabusName": "Grade 10 Biology Syllabus",
-      "xpBonus": "+15 Mastery XP"
+      "xpBonus": "+15 Mastery XP",
+      "noPin": "No class PIN?",
+      "practiceQuiz": "Start a 5-question practice quiz"
     },
     "ecosystem": {
       "badge": "The Interconnected Architecture",
@@ -836,7 +839,8 @@
             "detail": "Top item: 'Complete High School Olympiad Math Bundle' (128 sales)"
           }
         }
-      }
+      },
+      "creatorSoon": "Soon"
     },
     "roles": {
       "badge": "Built for Everyone in Education",
@@ -10998,10 +11002,10 @@
     "pin": "Pin",
     "archive": "Archive",
     "delete": "Delete",
-    "empty": "You're all caught up",
-    "emptyDesc": "No notifications to show here.",
-    "emptyTitle": "No notifications",
-    "emptyDescription": "You are all caught up! Updates about your quizzes, achievements, and materials will appear here."
+    "empty": "No notifications yet",
+    "emptyDesc": "You will see class joins, assignments, and quiz results here. Nothing is generated as a demo.",
+    "emptyTitle": "No notifications yet",
+    "emptyDescription": "You will see class joins, assignments, and quiz results here."
   },
   "identity": {
     "title": "Identity, Access Management & Federation Platform",
@@ -17595,7 +17599,8 @@
       "start": "Start learning",
       "resume": "Resume learning",
       "updated": "Updated {when}",
-      "untitled": "Untitled lesson"
+      "untitled": "Untitled lesson",
+      "firstQuiz": "First 5 questions"
     },
     "classes": {
       "yours": "Your classes",
@@ -17653,8 +17658,8 @@
     "status_draft": "draft",
     "status_archived": "archived",
     "resultCount": "{count} resources",
-    "emptyTitle": "No resources yet",
-    "emptyDescription": "Purchase from the marketplace or generate with AI to fill your library.",
+    "emptyTitle": "Library is empty",
+    "emptyDescription": "Items you buy on Marketplace will show here. Creator publishing is not open yet.",
     "goToMarketplace": "Browse marketplace",
     "backToLibrary": "Back to library",
     "loadFailed": "Couldn't load resource",
@@ -17916,6 +17921,11 @@
     "langEn": "English",
     "langRu": "Русский",
     "searchQuizzes": "Search quizzes…",
-    "allTypes": "All types"
+    "allTypes": "All types",
+    "liveOfflineTitle": "Live sockets offline — PIN rooms still work",
+    "liveOfflineHint": "Live sockets are off on this host. Rooms still work over the database: create a PIN, students join, host taps Start.",
+    "startPractice": "Start 5 questions",
+    "firstPracticeTitle": "First practice quiz",
+    "emptyPracticeHint": "No class quiz is waiting. Take a 5-question mix. After a miss, open Tutor to see why."
   }
 }

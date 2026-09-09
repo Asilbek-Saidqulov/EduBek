@@ -23,6 +23,22 @@ export interface RateLimitResult {
   remaining: number;
 }
 
+export function peekRateLimit(
+  key: string,
+  limit: number = 10,
+): RateLimitResult {
+  const now = Date.now();
+  const record = rateLimitStore.get(key);
+  if (!record || now > record.resetAt) {
+    return { allowed: true, resetAt: new Date(now), remaining: limit };
+  }
+  return {
+    allowed: record.count < limit,
+    resetAt: new Date(record.resetAt),
+    remaining: Math.max(0, limit - record.count),
+  };
+}
+
 export function checkRateLimit(
   key: string,
   limit: number = 10,

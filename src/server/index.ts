@@ -2,11 +2,13 @@ import http from "http";
 import { SocketGateway } from "@/features/multiplayer/socket-gateway";
 import { onRoomEvent } from "@/features/multiplayer/bus";
 
-const port = Number(process.env.REALTIME_PORT || 3001);
+const port = Number(process.env.PORT || process.env.REALTIME_PORT || 3001);
 
-const server = http.createServer((_req, res) => {
+const server = http.createServer((req, res) => {
+  const url = req.url || "/";
+  if (url.startsWith("/api/socket/io")) return;
   res.writeHead(200, { "content-type": "application/json" });
-  res.end(JSON.stringify({ ok: true, service: "edubek-realtime" }));
+  res.end(JSON.stringify({ ok: true, service: "edubek-realtime", path: "/api/socket/io" }));
 });
 
 const gateway = SocketGateway.getInstance();
@@ -16,6 +18,6 @@ onRoomEvent((roomId, event, payload) => {
   io.to(roomId).emit(event, payload);
 });
 
-server.listen(port, () => {
+server.listen(port, "0.0.0.0", () => {
   console.log(`[realtime] Socket.IO listening on :${port} path /api/socket/io`);
 });

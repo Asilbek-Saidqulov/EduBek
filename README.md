@@ -110,13 +110,14 @@ openssl rand -hex 32
 | `npm run dev` | Start dev server (Next.js only) |
 | `npm run dev:realtime` | Start dev server with Socket.IO (tsx watch) |
 | `npm run build` | Production build (cross-platform) |
-| `npm start` | Start production server (Next.js + Socket.IO) |
-| `npm test` | Run test suite (12,856 tests) |
+| `npm start` | Start Next.js production server |
+| `npm run start:realtime` | Start Socket.IO on REALTIME_PORT (default 3001). Vercel does not run this. |
+| `npm test` | Run Vitest for auth, quiz, classroom, and economy |
 | `npm run lint` | Run ESLint |
 | `npm run db:migrate` | Create + apply new migration |
-| `npm run db:migrate:deploy` | Apply pending migrations (production-safe) |
+| `npm run db:migrate:deploy` | Apply pending migrations |
 | `npm run db:generate` | Regenerate Prisma client |
-| `npm run db:seed` | Seed database with sample data |
+| `npm run db:seed` | Seed published quizzes and marketplace listings |
 | `npm run db:reset` | Reset database (destructive) |
 
 ## Project Structure
@@ -136,7 +137,7 @@ edubek/
 │   ├── lib/                   Shared utilities
 │   └── config/                Environment configuration
 ├── prisma/                    Schema + migrations (PostgreSQL)
-├── tests/                     67 test files (12,856 tests)
+├── src/tests + feature __tests__   Vitest coverage for auth, quiz, classroom, economy
 ├── messages/                  i18n locale files (en/uz/ru)
 ├── scripts/
 │   ├── copy-standalone.js     Cross-platform build helper

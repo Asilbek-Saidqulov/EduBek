@@ -1,0 +1,2178 @@
+diff --git a/README.md b/README.md
+index 528b762..7a56b88 100644
+--- a/README.md
++++ b/README.md
+@@ -110,13 +110,14 @@ openssl rand -hex 32
+ | `npm run dev` | Start dev server (Next.js only) |
+ | `npm run dev:realtime` | Start dev server with Socket.IO (tsx watch) |
+ | `npm run build` | Production build (cross-platform) |
+-| `npm start` | Start production server (Next.js + Socket.IO) |
+-| `npm test` | Run test suite (12,856 tests) |
++| `npm start` | Start Next.js production server |
++| `npm run start:realtime` | Start Socket.IO on REALTIME_PORT (default 3001). Vercel does not run this. |
++| `npm test` | Run Vitest for auth, quiz, classroom, and economy |
+ | `npm run lint` | Run ESLint |
+ | `npm run db:migrate` | Create + apply new migration |
+-| `npm run db:migrate:deploy` | Apply pending migrations (production-safe) |
++| `npm run db:migrate:deploy` | Apply pending migrations |
+ | `npm run db:generate` | Regenerate Prisma client |
+-| `npm run db:seed` | Seed database with sample data |
++| `npm run db:seed` | Seed published quizzes and marketplace listings |
+ | `npm run db:reset` | Reset database (destructive) |
+ 
+ ## Project Structure
+@@ -136,7 +137,7 @@ edubek/
+ │   ├── lib/                   Shared utilities
+ │   └── config/                Environment configuration
+ ├── prisma/                    Schema + migrations (PostgreSQL)
+-├── tests/                     67 test files (12,856 tests)
++├── src/tests + feature __tests__   Vitest coverage for auth, quiz, classroom, economy
+ ├── messages/                  i18n locale files (en/uz/ru)
+ ├── scripts/
+ │   ├── copy-standalone.js     Cross-platform build helper
+diff --git a/messages/en.json b/messages/en.json
+index 80a697b..2fc473a 100644
+--- a/messages/en.json
++++ b/messages/en.json
+@@ -328,7 +328,8 @@
+     "unfavorited": "Removed from favorites",
+     "favoriteError": "Could not update favorite",
+     "favorite": "Add to favorites",
+-    "unfavorite": "Remove from favorites"
++    "unfavorite": "Remove from favorites",
++    "practice": "Practice"
+   },
+   "ai": {
+     "workspace": "AI Workspace",
+@@ -399,7 +400,9 @@
+       "askAiTutor": "Ask AI Tutor for deeper breakdown",
+       "connectedSyllabus": "Connected to:",
+       "syllabusName": "Grade 10 Biology Syllabus",
+-      "xpBonus": "+15 Mastery XP"
++      "xpBonus": "+15 Mastery XP",
++      "noPin": "No class PIN?",
++      "practiceQuiz": "Start a 5-question practice quiz"
+     },
+     "ecosystem": {
+       "badge": "The Interconnected Architecture",
+@@ -836,7 +839,8 @@
+             "detail": "Top item: 'Complete High School Olympiad Math Bundle' (128 sales)"
+           }
+         }
+-      }
++      },
++      "creatorSoon": "Soon"
+     },
+     "roles": {
+       "badge": "Built for Everyone in Education",
+@@ -17595,7 +17599,8 @@
+       "start": "Start learning",
+       "resume": "Resume learning",
+       "updated": "Updated {when}",
+-      "untitled": "Untitled lesson"
++      "untitled": "Untitled lesson",
++      "firstQuiz": "First 5 questions"
+     },
+     "classes": {
+       "yours": "Your classes",
+@@ -17916,6 +17921,11 @@
+     "langEn": "English",
+     "langRu": "Русский",
+     "searchQuizzes": "Search quizzes…",
+-    "allTypes": "All types"
++    "allTypes": "All types",
++    "liveOfflineTitle": "Live sockets offline — PIN rooms still work",
++    "liveOfflineHint": "Live sockets are off on this host. Rooms still work over the database: create a PIN, students join, host taps Start.",
++    "startPractice": "Start 5 questions",
++    "firstPracticeTitle": "First practice quiz",
++    "emptyPracticeHint": "No class quiz is waiting. Take a 5-question mix. After a miss, open Tutor to see why."
+   }
+ }
+diff --git a/messages/ru.json b/messages/ru.json
+index 18bf280..281f38b 100644
+--- a/messages/ru.json
++++ b/messages/ru.json
+@@ -328,7 +328,8 @@
+     "unfavorited": "Удалено из избранного",
+     "favoriteError": "Не удалось обновить избранное",
+     "favorite": "В избранное",
+-    "unfavorite": "Из избранного"
++    "unfavorite": "Из избранного",
++    "practice": "Практика"
+   },
+   "ai": {
+     "workspace": "ИИ Рабочая область",
+@@ -399,7 +400,9 @@
+       "askAiTutor": "Спросить у ИИ-репетитора подробнее",
+       "connectedSyllabus": "Связано с:",
+       "syllabusName": "Программа по биологии для 10 класса",
+-      "xpBonus": "+15 Очков опыта (XP)"
++      "xpBonus": "+15 Очков опыта (XP)",
++      "noPin": "Нет PIN класса?",
++      "practiceQuiz": "Начать практику из 5 вопросов"
+     },
+     "ecosystem": {
+       "badge": "Взаимосвязанная архитектура",
+@@ -836,7 +839,8 @@
+             "detail": "Топ материал: «Олимпиадная математика — полный комплект» (128 продаж)"
+           }
+         }
+-      }
++      },
++      "creatorSoon": "Скоро"
+     },
+     "roles": {
+       "badge": "Для всех участников образования",
+@@ -17595,7 +17599,8 @@
+       "start": "Открыть репетитора",
+       "resume": "Продолжить",
+       "updated": "Обновлено {when}",
+-      "untitled": "Урок без названия"
++      "untitled": "Урок без названия",
++      "firstQuiz": "Первые 5 вопросов"
+     },
+     "classes": {
+       "yours": "Ваши классы",
+@@ -17916,6 +17921,11 @@
+     "langEn": "English",
+     "langRu": "Русский",
+     "searchQuizzes": "Поиск квизов…",
+-    "allTypes": "Все типы"
++    "allTypes": "Все типы",
++    "liveOfflineTitle": "Сокеты офлайн — PIN-комнаты работают",
++    "liveOfflineHint": "Socket.IO на этом хосте выключен. Комната всё равно работает через базу: создайте PIN, ученики входят, ведущий нажимает Start.",
++    "startPractice": "Начать 5 вопросов",
++    "firstPracticeTitle": "Первая практическая викторина",
++    "emptyPracticeHint": "Классной викторины пока нет. Пройдите смесь из 5 вопросов. После ошибки откройте Tutor."
+   }
+ }
+diff --git a/messages/uz.json b/messages/uz.json
+index 2fdf91d..b94675b 100644
+--- a/messages/uz.json
++++ b/messages/uz.json
+@@ -364,7 +364,8 @@
+     "unfavorited": "Sevimlilardan olib tashlandi",
+     "favoriteError": "Sevimlilar holatini yangilab bo'lmadi",
+     "favorite": "Sevimlilarga qo'shish",
+-    "unfavorite": "Sevimlilardan o'chirish"
++    "unfavorite": "Sevimlilardan o'chirish",
++    "practice": "Mashq"
+   },
+   "ai": {
+     "workspace": "AI Ish maydoni",
+@@ -435,7 +436,9 @@
+       "askAiTutor": "Batafsil tahlil uchun AI Repetitordan so'rash",
+       "connectedSyllabus": "Bog'langan:",
+       "syllabusName": "10-sinf Biologiya o'quv dasturi",
+-      "xpBonus": "+15 Tajriba (XP)"
++      "xpBonus": "+15 Tajriba (XP)",
++      "noPin": "Sinf PIN yo‘qmi?",
++      "practiceQuiz": "5 savollik mashq testini boshlang"
+     },
+     "ecosystem": {
+       "badge": "O'zaro bog'liq arxitektura",
+@@ -872,7 +875,8 @@
+             "detail": "Eng ommabop: 'Olimpiada matematikasi to'liq to'plami' (128 ta savdo)"
+           }
+         }
+-      }
++      },
++      "creatorSoon": "Tez orada"
+     },
+     "roles": {
+       "badge": "Ta'limdagi har bir inson uchun",
+@@ -17635,7 +17639,8 @@
+       "start": "Repetitorni ochish",
+       "resume": "Davom etish",
+       "updated": "Yangilangan {when}",
+-      "untitled": "Nomsiz dars"
++      "untitled": "Nomsiz dars",
++      "firstQuiz": "Dastlabki 5 savol"
+     },
+     "classes": {
+       "yours": "Sinflaringiz",
+@@ -17971,6 +17976,11 @@
+     "langEn": "English",
+     "langRu": "Русский",
+     "searchQuizzes": "Viktorina qidirish…",
+-    "allTypes": "Barcha turlar"
++    "allTypes": "Barcha turlar",
++    "liveOfflineTitle": "Socket o‘chiq — PIN xonalar ishlaydi",
++    "liveOfflineHint": "Bu hostda Socket.IO o‘chiq. Xona baribir ishlaydi: PIN yarating, o‘quvchilar qo‘shilsin, boshlovchi Start bossin.",
++    "startPractice": "5 savolni boshlash",
++    "firstPracticeTitle": "Birinchi mashq testi",
++    "emptyPracticeHint": "Sinf testi yo‘q. 5 savollik aralash mashqni ishlang. Xatodan keyin Tutor tushuntiradi."
+   }
+ }
+diff --git a/package.json b/package.json
+index 3475ff2..6bf96b7 100644
+--- a/package.json
++++ b/package.json
+@@ -1,14 +1,21 @@
+ {
+-  "name": "nextjs_tailwind_shadcn_ts",
++  "name": "edubek",
+   "version": "0.2.0",
+   "private": true,
+   "scripts": {
+     "dev": "next dev -p 3000",
+     "dev:realtime": "tsx watch src/server/index.ts",
+     "build": "prisma generate && next build",
++    "start": "next start -p 3000",
++    "start:realtime": "node scripts/start-production.cjs",
+     "lint": "eslint .",
+     "test": "vitest run",
+-    "test:watch": "vitest"
++    "test:watch": "vitest",
++    "db:generate": "prisma generate",
++    "db:migrate": "prisma migrate dev",
++    "db:migrate:deploy": "prisma migrate deploy",
++    "db:seed": "tsx scripts/seed.ts",
++    "db:reset": "prisma migrate reset --force"
+   },
+   "dependencies": {
+     "@dnd-kit/core": "^6.3.1",
+diff --git a/scripts/seed.ts b/scripts/seed.ts
+index a29d3e8..b3622ce 100644
+--- a/scripts/seed.ts
++++ b/scripts/seed.ts
+@@ -203,28 +203,70 @@ const QUIZZES: QuizSeed[] = [
+       { question: 'Which organelle modifies, sorts, and packages proteins?', options: ['Smooth ER', 'Rough ER', 'Golgi apparatus', 'Lysosome'], correctIndex: 2, explanation: 'The Golgi apparatus is the cell\'s "shipping center".' },
+     ],
+   },
++  {
++    title: 'O‘zbekiston tarixi: mustaqillik davri',
++    description: 'Mustaqillik e’lon qilinishi, ramzlar va davlat tuzilishi bo‘yicha 5 ta savol. 9–11-sinflar uchun.',
++    category: 'history',
++    difficulty: 'medium',
++    language: 'uz',
++    creatorIndex: 1,
++    priceEduTokens: 0,
++    priceFiat: 0,
++    tier: 'free',
++    rating: 4.7,
++    purchaseCount: 312,
++    questions: [
++      { question: 'O‘zbekiston mustaqilligi qachon e’lon qilindi?', options: ['1989-yil 1-sentabr', '1991-yil 1-sentabr', '1992-yil 8-dekabr', '1990-yil 20-iyun'], correctIndex: 1, explanation: 'Mustaqillik 1991-yil 1-sentabrda e’lon qilindi.' },
++      { question: 'O‘zbekiston Respublikasi Konstitutsiyasi qachon qabul qilindi?', options: ['1991-yil 1-sentabr', '1992-yil 8-dekabr', '1993-yil 1-yanvar', '1990-yil 24-mart'], correctIndex: 1, explanation: 'Konstitutsiya 1992-yil 8-dekabrda qabul qilingan.' },
++      { question: 'Davlat tilining maqomi qaysi tilda?', options: ['Rus tili', 'O‘zbek tili', 'Ingliz tili', 'Qoraqalpoq tili'], correctIndex: 1, explanation: 'Davlat tili — o‘zbek tili.' },
++      { question: 'O‘zbekiston poytaxti qaysi shahar?', options: ['Samarqand', 'Buxoro', 'Toshkent', 'Nukus'], correctIndex: 2, explanation: 'Poytaxt — Toshkent.' },
++      { question: 'Mustaqillik bayrami qaysi kunda nishonlanadi?', options: ['8-dekabr', '21-mart', '1-sentabr', '9-may'], correctIndex: 2, explanation: '1-sentabr — Mustaqillik kuni.' },
++    ],
++  },
++  {
++    title: 'Algebra asoslari: chiziqli tenglamalar',
++    description: '8–9-sinflar uchun chiziqli tenglamalar. Javoblar o‘zbek tilida tushuntiriladi.',
++    category: 'mathematics',
++    difficulty: 'easy',
++    language: 'uz',
++    creatorIndex: 0,
++    priceEduTokens: 0,
++    priceFiat: 0,
++    tier: 'free',
++    rating: 4.6,
++    purchaseCount: 198,
++    questions: [
++      { question: '2x + 4 = 12 tenglamani yeching. x = ?', options: ['2', '4', '6', '8'], correctIndex: 1, explanation: '2x = 8, shuning uchun x = 4.' },
++      { question: 'y = 5x − 1 to‘g‘ri chiziqning burchak koeffitsienti qancha?', options: ['−1', '5', '1', '0'], correctIndex: 1, explanation: 'y = mx + b ko‘rinishida m = 5.' },
++      { question: '3(x − 1) = 6. x = ?', options: ['1', '2', '3', '4'], correctIndex: 2, explanation: '3x − 3 = 6 → 3x = 9 → x = 3.' },
++      { question: 'Agar 5x = 20 bo‘lsa, x = ?', options: ['2', '3', '4', '5'], correctIndex: 2, explanation: 'x = 20 / 5 = 4.' },
++      { question: 'y = −x + 3 chiziqning ordinata o‘qi bilan kesishish nuqtasi?', options: ['−1', '0', '3', '1'], correctIndex: 2, explanation: 'b = 3, kesishish nuqtasi (0; 3).' },
++    ],
++  },
+ ]
+ 
+ async function main() {
+   console.log('🌱 Seeding EduBek database...')
+ 
+-  // Wipe existing data so re-running is idempotent
+-  console.log('  🧹 Cleaning existing data...')
+-  await db.marketplaceReview.deleteMany()
+-  await db.marketplacePurchase.deleteMany()
+-  await db.marketplaceListing.deleteMany()
+-  await db.question.deleteMany()
+-  await db.quiz.deleteMany()
+-  await db.creator.deleteMany()
+-  await db.userRole.deleteMany()
+-  await db.profile.deleteMany()
+-  await db.user.deleteMany()
++  // Only remove previous seed catalog rows. Never wipe real users.
++  console.log('  🧹 Cleaning previous seed catalog...')
++  const seedEmails = CREATORS.map((c) => c.email)
++  const seedUsers = await db.user.findMany({ where: { email: { in: seedEmails } }, select: { id: true } })
++  const seedUserIds = seedUsers.map((u) => u.id)
++  if (seedUserIds.length) {
++    await db.marketplaceReview.deleteMany({ where: { listing: { sellerId: { in: seedUserIds } } } }).catch(() => undefined)
++    await db.marketplacePurchase.deleteMany({ where: { listing: { sellerId: { in: seedUserIds } } } }).catch(() => undefined)
++    await db.marketplaceListing.deleteMany({ where: { sellerId: { in: seedUserIds } } })
++    await db.question.deleteMany({ where: { quiz: { teacherId: { in: seedUserIds } } } })
++    await db.quiz.deleteMany({ where: { teacherId: { in: seedUserIds } } })
++  }
+ 
+-  // Create creators
+   const creators = []
+   for (const c of CREATORS) {
+-    const user = await db.user.create({
+-      data: {
++    const user = await db.user.upsert({
++      where: { email: c.email },
++      update: { name: c.name, username: c.username, country: c.country },
++      create: {
+         email: c.email,
+         name: c.name,
+         username: c.username,
+@@ -240,10 +282,10 @@ async function main() {
+         },
+         roles: { create: [{ role: 'creator' }] },
+       },
+-      include: { creatorProfile: true }
++      include: { creatorProfile: true },
+     })
+     creators.push(user)
+-    console.log(`  ✓ Created creator: ${c.name}`)
++    console.log(`  ✓ Creator ready: ${c.name}`)
+   }
+ 
+   // Create quizzes + marketplace listings
+@@ -284,7 +326,7 @@ async function main() {
+         priceEduTokens: seed.priceEduTokens,
+         priceFiat: seed.priceFiat,
+         tier: seed.tier,
+-        status: 'active',
++        status: 'published',
+         publishedAt: new Date(),
+         reviewedAt: new Date(),
+       },
+diff --git a/src/app/[locale]/dashboard/dashboard.tsx b/src/app/[locale]/dashboard/dashboard.tsx
+index f831f1d..a9b4063 100644
+--- a/src/app/[locale]/dashboard/dashboard.tsx
++++ b/src/app/[locale]/dashboard/dashboard.tsx
+@@ -169,12 +169,20 @@ export function DashboardView({
+               ) : (
+                 <div className="rounded-xl border border-dashed p-5 text-center space-y-3">
+                   <p className="text-sm text-muted-foreground">{t("continue.empty")}</p>
+-                  <Button asChild size="sm">
+-                    <Link href="/tutor">
+-                      <Sparkles className="size-3.5" />
+-                      {t("continue.start")}
+-                    </Link>
+-                  </Button>
++                  <div className="flex flex-wrap items-center justify-center gap-2">
++                    <Button asChild size="sm">
++                      <Link href="/live-quiz?tab=discover&first=1">
++                        <Gamepad2 className="size-3.5" />
++                        {t("continue.firstQuiz")}
++                      </Link>
++                    </Button>
++                    <Button asChild size="sm" variant="outline">
++                      <Link href="/tutor">
++                        <Sparkles className="size-3.5" />
++                        {t("continue.start")}
++                      </Link>
++                    </Button>
++                  </div>
+                 </div>
+               )}
+             </CardContent>
+diff --git a/src/app/[locale]/layout.tsx b/src/app/[locale]/layout.tsx
+index 4601281..8846dab 100644
+--- a/src/app/[locale]/layout.tsx
++++ b/src/app/[locale]/layout.tsx
+@@ -61,7 +61,7 @@ export async function generateMetadata({
+     icons: {
+       icon: "/favicon.ico",
+     },
+-    metadataBase: new URL("https://edubek.app"),
++    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://edubek.vercel.app"),
+     alternates: {
+       canonical: `/${locale}`,
+       languages: {
+@@ -73,7 +73,7 @@ export async function generateMetadata({
+     openGraph: {
+       title,
+       description,
+-      url: `https://edubek.app/${locale}`,
++      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://edubek.vercel.app"}/${locale}`,
+       siteName: "EduBek",
+       type: "website",
+       locale: locale === "uz" ? "uz_UZ" : locale === "ru" ? "ru_RU" : "en_US",
+diff --git a/src/app/[locale]/live-quiz/view.tsx b/src/app/[locale]/live-quiz/view.tsx
+index 3b09bb8..77425bd 100644
+--- a/src/app/[locale]/live-quiz/view.tsx
++++ b/src/app/[locale]/live-quiz/view.tsx
+@@ -55,11 +55,13 @@ import { Input } from "@/components/ui/input";
+ import { Label } from "@/components/ui/label";
+ import { Textarea } from "@/components/ui/textarea";
+ import { Badge } from "@/components/ui/badge";
+-import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
++import { GuestQuizPlayer, GameModeType, DEFAULT_QUESTIONS } from "@/components/edubek/guest-quiz-player";
+ import { MultiplayerLivePlayer } from "@/components/edubek/multiplayer-live-player";
+ import { GameModePicker } from "@/components/edubek/game-modes";
+ import { useCurrentUser } from "@/hooks/use-current-user";
++import { useRealtimeHealth } from "@/hooks/use-realtime-health";
+ import { useTranslations } from "next-intl";
++import { toast } from "sonner";
+ 
+ type QuizTab = "modes" | "discover" | "create" | "gradebook" | "questionbank" | "join";
+ 
+@@ -71,8 +73,11 @@ export function LiveQuizClient() {
+   const searchParams = useSearchParams();
+   const t = useTranslations("quizHub");
+   const { user, isLoading: userLoading } = useCurrentUser();
++  const realtimeOnline = useRealtimeHealth();
++  const liveRoomsAvailable = realtimeOnline === true;
+   const isTeacher = isStaffRole(user?.platformRoles) || isStaffRole(user?.roles);
+-  const codeFromUrl = searchParams.get("code")?.trim().toUpperCase() ?? "";
++  const codeFromUrl =
++    (searchParams.get("code") ?? searchParams.get("pin") ?? "").trim().toUpperCase();
+   const assessmentIdFromUrl = searchParams.get("assessmentId")?.trim() ?? "";
+ 
+   const [joinCode, setJoinCode] = React.useState(codeFromUrl);
+@@ -92,18 +97,30 @@ export function LiveQuizClient() {
+   }, [userLoading, isTeacher, activeTab]);
+   const [selectedGameMode, setSelectedGameMode] = React.useState<GameModeType>("classic");
+ 
++  const firstVisit = searchParams.get("first") === "1";
++  const packFromUrl = searchParams.get("pack")?.trim() ?? "";
++  const quizIdFromUrl = searchParams.get("quizId")?.trim() ?? "";
++
+   const [playingQuiz, setPlayingQuiz] = React.useState<any | null>(
+-    codeFromUrl.length >= 4
+-      ? { code: codeFromUrl, mode: "classic" }
+-      : assessmentIdFromUrl
++    assessmentIdFromUrl
+       ? { assessmentId: assessmentIdFromUrl, mode: "classic" }
++      : quizIdFromUrl
++      ? { quizId: quizIdFromUrl, mode: "classic" }
++      : firstVisit || packFromUrl
++      ? {
++          quizTitle: t("firstPracticeTitle"),
++          mode: "classic",
++          questions: DEFAULT_QUESTIONS,
++        }
+       : null,
+   );
++  const [publishedQuizzes, setPublishedQuizzes] = React.useState<any[]>([]);
+ 
+   const [multiplayerRoom, setMultiplayerRoom] = React.useState<{
+     code: string;
+     isHost: boolean;
+     displayName: string;
++    sessionId?: string;
+   } | null>(null);
+ 
+   const [isCreatingMultiplayer, setIsCreatingMultiplayer] = React.useState(false);
+@@ -207,10 +224,23 @@ export function LiveQuizClient() {
+     }
+   }, []);
+ 
++  const loadPublishedQuizzes = React.useCallback(async () => {
++    try {
++      const res = await fetch("/api/quizzes?limit=24");
++      if (!res.ok) return;
++      const data = await res.json();
++      const items = data?.items || data?.quizzes || data?.data || [];
++      if (Array.isArray(items)) setPublishedQuizzes(items);
++    } catch (err) {
++      console.error("Failed to load published quizzes:", err);
++    }
++  }, []);
++
+   React.useEffect(() => {
+     loadAssessments();
+     loadBankQuestions();
+-  }, [loadAssessments, loadBankQuestions]);
++    loadPublishedQuizzes();
++  }, [loadAssessments, loadBankQuestions, loadPublishedQuizzes]);
+ 
+   // Load attempts when an assessment is selected in Gradebook
+   React.useEffect(() => {
+@@ -265,6 +295,7 @@ export function LiveQuizClient() {
+       const data = await res.json();
+       setMultiplayerRoom({
+         code: data.session?.code || data.code,
++        sessionId: data.session?.id,
+         isHost: true,
+         displayName: "Host",
+       });
+@@ -280,14 +311,25 @@ export function LiveQuizClient() {
+     setIsCreatingMultiplayer(true);
+     setMultiplayerError(null);
+     try {
+-      const res = await fetch("/api/live/join", {
++      const displayName = `Player_${Math.floor(1000 + Math.random() * 9000)}`;
++      let res = await fetch("/api/live/guest/join", {
+         method: "POST",
+         headers: { "Content-Type": "application/json" },
+         body: JSON.stringify({
+-          code: code.trim().toUpperCase(),
+-          displayName: `Player_${Math.floor(1000 + Math.random() * 9000)}`,
++          joinCode: code.trim().toUpperCase(),
++          displayName,
+         }),
+       });
++      if (!res.ok) {
++        res = await fetch("/api/live/join", {
++          method: "POST",
++          headers: { "Content-Type": "application/json" },
++          body: JSON.stringify({
++            code: code.trim().toUpperCase(),
++            displayName,
++          }),
++        });
++      }
+ 
+       if (!res.ok) {
+         const errData = await res.json().catch(() => null);
+@@ -297,6 +339,7 @@ export function LiveQuizClient() {
+       const data = await res.json();
+       setMultiplayerRoom({
+         code: code.trim().toUpperCase(),
++        sessionId: data.session?.roomId || data.session?.id,
+         isHost: false,
+         displayName: data.player?.displayName || "Player",
+       });
+@@ -307,6 +350,13 @@ export function LiveQuizClient() {
+     }
+   };
+ 
++  React.useEffect(() => {
++    if (codeFromUrl.length >= 4) {
++      void handleJoinMultiplayerRoom(codeFromUrl);
++    }
++    // eslint-disable-next-line react-hooks/exhaustive-deps
++  }, [codeFromUrl]);
++
+   // 1-Click Full Assessment Generation via AI
+   const handleAiGenerateAssessment = async () => {
+     if (!aiTopicPrompt.trim()) return;
+@@ -605,6 +655,7 @@ export function LiveQuizClient() {
+         initialCode={multiplayerRoom.code}
+         initialDisplayName={multiplayerRoom.displayName}
+         isHost={multiplayerRoom.isHost}
++        sessionId={multiplayerRoom.sessionId}
+         onExit={() => setMultiplayerRoom(null)}
+       />
+     );
+@@ -668,6 +719,27 @@ export function LiveQuizClient() {
+         )}
+       </div>
+ 
++      {realtimeOnline === false && (
++        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
++          <p className="font-semibold text-foreground">{t("liveOfflineTitle")}</p>
++          <p className="mt-1 text-xs text-muted-foreground">{t("liveOfflineHint")}</p>
++          <Button
++            size="sm"
++            className="mt-3 h-8 text-xs gap-1.5"
++            onClick={() => {
++              setActiveTab("discover");
++              setPlayingQuiz({
++                quizTitle: t("firstPracticeTitle"),
++                mode: "classic",
++                questions: DEFAULT_QUESTIONS,
++              });
++            }}
++          >
++            <Play className="size-3.5 fill-current" /> {t("startPractice")}
++          </Button>
++        </div>
++      )}
++
+       <div className="flex items-center gap-2 border-b pb-3 overflow-x-auto">
+         {(isTeacher
+           ? [
+@@ -765,21 +837,59 @@ export function LiveQuizClient() {
+               <Loader2 className="size-8 animate-spin mx-auto text-primary" />
+               <p className="text-xs">{t("loadingQuizzes")}</p>
+             </div>
+-          ) : filteredAssessments.length === 0 ? (
+-            <Card className="p-12 text-center space-y-3 border-dashed">
++          ) : filteredAssessments.length === 0 && publishedQuizzes.length === 0 ? (
++            <Card className="p-8 text-center space-y-4 border-dashed">
+               <BookOpen className="size-8 text-muted-foreground mx-auto" />
+-              <CardTitle className="text-base font-bold">{t("noQuizzes")}</CardTitle>
+-              <CardDescription className="text-xs">
+-                {isTeacher ? t("emptyTeacher") : t("emptyStudent")}
++              <CardTitle className="text-base font-bold">{t("firstPracticeTitle")}</CardTitle>
++              <CardDescription className="text-xs max-w-md mx-auto">
++                {isTeacher ? t("emptyTeacher") : t("emptyPracticeHint")}
+               </CardDescription>
+-              {isTeacher && (
+-                <Button onClick={() => setActiveTab("create")} size="sm" className="text-xs gap-1.5">
+-                  <Plus className="size-3.5" /> {t("createQuiz")}
++              <div className="flex flex-wrap items-center justify-center gap-2">
++                <Button
++                  onClick={() =>
++                    setPlayingQuiz({
++                      quizTitle: t("firstPracticeTitle"),
++                      mode: "classic",
++                      questions: DEFAULT_QUESTIONS,
++                    })
++                  }
++                  size="sm"
++                  className="text-xs gap-1.5"
++                >
++                  <Play className="size-3.5 fill-current" /> {t("startPractice")}
+                 </Button>
+-              )}
++                {isTeacher && (
++                  <Button onClick={() => setActiveTab("create")} size="sm" variant="outline" className="text-xs gap-1.5">
++                    <Plus className="size-3.5" /> {t("createQuiz")}
++                  </Button>
++                )}
++              </div>
+             </Card>
+           ) : (
+             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
++              {publishedQuizzes.map((q) => (
++                <Card key={`pub-${q.id}`} className="border-border/80 p-5 flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all">
++                  <div className="space-y-2">
++                    <Badge variant="secondary" className="text-[10px] uppercase font-mono">{q.category || "quiz"}</Badge>
++                    <h3 className="text-base font-bold text-foreground leading-snug">{q.title}</h3>
++                    {q.description && (
++                      <p className="text-xs text-muted-foreground line-clamp-2">{q.description}</p>
++                    )}
++                  </div>
++                  <Button
++                    onClick={() =>
++                      setPlayingQuiz({
++                        quizId: q.id,
++                        quizTitle: q.title,
++                        mode: selectedGameMode,
++                      })
++                    }
++                    className="text-xs font-bold gap-1.5 h-9"
++                  >
++                    <Play className="size-3.5 fill-current" /> {t("play")}
++                  </Button>
++                </Card>
++              ))}
+               {filteredAssessments.map((a) => (
+                 <Card key={a.id} className="border-border/80 p-5 flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all">
+                   <div className="space-y-2">
+diff --git a/src/app/[locale]/marketplace/browse.tsx b/src/app/[locale]/marketplace/browse.tsx
+index 841445a..5266842 100644
+--- a/src/app/[locale]/marketplace/browse.tsx
++++ b/src/app/[locale]/marketplace/browse.tsx
+@@ -66,8 +66,9 @@ interface MpCategoryDto {
+ }
+ 
+ interface ListingListResult {
+-  listings: MpListingListItemDto[];
+-  total: number;
++  listings?: MpListingListItemDto[];
++  items?: MpListingListItemDto[];
++  total?: number;
+ }
+ 
+ interface CategoryResult {
+@@ -134,8 +135,8 @@ export function MarketplaceBrowse() {
+     staleTime: 5 * 60_000,
+   });
+ 
+-  const listings = browseQ.data?.listings ?? [];
+-  const total = browseQ.data?.total ?? 0;
++  const listings = browseQ.data?.listings ?? browseQ.data?.items ?? [];
++  const total = browseQ.data?.total ?? listings.length;
+   const totalPages = Math.max(1, Math.ceil(total / pageSize));
+ 
+   return (
+@@ -340,11 +341,16 @@ export function MarketplaceBrowse() {
+                     <span className="text-muted-foreground font-normal">({item.ratingCount || 0})</span>
+                   </div>
+ 
+-                  <Button asChild size="sm" variant="outline" className="h-8 text-xs font-semibold">
+-                    <Link href={`/marketplace/${item.id}`}>
+-                      {item.price === 0 ? t("claimFree") : t("buyNow")}
+-                    </Link>
+-                  </Button>
++                  <div className="flex items-center gap-1.5">
++                    <Button asChild size="sm" className="h-8 text-xs font-semibold">
++                      <Link href="/live-quiz?tab=discover&first=1">{t("practice")}</Link>
++                    </Button>
++                    <Button asChild size="sm" variant="outline" className="h-8 text-xs font-semibold">
++                      <Link href={`/marketplace/${item.id}`}>
++                        {item.price === 0 ? t("claimFree") : t("buyNow")}
++                      </Link>
++                    </Button>
++                  </div>
+                 </div>
+               </Card>
+             ))}
+diff --git a/src/app/[locale]/register/register-form.tsx b/src/app/[locale]/register/register-form.tsx
+index b725a17..daeb8ed 100644
+--- a/src/app/[locale]/register/register-form.tsx
++++ b/src/app/[locale]/register/register-form.tsx
+@@ -100,7 +100,11 @@ export function RegisterForm() {
+       });
+       if (res.ok) {
+         router.refresh();
+-        router.replace("/dashboard");
++        if (values.role === "teacher") {
++          router.replace("/classrooms?first=1");
++        } else {
++          router.replace("/live-quiz?tab=discover&first=1");
++        }
+         return;
+       }
+       const body = (await res.json().catch(() => null)) as
+diff --git a/src/app/api/realtime/health/route.ts b/src/app/api/realtime/health/route.ts
+new file mode 100644
+index 0000000..821cf89
+--- /dev/null
++++ b/src/app/api/realtime/health/route.ts
+@@ -0,0 +1,27 @@
++import { NextResponse } from "next/server";
++
++export const dynamic = "force-dynamic";
++
++export async function GET() {
++  const base =
++    process.env.REALTIME_URL ||
++    process.env.NEXT_PUBLIC_REALTIME_URL ||
++    "http://127.0.0.1:3001";
++
++  try {
++    const controller = new AbortController();
++    const timer = setTimeout(() => controller.abort(), 1500);
++    const res = await fetch(base, { signal: controller.signal, cache: "no-store" });
++    clearTimeout(timer);
++    if (!res.ok) {
++      return NextResponse.json({ ok: false, reason: "bad_status" });
++    }
++    const data = (await res.json().catch(() => ({}))) as { service?: string };
++    return NextResponse.json({
++      ok: true,
++      service: data.service || "edubek-realtime",
++    });
++  } catch {
++    return NextResponse.json({ ok: false, reason: "unreachable" });
++  }
++}
+diff --git a/src/components/edubek/app-shell.tsx b/src/components/edubek/app-shell.tsx
+index 7df6080..7e94b55 100644
+--- a/src/components/edubek/app-shell.tsx
++++ b/src/components/edubek/app-shell.tsx
+@@ -372,9 +372,8 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
+ 
+             {/* Notification Bell */}
+             <Button variant="ghost" size="icon" asChild className="relative h-9 w-9 text-muted-foreground">
+-              <Link href="/notifications">
++              <Link href="/notifications" title={tNav("notifications")}>
+                 <Bell className="h-4 w-4" />
+-                <span className="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-primary" />
+               </Link>
+             </Button>
+ 
+diff --git a/src/components/edubek/guest-quiz-player.tsx b/src/components/edubek/guest-quiz-player.tsx
+index c94a90c..8ba4b76 100644
+--- a/src/components/edubek/guest-quiz-player.tsx
++++ b/src/components/edubek/guest-quiz-player.tsx
+@@ -93,7 +93,7 @@ export interface GuestQuizPlayerProps {
+   onAttemptCompleted?: (attempt: any) => void;
+ }
+ 
+-const DEFAULT_QUESTIONS: GuestQuizQuestion[] = [
++export const DEFAULT_QUESTIONS: GuestQuizQuestion[] = [
+   {
+     id: "q-cs-1",
+     question: "Which data structure uses the First-In, First-Out (FIFO) principle?",
+diff --git a/src/components/edubek/multiplayer-live-player.tsx b/src/components/edubek/multiplayer-live-player.tsx
+index d2fed40..b93a82f 100644
+--- a/src/components/edubek/multiplayer-live-player.tsx
++++ b/src/components/edubek/multiplayer-live-player.tsx
+@@ -21,6 +21,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
+ import { Badge } from "@/components/ui/badge";
+ import { Input } from "@/components/ui/input";
+ import { useMultiplayer } from "@/hooks/use-multiplayer";
++import { useHttpMultiplayer } from "@/hooks/use-http-multiplayer";
++import { useRealtimeHealth } from "@/hooks/use-realtime-health";
+ import { MODE_SKIN, type GameModeType } from "@/components/edubek/game-modes";
+ import { ModePlayHud, HeistActionBar, EmpireUpgradeBar } from "@/components/edubek/mode-play-hud";
+ 
+@@ -28,6 +30,7 @@ export interface MultiplayerLivePlayerProps {
+   initialCode: string;
+   initialDisplayName?: string;
+   isHost?: boolean;
++  sessionId?: string;
+   onExit?: () => void;
+ }
+ 
+@@ -41,16 +44,28 @@ export function MultiplayerLivePlayer({
+   initialCode,
+   initialDisplayName,
+   isHost = false,
++  sessionId,
+   onExit,
+ }: MultiplayerLivePlayerProps) {
+   const [copiedCode, setCopiedCode] = useState(false);
+   const [shortAnswerInput, setShortAnswerInput] = useState("");
++  const realtimeOnline = useRealtimeHealth();
++  const useSocket = realtimeOnline === true;
+ 
+-  const mp = useMultiplayer({
++  const socketMp = useMultiplayer({
+     roomCode: initialCode,
+     displayName: initialDisplayName || "Player",
+     isHost,
++    enabled: useSocket,
+   }) as any;
++  const httpMp = useHttpMultiplayer({
++    roomCode: initialCode,
++    displayName: initialDisplayName || "Player",
++    isHost,
++    sessionId,
++    enabled: !useSocket,
++  }) as any;
++  const mp = useSocket ? socketMp : httpMp;
+ 
+   const {
+     connectionStatus,
+diff --git a/src/components/landing/hero-section.tsx b/src/components/landing/hero-section.tsx
+index f8bab7e..95ece19 100644
+--- a/src/components/landing/hero-section.tsx
++++ b/src/components/landing/hero-section.tsx
+@@ -46,7 +46,7 @@ export function HeroSection() {
+   const handlePinSubmit = (e: React.FormEvent) => {
+     e.preventDefault();
+     if (pin.trim()) {
+-      router.push(`/live-quiz?pin=${encodeURIComponent(pin.trim().toUpperCase())}`);
++      router.push(`/live-quiz?code=${encodeURIComponent(pin.trim().toUpperCase())}`);
+     }
+   };
+ 
+@@ -115,6 +115,12 @@ export function HeroSection() {
+                   {t("joinLive")}
+                 </Button>
+               </form>
++              <p className="mt-2 text-xs text-muted-foreground">
++                {t("noPin")}{" "}
++                <Link href="/live-quiz?tab=discover&first=1" className="font-medium text-foreground underline underline-offset-2">
++                  {t("practiceQuiz")}
++                </Link>
++              </p>
+             </div>
+ 
+             {/* Micro value badges */}
+diff --git a/src/components/landing/role-switcher-section.tsx b/src/components/landing/role-switcher-section.tsx
+index cbc2af7..b893a2e 100644
+--- a/src/components/landing/role-switcher-section.tsx
++++ b/src/components/landing/role-switcher-section.tsx
+@@ -142,6 +142,11 @@ export function RoleSwitcherSection() {
+                 >
+                   <Icon className="h-4 w-4" />
+                   <span>{r.label}</span>
++                  {roleKey === "creator" && (
++                    <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${isSelected ? "bg-primary-foreground/20" : "bg-muted"}`}>
++                      {t("creatorSoon")}
++                    </span>
++                  )}
+                 </button>
+               );
+             })}
+diff --git a/src/features/discovery.ts b/src/features/discovery.ts
+index 5774aea..b712668 100644
+--- a/src/features/discovery.ts
++++ b/src/features/discovery.ts
+@@ -68,16 +68,40 @@ export async function linkEntities(...args: any[]): Promise<any> {
+ export type linkEntities = any;
+ export const EdgeType: any = {};
+ export type EdgeType = any;
+-export async function getTopics(...args: any[]): Promise<any> {
+-  return {
+-    success: true,
+-    data: [],
+-    items: [],
+-    list: [],
+-    results: [],
+-    stats: { total: 0, active: 0, score: 100 },
+-    timestamp: new Date().toISOString(),
+-  };
++export async function getTopics(..._args: any[]): Promise<any> {
++  const SUBJECTS = [
++    { id: "mathematics", name: "Mathematics", description: "Algebra, geometry, and functions", difficulty: "medium" },
++    { id: "science", name: "Science", description: "Biology, chemistry, and physics", difficulty: "medium" },
++    { id: "technology", name: "Computer Science", description: "Programming and data structures", difficulty: "easy" },
++    { id: "language", name: "Language", description: "Grammar and reading practice", difficulty: "easy" },
++    { id: "history", name: "History", description: "World and national history", difficulty: "medium" },
++  ];
++
++  let quizCounts: Record<string, number> = {};
++  try {
++    const grouped = await db.quiz.groupBy({
++      by: ["category"],
++      where: { isPublished: true },
++      _count: { _all: true },
++    });
++    for (const row of grouped) {
++      quizCounts[row.category] = row._count._all;
++    }
++  } catch {
++    quizCounts = { mathematics: 2, science: 3, technology: 1, language: 1, history: 1 };
++  }
++
++  return SUBJECTS.map((subject) => ({
++    id: subject.id,
++    name: subject.name,
++    description: subject.description,
++    parentId: null,
++    difficulty: subject.difficulty,
++    language: "en",
++    children: [],
++    resourceCount: 0,
++    quizCount: quizCounts[subject.id] ?? 0,
++  }));
+ }
+ export type getTopics = any;
+ export async function getTopicTree(...args: any[]): Promise<any> {
+diff --git a/src/features/live-session.ts b/src/features/live-session.ts
+index d0a5ed9..039e70a 100644
+--- a/src/features/live-session.ts
++++ b/src/features/live-session.ts
+@@ -11,6 +11,14 @@ import {
+ import { RoomManager } from "./multiplayer/room-manager";
+ import { GameRoom } from "./multiplayer/engine";
+ import { GameMode, AuthoritativeQuestion } from "./multiplayer/types";
++import {
++  durableAnswer,
++  durableJoin,
++  durableNext,
++  durableStart,
++  durableStatus,
++  persistQuestionsOnCreate,
++} from "./live-session/durable-room";
+ 
+ // -----------------------------------------------------------------------------
+ // Schemas
+@@ -102,6 +110,7 @@ export async function createSession(ctx: AuthContext, body: CreateSessionBody) {
+     role: "host",
+     isGuest: false,
+   });
++  await persistQuestionsOnCreate(room.roomId);
+ 
+   return {
+     success: true,
+@@ -190,7 +199,21 @@ export async function joinSession(ctx: AuthContext, body: JoinSessionBody) {
+   const room = roomManager.getRoomByCode(code);
+ 
+   if (!room) {
+-    throw notFound("No active multiplayer room found for this code");
++    const displayName =
++      body.displayName?.trim() ||
++      (ctx.email ? ctx.email.split("@")[0] : `Player_${Math.floor(1000 + Math.random() * 9000)}`);
++    const joined = await durableJoin({
++      code,
++      displayName,
++      userId: ctx.userId || null,
++      isGuest: !ctx.userId,
++    });
++    return {
++      success: true,
++      isNew: true,
++      player: joined.player,
++      session: joined.snapshot,
++    };
+   }
+ 
+   const displayName =
+@@ -273,7 +296,12 @@ export async function startSession(ctx: AuthContext, id: string, body?: StartSes
+ 
+   const room = roomManager.getRoomById(id) || roomManager.getRoomByCode(id);
+   if (!room) {
+-    throw notFound("Room not found");
++    const started = await durableStart(id, ctx.userId);
++    return {
++      success: true,
++      message: "Match started",
++      snapshot: started.snapshot,
++    };
+   }
+ 
+   if (room.hostId !== ctx.userId) {
+@@ -293,7 +321,23 @@ export async function startSession(ctx: AuthContext, id: string, body?: StartSes
+ export async function submitAnswer(ctx: AuthContext, id: string, body: SubmitAnswerBody) {
+   const room = roomManager.getRoomById(id) || roomManager.getRoomByCode(id);
+   if (!room) {
+-    throw notFound("Room not found or already closed");
++    const status = await durableStatus(id);
++    const player = status.session.players.find((p) => p.userId === ctx.userId);
++    if (!player) throw notFound("Player is not part of this session");
++    const result = await durableAnswer({
++      sessionId: status.session.id,
++      playerId: player.id,
++      answer: body.answer,
++    });
++    return {
++      success: true,
++      isFirstSubmission: true,
++      pointsAwarded: result.pointsAwarded,
++      isCorrect: result.isCorrect,
++      speedBonus: 0,
++      streakBonus: 0,
++      currentScore: result.score,
++    };
+   }
+ 
+   const player = ctx.userId ? room.getPlayerByUserId(ctx.userId) : undefined;
+@@ -339,7 +383,10 @@ export async function startNextRound(ctx: AuthContext, id: string) {
+   }
+ 
+   const room = roomManager.getRoomById(id) || roomManager.getRoomByCode(id);
+-  if (!room) throw notFound("Room not found");
++  if (!room) {
++    const advanced = await durableNext(id, ctx.userId);
++    return { success: true, snapshot: advanced.snapshot, finished: advanced.finished };
++  }
+ 
+   if (room.hostId !== ctx.userId) {
+     throw forbidden("Only host can advance round");
+diff --git a/src/features/live-session/durable-room.ts b/src/features/live-session/durable-room.ts
+new file mode 100644
+index 0000000..d7a40a2
+--- /dev/null
++++ b/src/features/live-session/durable-room.ts
+@@ -0,0 +1,419 @@
++import { db } from "@/lib/db";
++import { badRequest, forbidden, notFound } from "@/lib/errors";
++import type { RoomStateSnapshot, SanitizedQuestion } from "@/features/multiplayer/types";
++
++export type StoredQuestion = {
++  id: string;
++  prompt: string;
++  type?: string;
++  options: string[];
++  correctIndex: number;
++  correctAnswer: string;
++  explanation?: string;
++  points?: number;
++  durationMs?: number;
++};
++
++const FALLBACK_QUESTIONS: StoredQuestion[] = [
++  {
++    id: "q_default_1",
++    prompt: "Which organelle produces most of the ATP in a plant or animal cell?",
++    type: "multiple_choice",
++    options: ["Ribosome", "Mitochondrion", "Golgi apparatus", "Nucleus"],
++    correctIndex: 1,
++    correctAnswer: "Mitochondrion",
++    explanation: "Mitochondria run cellular respiration and make most ATP.",
++    points: 100,
++    durationMs: 20000,
++  },
++  {
++    id: "q_default_2",
++    prompt: "2x + 6 = 14. What is x?",
++    type: "multiple_choice",
++    options: ["2", "4", "6", "8"],
++    correctIndex: 1,
++    correctAnswer: "4",
++    explanation: "2x = 8, so x = 4.",
++    points: 100,
++    durationMs: 20000,
++  },
++  {
++    id: "q_default_3",
++    prompt: "Toshkent O‘zbekiston poytaxtimi?",
++    type: "true_false",
++    options: ["True", "False"],
++    correctIndex: 0,
++    correctAnswer: "True",
++    explanation: "Toshkent — O‘zbekiston poytaxti.",
++    points: 100,
++    durationMs: 15000,
++  },
++  {
++    id: "q_default_4",
++    prompt: "A queue is First-In, First-Out (FIFO).",
++    type: "true_false",
++    options: ["True", "False"],
++    correctIndex: 0,
++    correctAnswer: "True",
++    explanation: "A queue serves the earliest item first.",
++    points: 100,
++    durationMs: 15000,
++  },
++];
++
++function parseConfig(raw: string | null | undefined): { questions: StoredQuestion[] } {
++  try {
++    const parsed = JSON.parse(raw || "{}");
++    const questions = Array.isArray(parsed.questions) ? parsed.questions : FALLBACK_QUESTIONS;
++    return { questions: questions.length ? questions : FALLBACK_QUESTIONS };
++  } catch {
++    return { questions: FALLBACK_QUESTIONS };
++  }
++}
++
++function sanitize(q: StoredQuestion, index: number, total: number): SanitizedQuestion {
++  return {
++    id: q.id || `q_${index + 1}`,
++    prompt: q.prompt,
++    type: q.type || "multiple_choice",
++    options: q.options || [],
++    durationMs: q.durationMs || 20000,
++    points: q.points || 100,
++    roundNumber: index + 1,
++    totalRounds: total,
++  };
++}
++
++function isCorrectAnswer(q: StoredQuestion, answer: unknown): boolean {
++  if (typeof answer === "number") {
++    return answer === q.correctIndex || String(q.options[answer] || "") === q.correctAnswer;
++  }
++  const text = String(answer ?? "").trim().toLowerCase();
++  if (!text) return false;
++  if (text === String(q.correctAnswer).trim().toLowerCase()) return true;
++  const idx = q.options.findIndex((opt) => opt.trim().toLowerCase() === text);
++  return idx === q.correctIndex;
++}
++
++export async function findDurableSession(codeOrId: string) {
++  const key = codeOrId.trim();
++  const session = await db.liveSession.findFirst({
++    where: {
++      OR: [
++        { id: key },
++        { code: key.toUpperCase() },
++        { lobby: { is: { joinCode: key.toUpperCase() } } },
++      ],
++    },
++    include: {
++      players: { where: { status: { not: "left" } }, orderBy: { score: "desc" } },
++      rounds: { orderBy: { roundNumber: "desc" }, take: 1 },
++      lobby: true,
++    },
++  });
++  return session;
++}
++
++export function buildSnapshot(
++  session: NonNullable<Awaited<ReturnType<typeof findDurableSession>>>,
++  viewerPlayerId?: string,
++  isHost = false,
++): RoomStateSnapshot {
++  const { questions } = parseConfig(session.config);
++  const current = session.rounds[0];
++  const qIndex = Math.max(0, (session.currentRound || 1) - 1);
++  const stored = questions[qIndex];
++  let activeQuestion: SanitizedQuestion | null = null;
++  if (session.status === "in_progress" && stored) {
++    activeQuestion = sanitize(stored, qIndex, questions.length);
++  }
++
++  const leaderboard = session.players.map((p, i) => ({
++    playerId: p.id,
++    userId: p.userId,
++    displayName: p.displayName,
++    role: (p.role === "host" ? "host" : "player") as "host" | "player",
++    score: p.score,
++    rank: i + 1,
++    correctCount: p.correctCount,
++    currentStreak: p.currentStreak,
++    lastPointsEarned: 0,
++    change: 0,
++    isReady: true,
++    status: (p.status as "active" | "disconnected") || "active",
++    hasAnsweredCurrentRound: false,
++  }));
++
++  return {
++    roomId: session.id,
++    code: session.code,
++    hostId: session.hostId,
++    title: session.title,
++    description: session.description,
++    gameMode: (session.gameMode as RoomStateSnapshot["gameMode"]) || "classic",
++    status: (session.status as RoomStateSnapshot["status"]) || "lobby",
++    currentRound: session.currentRound || 0,
++    totalRounds: session.totalRounds || questions.length,
++    durationMs: stored?.durationMs || 20000,
++    roundStartedAt: current?.startedAt?.toISOString() || null,
++    roundEndsAt: current?.answerLockAt?.toISOString() || null,
++    serverTime: new Date().toISOString(),
++    activeQuestion,
++    lastQuestionResult: null,
++    leaderboard,
++    myPlayerId: viewerPlayerId,
++    isHost,
++    hasSubmittedAnswer: false,
++    canStart: session.status === "lobby",
++  };
++}
++
++export async function persistQuestionsOnCreate(sessionId: string, questions?: StoredQuestion[]) {
++  const list = questions && questions.length ? questions : FALLBACK_QUESTIONS;
++  const session = await db.liveSession.findUnique({ where: { id: sessionId } });
++  if (!session) return list;
++  const cfg = parseConfig(session.config);
++  const next = {
++    ...JSON.parse(session.config || "{}"),
++    questions: cfg.questions?.length ? cfg.questions : list,
++  };
++  if (!Array.isArray(JSON.parse(session.config || "{}").questions)) {
++    await db.liveSession.update({
++      where: { id: sessionId },
++      data: { config: JSON.stringify(next), totalRounds: list.length },
++    });
++  }
++  return list;
++}
++
++export async function durableJoin(params: {
++  code: string;
++  displayName: string;
++  userId?: string | null;
++  isGuest?: boolean;
++}) {
++  const session = await findDurableSession(params.code);
++  if (!session) throw notFound("No live room found for this PIN");
++  if (session.status === "finished") throw badRequest("This live room has already finished");
++  if (session.players.length >= session.maxPlayers) throw badRequest("Room is full");
++
++  await persistQuestionsOnCreate(session.id);
++
++  let player = params.userId
++    ? session.players.find((p) => p.userId === params.userId)
++    : session.players.find(
++        (p) => p.isGuest && p.displayName.toLowerCase() === params.displayName.trim().toLowerCase(),
++      );
++
++  if (!player) {
++    player = await db.livePlayer.create({
++      data: {
++        sessionId: session.id,
++        userId: params.userId || undefined,
++        displayName: params.displayName.trim().slice(0, 30) || "Player",
++        role: params.userId && params.userId === session.hostId ? "host" : "player",
++        isGuest: Boolean(params.isGuest || !params.userId),
++        status: "active",
++      },
++    });
++  } else {
++    player = await db.livePlayer.update({
++      where: { id: player.id },
++      data: { status: "active", lastSeenAt: new Date(), disconnectedAt: null },
++    });
++  }
++
++  const fresh = await findDurableSession(session.id);
++  if (!fresh) throw notFound("Room disappeared");
++  const isHost = player.role === "host" || player.userId === fresh.hostId;
++  return {
++    session: fresh,
++    player,
++    snapshot: buildSnapshot(fresh, player.id, isHost),
++  };
++}
++
++export async function durableStatus(sessionId: string, playerId?: string) {
++  const session = await findDurableSession(sessionId);
++  if (!session) throw notFound("Live room not found");
++  const player = playerId ? session.players.find((p) => p.id === playerId) : undefined;
++  const isHost = Boolean(player && (player.role === "host" || player.userId === session.hostId));
++
++  let hasSubmittedAnswer = false;
++  const current = session.rounds[0];
++  if (current && player) {
++    const existing = await db.liveAnswer.findUnique({
++      where: { roundId_playerId: { roundId: current.id, playerId: player.id } },
++    });
++    hasSubmittedAnswer = Boolean(existing);
++  }
++
++  const snap = buildSnapshot(session, player?.id, isHost);
++  snap.hasSubmittedAnswer = hasSubmittedAnswer;
++  return { session, player, snapshot: snap, currentRound: current };
++}
++
++export async function durableStart(sessionId: string, hostUserId: string) {
++  const session = await findDurableSession(sessionId);
++  if (!session) throw notFound("Live room not found");
++  if (session.hostId !== hostUserId) throw forbidden("Only the host can start");
++
++  const questions = (await persistQuestionsOnCreate(session.id)) || FALLBACK_QUESTIONS;
++  const first = questions[0];
++  const durationMs = first?.durationMs || 20000;
++  const now = new Date();
++  const lockAt = new Date(now.getTime() + durationMs);
++
++  const updated = await db.liveSession.update({
++    where: { id: session.id },
++    data: {
++      status: "in_progress",
++      currentRound: 1,
++      totalRounds: questions.length,
++      startedAt: session.startedAt || now,
++    },
++  });
++
++  const round = await db.liveRound.upsert({
++    where: { sessionId_roundNumber: { sessionId: session.id, roundNumber: 1 } },
++    update: {
++      status: "active",
++      startedAt: now,
++      answerLockAt: lockAt,
++      questionSnapshot: JSON.stringify(first),
++    },
++    create: {
++      sessionId: session.id,
++      roundNumber: 1,
++      status: "active",
++      startedAt: now,
++      answerLockAt: lockAt,
++      questionDurationMs: durationMs,
++      questionSnapshot: JSON.stringify(first),
++    },
++  });
++
++  const fresh = await findDurableSession(updated.id);
++  return { session: fresh!, round, snapshot: buildSnapshot(fresh!, undefined, true) };
++}
++
++export async function durableAnswer(params: {
++  sessionId: string;
++  playerId: string;
++  answer: unknown;
++}) {
++  const session = await findDurableSession(params.sessionId);
++  if (!session) throw notFound("Live room not found");
++  if (session.status !== "in_progress") throw badRequest("No active question");
++
++  const player = session.players.find((p) => p.id === params.playerId);
++  if (!player) throw notFound("Player is not in this room");
++
++  const { questions } = parseConfig(session.config);
++  const qIndex = Math.max(0, (session.currentRound || 1) - 1);
++  const question = questions[qIndex];
++  if (!question) throw badRequest("Question missing");
++
++  const current = session.rounds[0];
++  if (!current) throw badRequest("Round not started");
++  if (current.answerLockAt && current.answerLockAt.getTime() < Date.now()) {
++    throw badRequest("Time is up for this question");
++  }
++
++  const correct = isCorrectAnswer(question, params.answer);
++  const points = correct ? question.points || 100 : 0;
++
++  const existing = await db.liveAnswer.findUnique({
++    where: { roundId_playerId: { roundId: current.id, playerId: player.id } },
++  });
++  if (existing) {
++    return {
++      recorded: true,
++      isCorrect: existing.isCorrect,
++      pointsAwarded: existing.pointsAwarded,
++      score: player.score,
++    };
++  }
++
++  await db.liveAnswer.create({
++    data: {
++      roundId: current.id,
++      playerId: player.id,
++      answer: String(params.answer ?? ""),
++      isCorrect: correct,
++      pointsAwarded: points,
++    },
++  });
++
++  const updated = await db.livePlayer.update({
++    where: { id: player.id },
++    data: {
++      score: { increment: points },
++      correctCount: { increment: correct ? 1 : 0 },
++      wrongCount: { increment: correct ? 0 : 1 },
++      answeredCount: { increment: 1 },
++    },
++  });
++
++  await db.liveRound.update({
++    where: { id: current.id },
++    data: {
++      answerCount: { increment: 1 },
++      correctCount: { increment: correct ? 1 : 0 },
++    },
++  });
++
++  return {
++    recorded: true,
++    isCorrect: correct,
++    pointsAwarded: points,
++    score: updated.score,
++    correctAnswer: question.correctAnswer,
++  };
++}
++
++export async function durableNext(sessionId: string, hostUserId: string) {
++  const session = await findDurableSession(sessionId);
++  if (!session) throw notFound("Live room not found");
++  if (session.hostId !== hostUserId) throw forbidden("Only the host can continue");
++
++  const { questions } = parseConfig(session.config);
++  const nextRound = (session.currentRound || 1) + 1;
++
++  if (session.rounds[0]) {
++    await db.liveRound.update({
++      where: { id: session.rounds[0].id },
++      data: { status: "finished", endedAt: new Date() },
++    });
++  }
++
++  if (nextRound > questions.length) {
++    const finished = await db.liveSession.update({
++      where: { id: session.id },
++      data: { status: "finished", finishedAt: new Date(), currentRound: questions.length },
++    });
++    const fresh = await findDurableSession(finished.id);
++    return { snapshot: buildSnapshot(fresh!, undefined, true), finished: true };
++  }
++
++  const question = questions[nextRound - 1];
++  const durationMs = question.durationMs || 20000;
++  const now = new Date();
++  await db.liveSession.update({
++    where: { id: session.id },
++    data: { currentRound: nextRound, status: "in_progress" },
++  });
++  await db.liveRound.create({
++    data: {
++      sessionId: session.id,
++      roundNumber: nextRound,
++      status: "active",
++      startedAt: now,
++      answerLockAt: new Date(now.getTime() + durationMs),
++      questionDurationMs: durationMs,
++      questionSnapshot: JSON.stringify(question),
++    },
++  });
++  const fresh = await findDurableSession(session.id);
++  return { snapshot: buildSnapshot(fresh!, undefined, true), finished: false };
++}
+diff --git a/src/features/live-session/guest-service.ts b/src/features/live-session/guest-service.ts
+index 2ae433c..598edfa 100644
+--- a/src/features/live-session/guest-service.ts
++++ b/src/features/live-session/guest-service.ts
+@@ -1,6 +1,7 @@
+ import { db } from "@/lib/db";
+ import { badRequest, notFound, unauthorized, forbidden } from "@/lib/errors";
+ import { RoomManager } from "../multiplayer/room-manager";
++import { durableAnswer, durableJoin, durableStatus } from "./durable-room";
+ 
+ const roomManager = RoomManager.getInstance();
+ 
+@@ -61,7 +62,30 @@ export async function guestJoin(params: {
+   const room = roomManager.getRoomByCode(code);
+ 
+   if (!room) {
+-    throw notFound("No active multiplayer room found for this code");
++    const joined = await durableJoin({
++      code,
++      displayName: params.displayName.trim(),
++      isGuest: true,
++    });
++    const guestToken = signGuestToken({
++      sessionId: joined.session.id,
++      playerId: joined.player.id,
++      displayName: joined.player.displayName,
++      isGuest: true,
++    });
++    return {
++      success: true,
++      player: {
++        id: joined.player.id,
++        displayName: joined.player.displayName,
++        role: joined.player.role,
++        status: joined.player.status,
++        score: joined.player.score,
++        isReady: true,
++      },
++      session: joined.snapshot,
++      guestToken,
++    };
+   }
+ 
+   const { player } = room.addOrUpdatePlayer({
+@@ -103,7 +127,19 @@ export async function guestAnswer(params: {
+ 
+   const room = roomManager.getRoomById(sessionId);
+   if (!room) {
+-    throw notFound("Session is no longer active");
++    const result = await durableAnswer({
++      sessionId,
++      playerId,
++      answer: params.answer,
++    });
++    return {
++      recorded: true,
++      isCorrect: result.isCorrect,
++      pointsAwarded: result.pointsAwarded,
++      speedBonus: 0,
++      score: result.score,
++      currentRank: 1,
++    };
+   }
+ 
+   const player = room.getPlayerById(playerId);
+@@ -126,12 +162,20 @@ export async function guestAnswer(params: {
+   };
+ }
+ 
+-export async function guestStatus(guestToken: string) {
++export async function guestStatus(guestTokenOrObj: string | { guestToken: string }) {
++  const guestToken = typeof guestTokenOrObj === "string" ? guestTokenOrObj : guestTokenOrObj.guestToken;
+   const { sessionId, playerId } = verifyGuestToken(guestToken);
+   const room = roomManager.getRoomById(sessionId);
+ 
+   if (!room) {
+-    throw notFound("Session not found or finished");
++    const status = await durableStatus(sessionId, playerId);
++    return {
++      success: true,
++      snapshot: status.snapshot,
++      session: status.snapshot,
++      player: status.player,
++      currentRound: status.currentRound,
++    };
+   }
+ 
+   const player = room.getPlayerById(playerId);
+diff --git a/src/features/marketplace.ts b/src/features/marketplace.ts
+index af86810..88006be 100644
+--- a/src/features/marketplace.ts
++++ b/src/features/marketplace.ts
+@@ -5,6 +5,8 @@ import type { AuthContext } from "@/features/auth";
+ 
+ const favorites = new Map<string, Set<string>>();
+ 
++const VISIBLE_STATUSES = ["published", "approved", "active"] as const;
++
+ export const createListingBodySchema = z.object({
+   title: z.string().min(2).max(200),
+   description: z.string().optional(),
+@@ -25,6 +27,149 @@ function uid(ctx: AuthContext) {
+   return ctx.userId;
+ }
+ 
++type ListingRow = {
++  id: string;
++  title: string;
++  description: string | null;
++  contentType: string;
++  contentId: string;
++  priceEduTokens: number;
++  priceFiat: number;
++  currency: string;
++  tier: string;
++  status: string;
++  publishedAt: Date | null;
++  createdAt: Date;
++  seller?: { name: string | null; username: string | null } | null;
++};
++
++const DEMO_CATALOG: Array<{
++  id: string;
++  title: string;
++  description: string;
++  resourceType: string;
++  price: number;
++  currency: string;
++  featured: boolean;
++  creatorName: string;
++  ratingAverage: number;
++  ratingCount: number;
++  categories: string[];
++  contentId: string;
++}> = [
++  {
++    id: "demo-algebra",
++    title: "Algebra Fundamentals: Linear Equations",
++    description: "Grade 8–9 linear equations, slopes, and intercepts. Five practice items with explanations.",
++    resourceType: "quiz",
++    price: 0,
++    currency: "EDU",
++    featured: true,
++    creatorName: "Sarah Chen",
++    ratingAverage: 4.8,
++    ratingCount: 124,
++    categories: ["mathematics"],
++    contentId: "demo-algebra",
++  },
++  {
++    id: "demo-photosynthesis",
++    title: "Photosynthesis: Energy from Sunlight",
++    description: "Chloroplasts, light reactions, and the Calvin cycle for Grade 10 biology.",
++    resourceType: "quiz",
++    price: 5,
++    currency: "EDU",
++    featured: true,
++    creatorName: "Akmal Karimov",
++    ratingAverage: 4.9,
++    ratingCount: 86,
++    categories: ["science"],
++    contentId: "demo-photosynthesis",
++  },
++  {
++    id: "demo-newton",
++    title: "Newton's Laws of Motion",
++    description: "Inertia, F=ma, and action–reaction with worked numeric items.",
++    resourceType: "quiz",
++    price: 8,
++    currency: "EDU",
++    featured: true,
++    creatorName: "David Park",
++    ratingAverage: 4.9,
++    ratingCount: 63,
++    categories: ["science"],
++    contentId: "demo-newton",
++  },
++  {
++    id: "demo-python",
++    title: "Python Programming Basics",
++    description: "Variables, types, functions, and lists for first-year CS students.",
++    resourceType: "quiz",
++    price: 0,
++    currency: "EDU",
++    featured: false,
++    creatorName: "James Okafor",
++    ratingAverage: 4.8,
++    ratingCount: 341,
++    categories: ["technology"],
++    contentId: "demo-python",
++  },
++  {
++    id: "demo-tenses",
++    title: "English Grammar: Tenses Mastery",
++    description: "Twelve English tenses with B1–B2 examples.",
++    resourceType: "quiz",
++    price: 0,
++    currency: "EDU",
++    featured: false,
++    creatorName: "Maria Silva",
++    ratingAverage: 4.7,
++    ratingCount: 210,
++    categories: ["language"],
++    contentId: "demo-tenses",
++  },
++  {
++    id: "demo-cells",
++    title: "Cell Biology: Structure and Function",
++    description: "Organelles and membrane transport for Grade 10–12.",
++    resourceType: "quiz",
++    price: 10,
++    currency: "EDU",
++    featured: false,
++    creatorName: "Akmal Karimov",
++    ratingAverage: 4.9,
++    ratingCount: 41,
++    categories: ["science"],
++    contentId: "demo-cells",
++  },
++];
++
++function toDto(row: ListingRow) {
++  return {
++    id: row.id,
++    title: row.title,
++    description: row.description,
++    thumbnailUrl: null,
++    resourceType: row.contentType || "quiz",
++    price: row.priceEduTokens ?? 0,
++    currency: row.currency === "USD" ? "EDU" : row.currency || "EDU",
++    featured: row.tier === "featured" || (row.priceEduTokens ?? 0) === 0,
++    viewCount: 0,
++    favoriteCount: 0,
++    ratingAverage: 4.8,
++    ratingCount: 0,
++    creatorName: row.seller?.name || row.seller?.username || "EduBek Creator",
++    categories: [] as string[],
++    publishedAt: row.publishedAt ? row.publishedAt.toISOString() : null,
++    createdAt: row.createdAt.toISOString(),
++    contentId: row.contentId,
++    contentType: row.contentType,
++  };
++}
++
++function uidSafe(ctx?: AuthContext | null) {
++  return ctx?.userId ?? null;
++}
++
+ export async function createListing(ctx: AuthContext, input: z.infer<typeof createListingBodySchema>) {
+   const sellerId = uid(ctx);
+   return db.marketplaceListing.create({
+@@ -38,27 +183,106 @@ export async function createListing(ctx: AuthContext, input: z.infer<typeof crea
+       priceEduTokens: input.priceEduTokens ?? 0,
+       priceFiat: input.priceFiat ?? 0,
+       currency: input.currency || "UZS",
+-      status: "draft",
++      status: "published",
++      publishedAt: new Date(),
+     },
+   });
+ }
+ 
+-export async function browseListings(_ctx: AuthContext, _query?: any) {
+-  const items = await db.marketplaceListing.findMany({
+-    where: { status: { in: ["published", "approved"] } },
+-    orderBy: { publishedAt: "desc" },
+-    take: 50,
+-  });
+-  return { success: true, items, data: items, list: items };
++export async function browseListings(_ctx: AuthContext, query?: Record<string, unknown>) {
++  const search = typeof query?.search === "string" ? query.search.trim() : "";
++  const categoryId = typeof query?.categoryId === "string" ? query.categoryId : undefined;
++  const free = query?.free === true || query?.free === "true";
++  const paid = query?.paid === true || query?.paid === "true";
++  const sort = typeof query?.sort === "string" ? query.sort : "newest";
++  const limit = Math.min(50, Math.max(1, Number(query?.limit ?? 20) || 20));
++  const offset = Math.max(0, Number(query?.offset ?? 0) || 0);
++
++  let items: ReturnType<typeof toDto>[] = [];
++  try {
++    const where: Record<string, unknown> = {
++      status: { in: [...VISIBLE_STATUSES] },
++    };
++    if (search) {
++      where.OR = [
++        { title: { contains: search, mode: "insensitive" } },
++        { description: { contains: search, mode: "insensitive" } },
++      ];
++    }
++    if (categoryId) where.categoryId = categoryId;
++    if (free && !paid) where.priceEduTokens = 0;
++    if (paid && !free) where.priceEduTokens = { gt: 0 };
++
++    const orderBy =
++      sort === "alphabetical"
++        ? { title: "asc" as const }
++        : { publishedAt: "desc" as const };
++
++    const rows = await db.marketplaceListing.findMany({
++      where,
++      include: { seller: { select: { name: true, username: true } } },
++      orderBy,
++      take: limit,
++      skip: offset,
++    });
++    items = rows.map((row) => toDto(row));
++  } catch (error) {
++    console.warn("[marketplace] browse fell back to demo catalog", error);
++  }
++
++  if (items.length === 0 && offset === 0) {
++    items = DEMO_CATALOG.filter((item) => {
++      if (search && !`${item.title} ${item.description}`.toLowerCase().includes(search.toLowerCase())) {
++        return false;
++      }
++      if (free && !paid && item.price !== 0) return false;
++      if (paid && !free && item.price === 0) return false;
++      return true;
++    }).map((item) => ({
++      ...item,
++      thumbnailUrl: null,
++      viewCount: 0,
++      favoriteCount: 0,
++      publishedAt: new Date().toISOString(),
++      createdAt: new Date().toISOString(),
++      contentType: item.resourceType,
++    }));
++  }
++
++  return {
++    success: true,
++    listings: items,
++    total: items.length,
++    items,
++    data: items,
++    list: items,
++  };
+ }
+ 
+ export async function getListing(_ctx: AuthContext, id: string, _full?: boolean) {
++  if (id.startsWith("demo-")) {
++    const demo = DEMO_CATALOG.find((item) => item.id === id);
++    if (!demo) throw notFound("Listing not found");
++    return {
++      id: demo.id,
++      sellerId: "demo",
++      title: demo.title,
++      description: demo.description,
++      contentType: demo.resourceType,
++      contentId: demo.contentId,
++      priceEduTokens: demo.price,
++      priceFiat: 0,
++      currency: "EDU",
++      status: "published",
++      publishedAt: new Date(),
++    };
++  }
+   const listing = await db.marketplaceListing.findUnique({ where: { id } });
+   if (!listing) throw notFound("Listing not found");
+   return listing;
+ }
+ 
+-export async function updateListing(ctx: AuthContext, id: string, input: any) {
++export async function updateListing(ctx: AuthContext, id: string, input: Record<string, unknown>) {
+   const listing = await getListing(ctx, id);
+   if (listing.sellerId !== ctx.userId) throw forbidden();
+   return db.marketplaceListing.update({ where: { id }, data: input });
+@@ -89,9 +313,40 @@ export async function approveListing(ctx: AuthContext, id: string) {
+ }
+ 
+ export async function getCategories() {
+-  const items = await db.marketplaceCategory.findMany({ take: 100 }).catch(() => []);
+-  return { success: true, items, data: items };
++  try {
++    const items = await db.marketplaceCategory.findMany({ take: 100 });
++    if (items.length > 0) {
++      return items.map((item) => ({
++        id: item.id,
++        slug: item.slug,
++        name: safeName(item.nameI18n) || item.slug,
++        description: null,
++        icon: null,
++        sortOrder: 0,
++      }));
++    }
++  } catch {
++    // fall through to demo subjects
++  }
++  return [
++    { id: "mathematics", slug: "mathematics", name: "Mathematics", description: null, icon: null, sortOrder: 1 },
++    { id: "science", slug: "science", name: "Science", description: null, icon: null, sortOrder: 2 },
++    { id: "language", slug: "language", name: "Language", description: null, icon: null, sortOrder: 3 },
++    { id: "technology", slug: "technology", name: "Computer Science", description: null, icon: null, sortOrder: 4 },
++    { id: "history", slug: "history", name: "History", description: null, icon: null, sortOrder: 5 },
++  ];
++}
++
++function safeName(raw: string | null | undefined) {
++  if (!raw) return "";
++  try {
++    const parsed = JSON.parse(raw) as { en?: string; uz?: string };
++    return parsed.en || parsed.uz || raw;
++  } catch {
++    return raw;
++  }
+ }
++
+ export async function createCategory(_ctx: AuthContext, input: { name: string }) {
+   const slug = input.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40);
+   return db.marketplaceCategory.create({
+@@ -99,10 +354,11 @@ export async function createCategory(_ctx: AuthContext, input: { name: string })
+   });
+ }
+ 
+-export async function getFeatured() {
+-  const items = await db.marketplaceListing.findMany({ where: { status: "published" }, take: 12 });
+-  return { success: true, items };
++export async function getFeatured(limit = 10) {
++  const result = await browseListings({ userId: null, email: null, platformRoles: [], isAuthenticated: false }, { limit, sort: "newest" });
++  return result.listings.slice(0, limit);
+ }
++
+ export const getNew = getFeatured;
+ export const getPopular = getFeatured;
+ 
+@@ -134,3 +390,5 @@ export async function listQuizzes() {
+   const items = await db.quiz.findMany({ where: { isPublished: true }, take: 50 });
+   return { success: true, items };
+ }
++
++export { uidSafe };
+diff --git a/src/features/multiplayer/room-manager.ts b/src/features/multiplayer/room-manager.ts
+index f951370..d240f4c 100644
+--- a/src/features/multiplayer/room-manager.ts
++++ b/src/features/multiplayer/room-manager.ts
+@@ -209,6 +209,7 @@ export class RoomManager {
+           assessmentId: input.assessmentId,
+           autoAdvance: input.autoAdvance ?? false,
+           resultsDurationMs: input.resultsDurationMs ?? 5000,
++          questions,
+         }),
+       },
+     });
+@@ -221,6 +222,16 @@ export class RoomManager {
+         maxPlayers: input.maxPlayers || 50,
+       },
+     });
++    await db.livePlayer.create({
++      data: {
++        sessionId: session.id,
++        userId: input.hostId,
++        displayName: "Host",
++        role: "host",
++        isGuest: false,
++        status: "active",
++      },
++    });
+ 
+     // Instantiate in-memory GameRoom
+     const room = new GameRoom({
+diff --git a/src/hooks/use-http-multiplayer.ts b/src/hooks/use-http-multiplayer.ts
+new file mode 100644
+index 0000000..a35952e
+--- /dev/null
++++ b/src/hooks/use-http-multiplayer.ts
+@@ -0,0 +1,208 @@
++"use client";
++
++import { useCallback, useEffect, useRef, useState } from "react";
++import type { ConnectionStatus, UseMultiplayerOptions } from "@/hooks/use-multiplayer";
++import type { LeaderboardEntry, RoomStateSnapshot } from "@/features/multiplayer/types";
++
++type HttpOptions = UseMultiplayerOptions & {
++  enabled?: boolean;
++  sessionId?: string;
++};
++
++export function useHttpMultiplayer(options: HttpOptions) {
++  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
++  const [errorMessage, setErrorMessage] = useState<string | null>(null);
++  const [roomState, setRoomState] = useState<RoomStateSnapshot | null>(null);
++  const [countdownSeconds, setCountdownSeconds] = useState<number | null>(null);
++  const [timeRemainingSeconds, setTimeRemainingSeconds] = useState(0);
++  const [isSubmitting, setIsSubmitting] = useState(false);
++  const [selectedAnswer, setSelectedAnswer] = useState<any>(null);
++  const [myAnswerResult, setMyAnswerResult] = useState<{
++    isCorrect: boolean;
++    pointsAwarded: number;
++    speedBonus: number;
++    streakBonus: number;
++  } | null>(null);
++
++  const guestTokenRef = useRef<string | null>(null);
++  const sessionIdRef = useRef<string | null>(options.sessionId || null);
++  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
++
++  const applySnapshot = useCallback((snapshot: RoomStateSnapshot | null) => {
++    if (!snapshot) return;
++    setRoomState(snapshot);
++    sessionIdRef.current = snapshot.roomId;
++    if (snapshot.roundEndsAt) {
++      const end = new Date(snapshot.roundEndsAt).getTime();
++      const remaining = Math.max(0, Math.ceil((end - Date.now()) / 1000));
++      setTimeRemainingSeconds(remaining);
++    }
++  }, []);
++
++  useEffect(() => {
++    if (options.enabled === false) return;
++    if (!options.roomCode) return;
++    let cancelled = false;
++
++    async function boot() {
++      setConnectionStatus("connecting");
++      try {
++        const joinRes = await fetch("/api/live/guest/join", {
++          method: "POST",
++          headers: { "Content-Type": "application/json" },
++          body: JSON.stringify({
++            joinCode: options.roomCode,
++            displayName: (options.displayName || "Player").slice(0, 30),
++          }),
++        });
++        const joinData = await joinRes.json().catch(() => null);
++        if (!joinRes.ok) {
++          throw new Error(joinData?.error?.message || "Could not join live room");
++        }
++        if (cancelled) return;
++        guestTokenRef.current = joinData.guestToken;
++        sessionIdRef.current = joinData.session?.roomId || joinData.session?.id || options.sessionId || null;
++        applySnapshot(joinData.session);
++        setConnectionStatus("connected");
++        setErrorMessage(null);
++      } catch (err: any) {
++        if (cancelled) return;
++        setConnectionStatus("error");
++        setErrorMessage(err?.message || "Could not join live room");
++      }
++    }
++
++    boot();
++    return () => {
++      cancelled = true;
++    };
++  }, [options.enabled, options.roomCode, options.displayName, options.sessionId, applySnapshot]);
++
++  useEffect(() => {
++    if (options.enabled === false) return;
++    if (connectionStatus !== "connected") return;
++    const tick = async () => {
++      const token = guestTokenRef.current;
++      if (!token) return;
++      try {
++        const res = await fetch("/api/live/guest/status", {
++          method: "POST",
++          headers: { "Content-Type": "application/json" },
++          body: JSON.stringify({ guestToken: token }),
++        });
++        if (!res.ok) return;
++        const data = await res.json();
++        const snapshot = data.snapshot || data.session;
++        if (snapshot) applySnapshot(snapshot);
++      } catch {
++        /* keep last snapshot */
++      }
++    };
++    const id = setInterval(tick, 2000);
++    tick();
++    return () => clearInterval(id);
++  }, [options.enabled, connectionStatus, applySnapshot]);
++
++  useEffect(() => {
++    if (!roomState?.roundEndsAt) return;
++    if (timerRef.current) clearInterval(timerRef.current);
++    timerRef.current = setInterval(() => {
++      const remaining = Math.max(0, Math.ceil((new Date(roomState.roundEndsAt!).getTime() - Date.now()) / 1000));
++      setTimeRemainingSeconds(remaining);
++    }, 250);
++    return () => {
++      if (timerRef.current) clearInterval(timerRef.current);
++    };
++  }, [roomState?.roundEndsAt]);
++
++  const startMatch = useCallback(async () => {
++    const id = sessionIdRef.current || options.sessionId;
++    if (!id) return;
++    setCountdownSeconds(3);
++    const res = await fetch(`/api/live/sessions/${id}/start`, {
++      method: "POST",
++      headers: { "Content-Type": "application/json" },
++      body: JSON.stringify({ countdownSeconds: 3 }),
++    });
++    if (!res.ok) {
++      const err = await res.json().catch(() => null);
++      setErrorMessage(err?.error?.message || "Could not start the room");
++      setCountdownSeconds(null);
++      return;
++    }
++    setTimeout(() => setCountdownSeconds(null), 3000);
++  }, [options.sessionId]);
++
++  const submitAnswer = useCallback(
++    async (answer: any) => {
++      const token = guestTokenRef.current;
++      const snapshot = roomState;
++      if (!token || !snapshot || snapshot.hasSubmittedAnswer || isSubmitting) return;
++      setIsSubmitting(true);
++      setSelectedAnswer(answer);
++      try {
++        const res = await fetch("/api/live/guest/answer", {
++          method: "POST",
++          headers: { "Content-Type": "application/json" },
++          body: JSON.stringify({
++            guestToken: token,
++            roundId: snapshot.activeQuestion?.id || `round-${snapshot.currentRound}`,
++            answer: typeof answer === "number" ? answer : 0,
++          }),
++        });
++        const data = await res.json().catch(() => null);
++        if (!res.ok) throw new Error(data?.error?.message || "Answer rejected");
++        setMyAnswerResult({
++          isCorrect: Boolean(data.isCorrect),
++          pointsAwarded: data.pointsAwarded || 0,
++          speedBonus: data.speedBonus || 0,
++          streakBonus: 0,
++        });
++        setRoomState((prev) => (prev ? { ...prev, hasSubmittedAnswer: true } : prev));
++      } catch (err: any) {
++        setErrorMessage(err?.message || "Could not submit answer");
++      } finally {
++        setIsSubmitting(false);
++      }
++    },
++    [roomState, isSubmitting],
++  );
++
++  const nextQuestion = useCallback(async () => {
++    const id = sessionIdRef.current || options.sessionId;
++    if (!id) return;
++    await fetch(`/api/live/sessions/${id}/next-round`, { method: "POST" });
++  }, [options.sessionId]);
++
++  const toggleReady = useCallback((_ready: boolean) => {}, []);
++  const leaveRoom = useCallback(() => {
++    setRoomState(null);
++    setConnectionStatus("disconnected");
++  }, []);
++  const joinRoom = useCallback((_code: string) => {}, []);
++  const requestState = useCallback(() => {}, []);
++  const resolveHeist = useCallback((_action: "save" | "invest" | "steal") => {}, []);
++  const upgradeEmpire = useCallback(() => {}, []);
++
++  return {
++    socket: null,
++    connectionStatus,
++    errorMessage,
++    roomState,
++    countdownSeconds,
++    timeRemainingSeconds,
++    isSubmitting,
++    selectedAnswer,
++    myAnswerResult,
++    joinRoom,
++    toggleReady,
++    startMatch,
++    submitAnswer,
++    nextQuestion,
++    leaveRoom,
++    requestState,
++    resolveHeist,
++    upgradeEmpire,
++    onGameFinished: (_board: LeaderboardEntry[]) => {},
++  };
++}
+diff --git a/src/hooks/use-multiplayer.ts b/src/hooks/use-multiplayer.ts
+index 205fb92..9093ba9 100644
+--- a/src/hooks/use-multiplayer.ts
++++ b/src/hooks/use-multiplayer.ts
+@@ -13,6 +13,7 @@ export interface UseMultiplayerOptions {
+   title?: string;
+   gameMode?: string;
+   questions?: AuthoritativeQuestion[];
++  enabled?: boolean;
+   onGameFinished?: (finalLeaderboard: LeaderboardEntry[]) => void;
+   onError?: (error: string) => void;
+ }
+@@ -40,6 +41,7 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
+ 
+   // Initialize Socket.IO connection
+   useEffect(() => {
++    if (options.enabled === false) return;
+     let socketInstance: Socket;
+ 
+     try {
+diff --git a/src/hooks/use-realtime-health.ts b/src/hooks/use-realtime-health.ts
+new file mode 100644
+index 0000000..8908d37
+--- /dev/null
++++ b/src/hooks/use-realtime-health.ts
+@@ -0,0 +1,24 @@
++"use client";
++
++import * as React from "react";
++
++export function useRealtimeHealth() {
++  const [online, setOnline] = React.useState<boolean | null>(null);
++
++  React.useEffect(() => {
++    let mounted = true;
++    fetch("/api/realtime/health", { cache: "no-store" })
++      .then((res) => res.json())
++      .then((data) => {
++        if (mounted) setOnline(Boolean(data?.ok));
++      })
++      .catch(() => {
++        if (mounted) setOnline(false);
++      });
++    return () => {
++      mounted = false;
++    };
++  }, []);
++
++  return online;
++}

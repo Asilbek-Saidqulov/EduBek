@@ -209,6 +209,7 @@ export class RoomManager {
           assessmentId: input.assessmentId,
           autoAdvance: input.autoAdvance ?? false,
           resultsDurationMs: input.resultsDurationMs ?? 5000,
+          questions,
         }),
       },
     });
@@ -219,6 +220,16 @@ export class RoomManager {
         sessionId: session.id,
         joinCode: code,
         maxPlayers: input.maxPlayers || 50,
+      },
+    });
+    await db.livePlayer.create({
+      data: {
+        sessionId: session.id,
+        userId: input.hostId,
+        displayName: "Host",
+        role: "host",
+        isGuest: false,
+        status: "active",
       },
     });
 

@@ -61,7 +61,7 @@ export async function generateMetadata({
     icons: {
       icon: "/favicon.ico",
     },
-    metadataBase: new URL("https://edubek.app"),
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://edubek.vercel.app"),
     alternates: {
       canonical: `/${locale}`,
       languages: {
@@ -73,7 +73,7 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: `https://edubek.app/${locale}`,
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://edubek.vercel.app"}/${locale}`,
       siteName: "EduBek",
       type: "website",
       locale: locale === "uz" ? "uz_UZ" : locale === "ru" ? "ru_RU" : "en_US",

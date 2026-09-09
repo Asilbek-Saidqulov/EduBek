@@ -11,9 +11,12 @@ const nextConfig: NextConfig = {
     ? { output: "standalone" as const }
     : {}),  
   async rewrites() {
+    if (process.env.UNIFIED_REALTIME === "1") return [];
     const realtime = process.env.REALTIME_URL || "http://127.0.0.1:3001";
-    return [{ source: "/api/socket/io", destination: `${realtime}/api/socket/io` },
-            { source: "/api/socket/io/:path*", destination: `${realtime}/api/socket/io/:path*` }];
+    return [
+      { source: "/api/socket/io", destination: `${realtime}/api/socket/io` },
+      { source: "/api/socket/io/:path*", destination: `${realtime}/api/socket/io/:path*` },
+    ];
   },
   // TypeScript errors are verified separately via `npx tsc --noEmit`.
   // The Next.js-internal TS checker OOM-kills on this project's many files.

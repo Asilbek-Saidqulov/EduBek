@@ -55,11 +55,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
+import { GuestQuizPlayer, GameModeType, DEFAULT_QUESTIONS } from "@/components/edubek/guest-quiz-player";
 import { MultiplayerLivePlayer } from "@/components/edubek/multiplayer-live-player";
 import { GameModePicker } from "@/components/edubek/game-modes";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { useRealtimeHealth } from "@/hooks/use-realtime-health";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 
 type QuizTab = "modes" | "discover" | "create" | "gradebook" | "questionbank" | "join";
 
@@ -71,8 +73,11 @@ export function LiveQuizClient() {
   const searchParams = useSearchParams();
   const t = useTranslations("quizHub");
   const { user, isLoading: userLoading } = useCurrentUser();
+  const { online: realtimeOnline } = useRealtimeHealth();
+  const liveRoomsAvailable = realtimeOnline !== false;
   const isTeacher = isStaffRole(user?.platformRoles) || isStaffRole(user?.roles);
-  const codeFromUrl = searchParams.get("code")?.trim().toUpperCase() ?? "";
+  const codeFromUrl =
+    (searchParams.get("code") ?? searchParams.get("pin") ?? "").trim().toUpperCase();
   const assessmentIdFromUrl = searchParams.get("assessmentId")?.trim() ?? "";
 
   const [joinCode, setJoinCode] = React.useState(codeFromUrl);
@@ -92,18 +97,30 @@ export function LiveQuizClient() {
   }, [userLoading, isTeacher, activeTab]);
   const [selectedGameMode, setSelectedGameMode] = React.useState<GameModeType>("classic");
 
+  const firstVisit = searchParams.get("first") === "1";
+  const packFromUrl = searchParams.get("pack")?.trim() ?? "";
+  const quizIdFromUrl = searchParams.get("quizId")?.trim() ?? "";
+
   const [playingQuiz, setPlayingQuiz] = React.useState<any | null>(
-    codeFromUrl.length >= 4
-      ? { code: codeFromUrl, mode: "classic" }
-      : assessmentIdFromUrl
+    assessmentIdFromUrl
       ? { assessmentId: assessmentIdFromUrl, mode: "classic" }
+      : quizIdFromUrl
+      ? { quizId: quizIdFromUrl, mode: "classic" }
+      : firstVisit || packFromUrl
+      ? {
+          quizTitle: t("firstPracticeTitle"),
+          mode: "classic",
+          questions: DEFAULT_QUESTIONS,
+        }
       : null,
   );
+  const [publishedQuizzes, setPublishedQuizzes] = React.useState<any[]>([]);
 
   const [multiplayerRoom, setMultiplayerRoom] = React.useState<{
     code: string;
     isHost: boolean;
     displayName: string;
+    sessionId?: string;
   } | null>(null);
 
   const [isCreatingMultiplayer, setIsCreatingMultiplayer] = React.useState(false);
@@ -207,10 +224,23 @@ export function LiveQuizClient() {
     }
   }, []);
 
+  const loadPublishedQuizzes = React.useCallback(async () => {
+    try {
+      const res = await fetch("/api/quizzes?limit=24");
+      if (!res.ok) return;
+      const data = await res.json();
+      const items = data?.items || data?.quizzes || data?.data || [];
+      if (Array.isArray(items)) setPublishedQuizzes(items);
+    } catch (err) {
+      console.error("Failed to load published quizzes:", err);
+    }
+  }, []);
+
   React.useEffect(() => {
     loadAssessments();
     loadBankQuestions();
-  }, [loadAssessments, loadBankQuestions]);
+    loadPublishedQuizzes();
+  }, [loadAssessments, loadBankQuestions, loadPublishedQuizzes]);
 
   // Load attempts when an assessment is selected in Gradebook
   React.useEffect(() => {
@@ -257,19 +287,20 @@ export function LiveQuizClient() {
         }),
       });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.error?.message || "Failed to create multiplayer room");
-      }
-
-      const data = await res.json();
+      const data = res.ok ? await res.json().catch(() => null) : null;
       setMultiplayerRoom({
-        code: data.session?.code || data.code,
+        code: data?.session?.code || data?.code || "",
+        sessionId: data?.session?.id,
         isHost: true,
         displayName: "Host",
       });
     } catch (err: any) {
-      setMultiplayerError(err?.message || "Could not create multiplayer room");
+      setMultiplayerRoom({
+        code: "",
+        isHost: true,
+        displayName: "Host",
+      });
+      setMultiplayerError(err?.message || "Opening live lobby on the socket server");
     } finally {
       setIsCreatingMultiplayer(false);
     }
@@ -280,32 +311,51 @@ export function LiveQuizClient() {
     setIsCreatingMultiplayer(true);
     setMultiplayerError(null);
     try {
-      const res = await fetch("/api/live/join", {
+      const displayName = `Player_${Math.floor(1000 + Math.random() * 9000)}`;
+      let res = await fetch("/api/live/guest/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          code: code.trim().toUpperCase(),
-          displayName: `Player_${Math.floor(1000 + Math.random() * 9000)}`,
+          joinCode: code.trim().toUpperCase(),
+          displayName,
         }),
       });
-
       if (!res.ok) {
-        const errData = await res.json().catch(() => null);
-        throw new Error(errData?.error?.message || "Failed to join multiplayer room");
+        res = await fetch("/api/live/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            code: code.trim().toUpperCase(),
+            displayName,
+          }),
+        });
       }
 
-      const data = await res.json();
+      const data = res.ok ? await res.json().catch(() => null) : null;
+      setMultiplayerRoom({
+        code: code.trim().toUpperCase(),
+        sessionId: data?.session?.roomId || data?.session?.id,
+        isHost: false,
+        displayName: data?.player?.displayName || displayName,
+      });
+    } catch (err: any) {
       setMultiplayerRoom({
         code: code.trim().toUpperCase(),
         isHost: false,
-        displayName: data.player?.displayName || "Player",
+        displayName: `Player_${Math.floor(1000 + Math.random() * 9000)}`,
       });
-    } catch (err: any) {
-      setMultiplayerError(err?.message || "Could not join multiplayer room");
+      setMultiplayerError(err?.message || "Joining via live server");
     } finally {
       setIsCreatingMultiplayer(false);
     }
   };
+
+  React.useEffect(() => {
+    if (codeFromUrl.length >= 4) {
+      void handleJoinMultiplayerRoom(codeFromUrl);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codeFromUrl]);
 
   // 1-Click Full Assessment Generation via AI
   const handleAiGenerateAssessment = async () => {
@@ -605,6 +655,7 @@ export function LiveQuizClient() {
         initialCode={multiplayerRoom.code}
         initialDisplayName={multiplayerRoom.displayName}
         isHost={multiplayerRoom.isHost}
+        sessionId={multiplayerRoom.sessionId}
         onExit={() => setMultiplayerRoom(null)}
       />
     );
@@ -667,6 +718,27 @@ export function LiveQuizClient() {
           </Button>
         )}
       </div>
+
+      {realtimeOnline === false && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
+          <p className="font-semibold text-foreground">{t("liveOfflineTitle")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{t("liveOfflineHint")}</p>
+          <Button
+            size="sm"
+            className="mt-3 h-8 text-xs gap-1.5"
+            onClick={() => {
+              setActiveTab("discover");
+              setPlayingQuiz({
+                quizTitle: t("firstPracticeTitle"),
+                mode: "classic",
+                questions: DEFAULT_QUESTIONS,
+              });
+            }}
+          >
+            <Play className="size-3.5 fill-current" /> {t("startPractice")}
+          </Button>
+        </div>
+      )}
 
       <div className="flex items-center gap-2 border-b pb-3 overflow-x-auto">
         {(isTeacher
@@ -765,21 +837,59 @@ export function LiveQuizClient() {
               <Loader2 className="size-8 animate-spin mx-auto text-primary" />
               <p className="text-xs">{t("loadingQuizzes")}</p>
             </div>
-          ) : filteredAssessments.length === 0 ? (
-            <Card className="p-12 text-center space-y-3 border-dashed">
+          ) : filteredAssessments.length === 0 && publishedQuizzes.length === 0 ? (
+            <Card className="p-8 text-center space-y-4 border-dashed">
               <BookOpen className="size-8 text-muted-foreground mx-auto" />
-              <CardTitle className="text-base font-bold">{t("noQuizzes")}</CardTitle>
-              <CardDescription className="text-xs">
-                {isTeacher ? t("emptyTeacher") : t("emptyStudent")}
+              <CardTitle className="text-base font-bold">{t("firstPracticeTitle")}</CardTitle>
+              <CardDescription className="text-xs max-w-md mx-auto">
+                {isTeacher ? t("emptyTeacher") : t("emptyPracticeHint")}
               </CardDescription>
-              {isTeacher && (
-                <Button onClick={() => setActiveTab("create")} size="sm" className="text-xs gap-1.5">
-                  <Plus className="size-3.5" /> {t("createQuiz")}
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button
+                  onClick={() =>
+                    setPlayingQuiz({
+                      quizTitle: t("firstPracticeTitle"),
+                      mode: "classic",
+                      questions: DEFAULT_QUESTIONS,
+                    })
+                  }
+                  size="sm"
+                  className="text-xs gap-1.5"
+                >
+                  <Play className="size-3.5 fill-current" /> {t("startPractice")}
                 </Button>
-              )}
+                {isTeacher && (
+                  <Button onClick={() => setActiveTab("create")} size="sm" variant="outline" className="text-xs gap-1.5">
+                    <Plus className="size-3.5" /> {t("createQuiz")}
+                  </Button>
+                )}
+              </div>
             </Card>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {publishedQuizzes.map((q) => (
+                <Card key={`pub-${q.id}`} className="border-border/80 p-5 flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all">
+                  <div className="space-y-2">
+                    <Badge variant="secondary" className="text-[10px] uppercase font-mono">{q.category || "quiz"}</Badge>
+                    <h3 className="text-base font-bold text-foreground leading-snug">{q.title}</h3>
+                    {q.description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">{q.description}</p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() =>
+                      setPlayingQuiz({
+                        quizId: q.id,
+                        quizTitle: q.title,
+                        mode: selectedGameMode,
+                      })
+                    }
+                    className="text-xs font-bold gap-1.5 h-9"
+                  >
+                    <Play className="size-3.5 fill-current" /> {t("play")}
+                  </Button>
+                </Card>
+              ))}
               {filteredAssessments.map((a) => (
                 <Card key={a.id} className="border-border/80 p-5 flex flex-col justify-between space-y-4 hover:border-primary/40 transition-all">
                   <div className="space-y-2">

@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { badRequest, notFound, unauthorized, forbidden } from "@/lib/errors";
 import { RoomManager } from "../multiplayer/room-manager";
+import { durableAnswer, durableJoin, durableStatus } from "./durable-room";
 
 const roomManager = RoomManager.getInstance();
 
@@ -61,7 +62,30 @@ export async function guestJoin(params: {
   const room = roomManager.getRoomByCode(code);
 
   if (!room) {
-    throw notFound("No active multiplayer room found for this code");
+    const joined = await durableJoin({
+      code,
+      displayName: params.displayName.trim(),
+      isGuest: true,
+    });
+    const guestToken = signGuestToken({
+      sessionId: joined.session.id,
+      playerId: joined.player.id,
+      displayName: joined.player.displayName,
+      isGuest: true,
+    });
+    return {
+      success: true,
+      player: {
+        id: joined.player.id,
+        displayName: joined.player.displayName,
+        role: joined.player.role,
+        status: joined.player.status,
+        score: joined.player.score,
+        isReady: true,
+      },
+      session: joined.snapshot,
+      guestToken,
+    };
   }
 
   const { player } = room.addOrUpdatePlayer({
@@ -103,7 +127,19 @@ export async function guestAnswer(params: {
 
   const room = roomManager.getRoomById(sessionId);
   if (!room) {
-    throw notFound("Session is no longer active");
+    const result = await durableAnswer({
+      sessionId,
+      playerId,
+      answer: params.answer,
+    });
+    return {
+      recorded: true,
+      isCorrect: result.isCorrect,
+      pointsAwarded: result.pointsAwarded,
+      speedBonus: 0,
+      score: result.score,
+      currentRank: 1,
+    };
   }
 
   const player = room.getPlayerById(playerId);
@@ -126,12 +162,20 @@ export async function guestAnswer(params: {
   };
 }
 
-export async function guestStatus(guestToken: string) {
+export async function guestStatus(guestTokenOrObj: string | { guestToken: string }) {
+  const guestToken = typeof guestTokenOrObj === "string" ? guestTokenOrObj : guestTokenOrObj.guestToken;
   const { sessionId, playerId } = verifyGuestToken(guestToken);
   const room = roomManager.getRoomById(sessionId);
 
   if (!room) {
-    throw notFound("Session not found or finished");
+    const status = await durableStatus(sessionId, playerId);
+    return {
+      success: true,
+      snapshot: status.snapshot,
+      session: status.snapshot,
+      player: status.player,
+      currentRound: status.currentRound,
+    };
   }
 
   const player = room.getPlayerById(playerId);

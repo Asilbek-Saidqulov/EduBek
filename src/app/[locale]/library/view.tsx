@@ -165,9 +165,14 @@ export function LibraryView() {
           title={t("emptyTitle")}
           description={t("emptyDescription")}
           action={
-            <Button asChild>
-              <Link href="/marketplace">{t("goToMarketplace")}</Link>
-            </Button>
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button asChild>
+                <Link href="/marketplace">{t("goToMarketplace")}</Link>
+              </Button>
+              <Button asChild variant="outline">
+                <Link href="/live-quiz?tab=discover&first=1">Practice instead</Link>
+              </Button>
+            </div>
           }
         />
       ) : (

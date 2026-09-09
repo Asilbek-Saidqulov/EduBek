@@ -11,6 +11,14 @@ import {
 import { RoomManager } from "./multiplayer/room-manager";
 import { GameRoom } from "./multiplayer/engine";
 import { GameMode, AuthoritativeQuestion } from "./multiplayer/types";
+import {
+  durableAnswer,
+  durableJoin,
+  durableNext,
+  durableStart,
+  durableStatus,
+  persistQuestionsOnCreate,
+} from "./live-session/durable-room";
 
 // -----------------------------------------------------------------------------
 // Schemas
@@ -102,6 +110,7 @@ export async function createSession(ctx: AuthContext, body: CreateSessionBody) {
     role: "host",
     isGuest: false,
   });
+  await persistQuestionsOnCreate(room.roomId);
 
   return {
     success: true,
@@ -190,7 +199,21 @@ export async function joinSession(ctx: AuthContext, body: JoinSessionBody) {
   const room = roomManager.getRoomByCode(code);
 
   if (!room) {
-    throw notFound("No active multiplayer room found for this code");
+    const displayName =
+      body.displayName?.trim() ||
+      (ctx.email ? ctx.email.split("@")[0] : `Player_${Math.floor(1000 + Math.random() * 9000)}`);
+    const joined = await durableJoin({
+      code,
+      displayName,
+      userId: ctx.userId || null,
+      isGuest: !ctx.userId,
+    });
+    return {
+      success: true,
+      isNew: true,
+      player: joined.player,
+      session: joined.snapshot,
+    };
   }
 
   const displayName =
@@ -273,7 +296,12 @@ export async function startSession(ctx: AuthContext, id: string, body?: StartSes
 
   const room = roomManager.getRoomById(id) || roomManager.getRoomByCode(id);
   if (!room) {
-    throw notFound("Room not found");
+    const started = await durableStart(id, ctx.userId);
+    return {
+      success: true,
+      message: "Match started",
+      snapshot: started.snapshot,
+    };
   }
 
   if (room.hostId !== ctx.userId) {
@@ -293,7 +321,23 @@ export async function startSession(ctx: AuthContext, id: string, body?: StartSes
 export async function submitAnswer(ctx: AuthContext, id: string, body: SubmitAnswerBody) {
   const room = roomManager.getRoomById(id) || roomManager.getRoomByCode(id);
   if (!room) {
-    throw notFound("Room not found or already closed");
+    const status = await durableStatus(id);
+    const player = status.session.players.find((p) => p.userId === ctx.userId);
+    if (!player) throw notFound("Player is not part of this session");
+    const result = await durableAnswer({
+      sessionId: status.session.id,
+      playerId: player.id,
+      answer: body.answer,
+    });
+    return {
+      success: true,
+      isFirstSubmission: true,
+      pointsAwarded: result.pointsAwarded,
+      isCorrect: result.isCorrect,
+      speedBonus: 0,
+      streakBonus: 0,
+      currentScore: result.score,
+    };
   }
 
   const player = ctx.userId ? room.getPlayerByUserId(ctx.userId) : undefined;
@@ -339,7 +383,10 @@ export async function startNextRound(ctx: AuthContext, id: string) {
   }
 
   const room = roomManager.getRoomById(id) || roomManager.getRoomByCode(id);
-  if (!room) throw notFound("Room not found");
+  if (!room) {
+    const advanced = await durableNext(id, ctx.userId);
+    return { success: true, snapshot: advanced.snapshot, finished: advanced.finished };
+  }
 
   if (room.hostId !== ctx.userId) {
     throw forbidden("Only host can advance round");

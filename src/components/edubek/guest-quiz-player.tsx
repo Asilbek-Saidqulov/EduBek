@@ -93,7 +93,7 @@ export interface GuestQuizPlayerProps {
   onAttemptCompleted?: (attempt: any) => void;
 }
 
-const DEFAULT_QUESTIONS: GuestQuizQuestion[] = [
+export const DEFAULT_QUESTIONS: GuestQuizQuestion[] = [
   {
     id: "q-cs-1",
     question: "Which data structure uses the First-In, First-Out (FIFO) principle?",

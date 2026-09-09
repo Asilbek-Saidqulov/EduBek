@@ -40,19 +40,9 @@ async function _skuGate(body: any) {
 export async function POST(req: NextRequest) {
   try {
     // 1. Rate Limiting
-    const ip = req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || "anonymous";
-    const rateLimit = checkRateLimit(`ai:generate-quiz:${ip}`, 12, 60 * 1000);
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        {
-          error: {
-            code: "RATE_LIMITED",
-            message: "Too many quiz generation requests. Please wait a minute before trying again.",
-          },
-        },
-        { status: 429 }
-      );
-    }
+    const { consumeQuizGenerate } = await import("@/lib/usage-policy");
+    const quota = consumeQuizGenerate(req);
+    if (!quota.ok) return quota.response;
 
     // 2. Validate input payload
     const body = await req.json();

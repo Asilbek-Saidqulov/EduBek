@@ -22,9 +22,12 @@ import {
   REFRESH_COOKIE_NAME,
 } from "@/features/auth/auth.cookies";
 import { register } from "@/features/auth/auth.service";
+import { consumeOrReject } from "@/lib/usage-policy";
 
 export const POST = withErrorHandler(
   async (req: NextRequest) => {
+    const limited = consumeOrReject("registerHour", req);
+    if (!limited.ok) return limited.response;
     const body = await req.json().catch(() => null);
     const parsed = registerBodySchema.safeParse(body);
     if (!parsed.success) {

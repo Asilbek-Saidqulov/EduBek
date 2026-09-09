@@ -32,6 +32,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
+import { Link } from "@/i18n/navigation";
 
 interface GeneratedQuestion {
   question: string;
@@ -43,7 +44,13 @@ interface GeneratedQuestion {
 export function AiWorkspaceClient() {
   const { user } = useCurrentUser();
   const [activeTab, setActiveTab] = React.useState<"generator" | "tutor">("generator");
-  const [tokenBalance, setTokenBalance] = React.useState<number>(user?.balanceEduTokens ?? 1250);
+  const [tokenBalance, setTokenBalance] = React.useState<number>(user?.balanceEduTokens ?? 0);
+
+  React.useEffect(() => {
+    if (typeof user?.balanceEduTokens === "number") {
+      setTokenBalance(user.balanceEduTokens);
+    }
+  }, [user?.balanceEduTokens]);
 
   // Generator State
   const [topic, setTopic] = React.useState("");
@@ -275,8 +282,11 @@ export function AiWorkspaceClient() {
             Contextual AI Assistant
           </h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-xl">
-            Generate custom practice quizzes from any syllabus topic, or learn with your personal step-by-step AI tutor.
+            Quiz generation needs an AI key on the server. The working tutor is on the Tutor page.
           </p>
+          <Link href="/tutor" className="mt-2 inline-flex text-sm font-medium text-violet-600 hover:underline">
+            Open Tutor →
+          </Link>
         </div>
 
         <div className="flex items-center gap-3 shrink-0 rounded-xl border border-border/80 bg-card p-3 shadow-xs">

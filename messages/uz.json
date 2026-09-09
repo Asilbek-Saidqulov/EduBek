@@ -364,7 +364,8 @@
     "unfavorited": "Sevimlilardan olib tashlandi",
     "favoriteError": "Sevimlilar holatini yangilab bo'lmadi",
     "favorite": "Sevimlilarga qo'shish",
-    "unfavorite": "Sevimlilardan o'chirish"
+    "unfavorite": "Sevimlilardan o'chirish",
+    "practice": "Mashq"
   },
   "ai": {
     "workspace": "AI Ish maydoni",
@@ -435,7 +436,9 @@
       "askAiTutor": "Batafsil tahlil uchun AI Repetitordan so'rash",
       "connectedSyllabus": "Bog'langan:",
       "syllabusName": "10-sinf Biologiya o'quv dasturi",
-      "xpBonus": "+15 Tajriba (XP)"
+      "xpBonus": "+15 Tajriba (XP)",
+      "noPin": "Sinf PIN yo‘qmi?",
+      "practiceQuiz": "5 savollik mashq testini boshlang"
     },
     "ecosystem": {
       "badge": "O'zaro bog'liq arxitektura",
@@ -872,7 +875,8 @@
             "detail": "Eng ommabop: 'Olimpiada matematikasi to'liq to'plami' (128 ta savdo)"
           }
         }
-      }
+      },
+      "creatorSoon": "Tez orada"
     },
     "roles": {
       "badge": "Ta'limdagi har bir inson uchun",
@@ -10496,7 +10500,7 @@
   "notifications": {
     "title": "Bildirishnomalar",
     "description": "EduBek tizimidagi barcha yangiliklar va xabarnomalar markazi.",
-    "empty": "Yangi bildirishnomalar yo'q",
+    "empty": "Hali bildirishnoma yo‘q",
     "markAllRead": "Barchasini o'qilgan deb belgilash",
     "unread": "O'qilmagan",
     "all": "Barchasi",
@@ -11036,9 +11040,9 @@
     "pin": "Закрепить",
     "archive": "Архив",
     "delete": "Удалить",
-    "emptyDesc": "Нет уведомлений для отображения.",
-    "emptyTitle": "Bildirishnomalar yo'q",
-    "emptyDescription": "Hozircha yangi bildirishnomalar mavjud emas. Viktorinalar va yutuqlar haqidagi xabarlar shu yerda aks etadi."
+    "emptyDesc": "Sinfga qo‘shilish, vazifa va viktorina natijalari shu yerda chiqadi.",
+    "emptyTitle": "Hali bildirishnoma yo‘q",
+    "emptyDescription": "Sinfga qo‘shilish, vazifa va viktorina natijalari shu yerda chiqadi."
   },
   "identity": {
     "title": "Identity, Access Management & Federation Platform",
@@ -17635,7 +17639,8 @@
       "start": "Repetitorni ochish",
       "resume": "Davom etish",
       "updated": "Yangilangan {when}",
-      "untitled": "Nomsiz dars"
+      "untitled": "Nomsiz dars",
+      "firstQuiz": "Dastlabki 5 savol"
     },
     "classes": {
       "yours": "Sinflaringiz",
@@ -17689,8 +17694,8 @@
       "homework": "Uyga vazifa",
       "practice_material": "Mashq materiali"
     },
-    "emptyTitle": "Hozircha saqlangan materiallar yo'q",
-    "emptyDescription": "Kashf qilish bo'limidan materiallarni saqlang yoki yangi viktorina yarating.",
+    "emptyTitle": "Kutubxona bo‘sh",
+    "emptyDescription": "Marketplace’dan olingan materiallar shu yerda chiqadi. Muallif nashri hali ochilmagan.",
     "favorited": "Sevimlilarga qo'shildi",
     "unfavorited": "Sevimlilardan olib tashlandi",
     "favoriteError": "Sevimlilarni yangilashda xatolik",
@@ -17971,6 +17976,11 @@
     "langEn": "English",
     "langRu": "Русский",
     "searchQuizzes": "Viktorina qidirish…",
-    "allTypes": "Barcha turlar"
+    "allTypes": "Barcha turlar",
+    "liveOfflineTitle": "Socket o‘chiq — PIN xonalar ishlaydi",
+    "liveOfflineHint": "Bu hostda Socket.IO o‘chiq. Xona baribir ishlaydi: PIN yarating, o‘quvchilar qo‘shilsin, boshlovchi Start bossin.",
+    "startPractice": "5 savolni boshlash",
+    "firstPracticeTitle": "Birinchi mashq testi",
+    "emptyPracticeHint": "Sinf testi yo‘q. 5 savollik aralash mashqni ishlang. Xatodan keyin Tutor tushuntiradi."
   }
 }

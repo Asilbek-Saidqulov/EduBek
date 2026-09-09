@@ -66,8 +66,9 @@ interface MpCategoryDto {
 }
 
 interface ListingListResult {
-  listings: MpListingListItemDto[];
-  total: number;
+  listings?: MpListingListItemDto[];
+  items?: MpListingListItemDto[];
+  total?: number;
 }
 
 interface CategoryResult {
@@ -134,8 +135,8 @@ export function MarketplaceBrowse() {
     staleTime: 5 * 60_000,
   });
 
-  const listings = browseQ.data?.listings ?? [];
-  const total = browseQ.data?.total ?? 0;
+  const listings = browseQ.data?.listings ?? browseQ.data?.items ?? [];
+  const total = browseQ.data?.total ?? listings.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
@@ -340,11 +341,16 @@ export function MarketplaceBrowse() {
                     <span className="text-muted-foreground font-normal">({item.ratingCount || 0})</span>
                   </div>
 
-                  <Button asChild size="sm" variant="outline" className="h-8 text-xs font-semibold">
-                    <Link href={`/marketplace/${item.id}`}>
-                      {item.price === 0 ? t("claimFree") : t("buyNow")}
-                    </Link>
-                  </Button>
+                  <div className="flex items-center gap-1.5">
+                    <Button asChild size="sm" className="h-8 text-xs font-semibold">
+                      <Link href="/live-quiz?tab=discover&first=1">{t("practice")}</Link>
+                    </Button>
+                    <Button asChild size="sm" variant="outline" className="h-8 text-xs font-semibold">
+                      <Link href={`/marketplace/${item.id}`}>
+                        {item.price === 0 ? t("claimFree") : t("buyNow")}
+                      </Link>
+                    </Button>
+                  </div>
                 </div>
               </Card>
             ))}

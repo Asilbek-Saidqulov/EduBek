@@ -33,6 +33,7 @@ import {
   Bookmark,
   Layers,
   GraduationCap,
+  Gamepad2,
 } from "lucide-react";
 
 import { api, ApiError } from "@/lib/api-client";
@@ -249,8 +250,14 @@ export function DiscoverView() {
             Discover & Explore Knowledge
           </h1>
           <p className="text-sm text-muted-foreground max-w-2xl mt-1">
-            Explore topic maps, human-created resources, interactive quizzes, and verified creator materials.
+            Pick a topic or start a short practice quiz. A wrong answer can open Tutor.
           </p>
+          <Button asChild size="sm" className="mt-3 gap-1.5">
+            <Link href="/live-quiz?tab=discover&first=1">
+              <Gamepad2 className="size-3.5" />
+              First 5 questions
+            </Link>
+          </Button>
         </div>
 
         {/* Search & Discipline Filter Bar */}
@@ -300,6 +307,32 @@ export function DiscoverView() {
           })}
         </div>
       </div>
+
+      {feedQ.data?.sections?.some((s) => s.items.length > 0) && (
+        <section className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Practice now</h2>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {feedQ.data.sections.flatMap((section) =>
+              section.items.map((item) => (
+                <Link
+                  key={`${section.id}-${item.entityId}`}
+                  href={
+                    item.entityId === "first-practice" || item.entityId === "live-quiz"
+                      ? "/live-quiz?tab=discover&first=1"
+                      : `/live-quiz?quizId=${encodeURIComponent(item.entityId)}`
+                  }
+                  className="rounded-xl border p-4 hover:border-primary/40 transition-colors"
+                >
+                  <p className="text-sm font-semibold">{item.title}</p>
+                  {item.description && (
+                    <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{item.description}</p>
+                  )}
+                </Link>
+              )),
+            )}
+          </div>
+        </section>
+      )}
 
       {/* Search Results Display if active */}
       {searchSubmitted ? (
@@ -459,7 +492,7 @@ export function DiscoverView() {
                       <span>{topic.resources} Resources</span>
                     </div>
                     <Button asChild size="sm" variant="ghost" className="gap-1 text-xs text-primary font-semibold">
-                      <Link href="/live-quiz">
+                      <Link href="/live-quiz?tab=discover&first=1">
                         Start Practice <ArrowRight className="size-3" />
                       </Link>
                     </Button>

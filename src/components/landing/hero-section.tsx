@@ -46,7 +46,7 @@ export function HeroSection() {
   const handlePinSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (pin.trim()) {
-      router.push(`/live-quiz?pin=${encodeURIComponent(pin.trim().toUpperCase())}`);
+      router.push(`/live-quiz?code=${encodeURIComponent(pin.trim().toUpperCase())}`);
     }
   };
 
@@ -115,6 +115,12 @@ export function HeroSection() {
                   {t("joinLive")}
                 </Button>
               </form>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t("noPin")}{" "}
+                <Link href="/live-quiz?tab=discover&first=1" className="font-medium text-foreground underline underline-offset-2">
+                  {t("practiceQuiz")}
+                </Link>
+              </p>
             </div>
 
             {/* Micro value badges */}

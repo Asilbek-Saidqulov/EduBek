@@ -7,6 +7,7 @@
  * Run with: `bun run db:seed` (added to package.json scripts)
  */
 
+/// <reference types="node" />
 import { PrismaClient } from '@prisma/client'
 
 const db = new PrismaClient()
@@ -203,28 +204,70 @@ const QUIZZES: QuizSeed[] = [
       { question: 'Which organelle modifies, sorts, and packages proteins?', options: ['Smooth ER', 'Rough ER', 'Golgi apparatus', 'Lysosome'], correctIndex: 2, explanation: 'The Golgi apparatus is the cell\'s "shipping center".' },
     ],
   },
+  {
+    title: 'O‘zbekiston tarixi: mustaqillik davri',
+    description: 'Mustaqillik e’lon qilinishi, ramzlar va davlat tuzilishi bo‘yicha 5 ta savol. 9–11-sinflar uchun.',
+    category: 'history',
+    difficulty: 'medium',
+    language: 'uz',
+    creatorIndex: 1,
+    priceEduTokens: 0,
+    priceFiat: 0,
+    tier: 'free',
+    rating: 4.7,
+    purchaseCount: 312,
+    questions: [
+      { question: 'O‘zbekiston mustaqilligi qachon e’lon qilindi?', options: ['1989-yil 1-sentabr', '1991-yil 1-sentabr', '1992-yil 8-dekabr', '1990-yil 20-iyun'], correctIndex: 1, explanation: 'Mustaqillik 1991-yil 1-sentabrda e’lon qilindi.' },
+      { question: 'O‘zbekiston Respublikasi Konstitutsiyasi qachon qabul qilindi?', options: ['1991-yil 1-sentabr', '1992-yil 8-dekabr', '1993-yil 1-yanvar', '1990-yil 24-mart'], correctIndex: 1, explanation: 'Konstitutsiya 1992-yil 8-dekabrda qabul qilingan.' },
+      { question: 'Davlat tilining maqomi qaysi tilda?', options: ['Rus tili', 'O‘zbek tili', 'Ingliz tili', 'Qoraqalpoq tili'], correctIndex: 1, explanation: 'Davlat tili — o‘zbek tili.' },
+      { question: 'O‘zbekiston poytaxti qaysi shahar?', options: ['Samarqand', 'Buxoro', 'Toshkent', 'Nukus'], correctIndex: 2, explanation: 'Poytaxt — Toshkent.' },
+      { question: 'Mustaqillik bayrami qaysi kunda nishonlanadi?', options: ['8-dekabr', '21-mart', '1-sentabr', '9-may'], correctIndex: 2, explanation: '1-sentabr — Mustaqillik kuni.' },
+    ],
+  },
+  {
+    title: 'Algebra asoslari: chiziqli tenglamalar',
+    description: '8–9-sinflar uchun chiziqli tenglamalar. Javoblar o‘zbek tilida tushuntiriladi.',
+    category: 'mathematics',
+    difficulty: 'easy',
+    language: 'uz',
+    creatorIndex: 0,
+    priceEduTokens: 0,
+    priceFiat: 0,
+    tier: 'free',
+    rating: 4.6,
+    purchaseCount: 198,
+    questions: [
+      { question: '2x + 4 = 12 tenglamani yeching. x = ?', options: ['2', '4', '6', '8'], correctIndex: 1, explanation: '2x = 8, shuning uchun x = 4.' },
+      { question: 'y = 5x − 1 to‘g‘ri chiziqning burchak koeffitsienti qancha?', options: ['−1', '5', '1', '0'], correctIndex: 1, explanation: 'y = mx + b ko‘rinishida m = 5.' },
+      { question: '3(x − 1) = 6. x = ?', options: ['1', '2', '3', '4'], correctIndex: 2, explanation: '3x − 3 = 6 → 3x = 9 → x = 3.' },
+      { question: 'Agar 5x = 20 bo‘lsa, x = ?', options: ['2', '3', '4', '5'], correctIndex: 2, explanation: 'x = 20 / 5 = 4.' },
+      { question: 'y = −x + 3 chiziqning ordinata o‘qi bilan kesishish nuqtasi?', options: ['−1', '0', '3', '1'], correctIndex: 2, explanation: 'b = 3, kesishish nuqtasi (0; 3).' },
+    ],
+  },
 ]
 
 async function main() {
   console.log('🌱 Seeding EduBek database...')
 
-  // Wipe existing data so re-running is idempotent
-  console.log('  🧹 Cleaning existing data...')
-  await db.marketplaceReview.deleteMany()
-  await db.marketplacePurchase.deleteMany()
-  await db.marketplaceListing.deleteMany()
-  await db.question.deleteMany()
-  await db.quiz.deleteMany()
-  await db.creator.deleteMany()
-  await db.userRole.deleteMany()
-  await db.profile.deleteMany()
-  await db.user.deleteMany()
+  // Only remove previous seed catalog rows. Never wipe real users.
+  console.log('  🧹 Cleaning previous seed catalog...')
+  const seedEmails = CREATORS.map((c) => c.email)
+  const seedUsers = await db.user.findMany({ where: { email: { in: seedEmails } }, select: { id: true } })
+  const seedUserIds = seedUsers.map((u: { id: string }) => u.id)
+  if (seedUserIds.length) {
+    await db.marketplaceReview.deleteMany({ where: { listing: { sellerId: { in: seedUserIds } } } }).catch(() => undefined)
+    await db.marketplacePurchase.deleteMany({ where: { listing: { sellerId: { in: seedUserIds } } } }).catch(() => undefined)
+    await db.marketplaceListing.deleteMany({ where: { sellerId: { in: seedUserIds } } })
+    await db.question.deleteMany({ where: { quiz: { teacherId: { in: seedUserIds } } } })
+    await db.quiz.deleteMany({ where: { teacherId: { in: seedUserIds } } })
+  }
 
-  // Create creators
   const creators = []
   for (const c of CREATORS) {
-    const user = await db.user.create({
-      data: {
+    const user = await db.user.upsert({
+      where: { email: c.email },
+      update: { name: c.name, username: c.username, country: c.country },
+      create: {
         email: c.email,
         name: c.name,
         username: c.username,
@@ -240,10 +283,10 @@ async function main() {
         },
         roles: { create: [{ role: 'creator' }] },
       },
-      include: { creatorProfile: true }
+      include: { creatorProfile: true },
     })
     creators.push(user)
-    console.log(`  ✓ Created creator: ${c.name}`)
+    console.log(`  ✓ Creator ready: ${c.name}`)
   }
 
   // Create quizzes + marketplace listings
@@ -284,7 +327,7 @@ async function main() {
         priceEduTokens: seed.priceEduTokens,
         priceFiat: seed.priceFiat,
         tier: seed.tier,
-        status: 'active',
+        status: 'published',
         publishedAt: new Date(),
         reviewedAt: new Date(),
       },

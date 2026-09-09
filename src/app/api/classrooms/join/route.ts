@@ -5,9 +5,12 @@ import { NextResponse } from "next/server";
 import { withErrorHandler } from "@/lib/errors";
 import { getAuthContext } from "@/features/auth";
 import { joinClassroom, joinClassroomBodySchema } from "@/features/classroom";
+import { consumeOrReject } from "@/lib/usage-policy";
 
 export const POST = withErrorHandler(async (req) => {
   const ctx = await getAuthContext();
+  const limited = consumeOrReject("classroomJoinHour", req, ctx.userId);
+  if (!limited.ok) return limited.response;
   const body = joinClassroomBodySchema.parse(await req.json());
   const result = await joinClassroom(ctx, body.joinCode);
   return NextResponse.json(result);

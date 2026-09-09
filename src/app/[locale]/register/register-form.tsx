@@ -100,7 +100,11 @@ export function RegisterForm() {
       });
       if (res.ok) {
         router.refresh();
-        router.replace("/dashboard");
+        if (values.role === "teacher") {
+          router.replace("/classrooms?first=1");
+        } else {
+          router.replace("/live-quiz?tab=discover&first=1");
+        }
         return;
       }
       const body = (await res.json().catch(() => null)) as
