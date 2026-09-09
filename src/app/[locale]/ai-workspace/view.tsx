@@ -254,11 +254,12 @@ export function AiWorkspaceClient() {
         <GuestQuizPlayer
           quizTitle={`AI Quiz: ${topic || "Generated Subject"}`}
           mode={playingMode}
-          questions={generatedQuestions.map((q) => ({
-            question: q.question,
-            options: q.options,
-            correctIndex: q.correctIndex,
-            explanation: q.explanation,
+          questions={generatedQuestions.map((q: any) => ({
+            question: typeof q.question === "string" ? q.question : q.question?.text || q.prompt || q.text || "",
+            prompt: typeof q.question === "string" ? q.question : q.question?.text || q.prompt || q.text || "",
+            options: q.options || q.choices || [],
+            correctIndex: q.correctIndex ?? q.correct_index ?? 0,
+            explanation: typeof q.explanation === "string" ? q.explanation : "",
             topic: topic || "AI Quiz",
           }))}
           onExit={() => setPlayingMode(null)}

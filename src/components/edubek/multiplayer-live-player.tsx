@@ -142,7 +142,8 @@ export function MultiplayerLivePlayer({
 
   if (roomState.status === "lobby") {
     const isPlayerHost = roomState.isHost;
-    const me = roomState.leaderboard.find((p: any) => p.playerId === roomState.myPlayerId);
+    const board = Array.isArray(roomState.leaderboard) ? roomState.leaderboard : [];
+    const me = board.find((p: any) => p.playerId === roomState.myPlayerId);
 
     return (
       <div className="max-w-4xl mx-auto space-y-6">
@@ -152,7 +153,7 @@ export function MultiplayerLivePlayer({
               <div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline" className="font-bold">
-                    {roomState.gameMode.toUpperCase()} MODE
+                    {String(roomState.gameMode || "classic").toUpperCase()} MODE
                   </Badge>
                   <Badge variant="secondary">{roomState.totalRounds} Questions</Badge>
                 </div>
@@ -175,19 +176,19 @@ export function MultiplayerLivePlayer({
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                   <Users className="w-4 h-4" />
-                  Players in Lobby ({roomState.leaderboard.length})
+                  Players in Lobby ({board.length})
                 </div>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                {roomState.leaderboard.map((p: any) => (
+                {board.map((p: any) => (
                   <div
-                    key={p.playerId}
+                    key={p.playerId || p.displayName}
                     className={`p-3 rounded-lg border flex items-center gap-2.5 ${
                       p.playerId === roomState.myPlayerId ? "ring-2 ring-primary/40" : ""
                     }`}
                   >
                     <div className="w-8 h-8 rounded-full bg-muted font-bold flex items-center justify-center text-sm">
-                      {p.displayName.charAt(0).toUpperCase()}
+                      {String(p.displayName || "?").charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-sm truncate flex items-center gap-1">

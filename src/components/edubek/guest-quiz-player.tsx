@@ -138,7 +138,28 @@ export const DEFAULT_QUESTIONS: GuestQuizQuestion[] = [
     topic: "Physics",
     points: 1,
   },
+  {
+    id: "q-hist-1",
+    question: "Toshkent is the capital of which country?",
+    questionType: "multiple_choice",
+    options: ["Kazakhstan", "Uzbekistan", "Kyrgyzstan", "Tajikistan"],
+    correctIndex: 1,
+    correctAnswer: "Uzbekistan",
+    explanation: "Toshkent is the capital of Uzbekistan.",
+    topic: "Geography",
+    points: 1,
+  },
 ];
+
+function readQuestionText(q: GuestQuizQuestion | any): string {
+  const raw = q?.prompt ?? q?.question ?? q?.text ?? q?.title ?? q?.payload?.prompt ?? q?.payload?.question;
+  if (typeof raw === "string" && raw.trim() && raw.trim() !== "Question") return raw.trim();
+  if (raw && typeof raw === "object") {
+    const nested = raw.text || raw.prompt || raw.en || raw.uz || raw.ru;
+    if (typeof nested === "string" && nested.trim()) return nested.trim();
+  }
+  return "";
+}
 
 const EMPIRE_STAGES = [
   { level: 1, name: "Ancient Forum", wonder: "Foundation Stones", minQuestions: 1 },
@@ -279,7 +300,7 @@ export function GuestQuizPlayer({
 
   const currentQ = activeQuestions[currentIndex] || activeQuestions[0] || DEFAULT_QUESTIONS[0];
   const qType = currentQ.questionType || "multiple_choice";
-  const questionPrompt = currentQ.prompt || currentQ.question || "Question";
+  const questionPrompt = readQuestionText(currentQ) || "Question";
   const questionOptions = currentQ.options || currentQ.payload?.options || [];
   const qId = currentQ.questionId || currentQ.id || `q-${currentIndex}`;
 
@@ -616,23 +637,27 @@ export function GuestQuizPlayer({
     setMasonryStone(100);
     startTimeRef.current = Date.now();
     questionStartTimeRef.current = Date.now();
+    setTimeLeft(mode === "heist" ? 15 : 30);
   };
 
-  // Timer per question / exam
+  const questionSeconds = mode === "heist" ? 15 : 30;
+
   React.useEffect(() => {
-    if (isFinished || isSubmitting) return;
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          handleNext();
-          return 0;
-        }
-        return prev - 1;
-      });
+    setTimeLeft(questionSeconds);
+  }, [currentIndex, questionSeconds]);
+
+  React.useEffect(() => {
+    if (isFinished || isSubmitting || isAnswered) return;
+    const timer = window.setInterval(() => {
+      setTimeLeft((prev) => Math.max(0, prev - 1));
     }, 1000);
-    return () => clearInterval(timer);
-  }, [currentIndex, isFinished, isSubmitting]);
+    return () => window.clearInterval(timer);
+  }, [currentIndex, isFinished, isSubmitting, isAnswered]);
+
+  React.useEffect(() => {
+    if (timeLeft > 0 || isFinished || isSubmitting || isAnswered) return;
+    handleNext();
+  }, [timeLeft, isFinished, isSubmitting, isAnswered]);
 
   // Loading Screen
   if (isLoadingAttempt) {

@@ -141,7 +141,9 @@ export function NotificationsView() {
         ))}
       </div>
 
-      {q.isLoading ? (
+      {q.isError ? (
+        <EmptyState icon={InboxIcon} title={t("empty")} description={t("emptyDesc")} />
+      ) : q.isLoading ? (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-20 w-full" />

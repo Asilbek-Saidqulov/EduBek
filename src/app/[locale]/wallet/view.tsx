@@ -251,6 +251,9 @@ function PlansPanel() {
     staleTime: 60_000,
   });
 
+  if (q.isError) {
+    return <p className="text-sm text-muted-foreground">Plans will show here when the server is ready.</p>;
+  }
   const data = q.data;
   if (!data) return null;
 

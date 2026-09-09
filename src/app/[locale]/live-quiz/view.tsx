@@ -779,7 +779,7 @@ export function LiveQuizClient() {
       {activeTab === "modes" && (
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Pick a mode. The questions stay the same — the board and rules change.
+            Pick a mode, then create a live room. Students join with the PIN. The starter practice pack is used until you pick a quiz on Discover.
           </p>
           <GameModePicker
             selected={selectedGameMode}

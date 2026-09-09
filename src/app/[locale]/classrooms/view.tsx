@@ -40,6 +40,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Mascot } from "@/components/edubek/mascots";
 import { useSearchParams } from "next/navigation";
+import { Link } from "@/i18n/navigation";
 import { api } from "@/lib/api-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -1104,9 +1105,17 @@ export function ClassroomsClient() {
             <p className="text-sm font-semibold">Class created. Share this code</p>
             <p className="font-mono text-2xl font-black tracking-[0.25em]">{createdJoinCode}</p>
           </div>
-          <Button size="sm" variant="outline" onClick={() => void handleCopyCode(createdJoinCode)}>
-            {copiedCode ? "Copied" : "Copy code"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant="outline" onClick={() => void handleCopyCode(createdJoinCode)}>
+              {copiedCode ? "Copied" : "Copy code"}
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/ai-workspace">Create quiz with AI</Link>
+            </Button>
+            <Button size="sm" variant="secondary" asChild>
+              <Link href="/live-quiz">Start live quiz</Link>
+            </Button>
+          </div>
         </div>
       )}
       {/* Header */}

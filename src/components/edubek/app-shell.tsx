@@ -436,11 +436,14 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
         )}
 
         {/* Main Body */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-24 lg:pb-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 pb-28 lg:pb-8">
           {children}
         </main>
 
-        <nav className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-background/95 backdrop-blur-md">
+        <nav
+          className="lg:hidden fixed bottom-0 inset-x-0 z-40 border-t bg-background/95 backdrop-blur-md"
+          style={{ paddingBottom: "max(8px, env(safe-area-inset-bottom))" }}
+        >
           <div className="grid grid-cols-4">
             {primaryNavItems.map((item) => {
               const Icon = item.icon;
@@ -449,7 +452,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex flex-col items-center gap-1 py-2.5 text-[11px] font-medium ${
+                  className={`flex flex-col items-center gap-1 py-2 text-[11px] font-medium ${
                     active ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
