@@ -131,7 +131,7 @@ export function DiscoverView() {
   const feedQ = useQuery<PersonalizedFeed>({
     queryKey: ["discovery", "feed"],
     queryFn: () => api.get<PersonalizedFeed>("/api/discovery/feed"),
-    enabled: !!user && !searchSubmitted,
+    enabled: !searchSubmitted,
     staleTime: 60_000,
   });
 
@@ -141,99 +141,12 @@ export function DiscoverView() {
     staleTime: 5 * 60_000,
   });
 
-  // Curated fallback subjects
-  const subjects = [
-    { id: "all", label: "All Disciplines", icon: Compass },
-    { id: "math", label: "Mathematics", icon: GraduationCap },
-    { id: "physics", label: "Physics", icon: Rocket },
-    { id: "biology", label: "Biology", icon: Sparkles },
-    { id: "cs", label: "Computer Science", icon: Brain },
-    { id: "history", label: "History", icon: BookOpen },
-  ];
-
-  // Knowledge Network Hierarchy
-  const knowledgeNetwork = [
-    {
-      id: "math",
-      title: "Mathematics",
-      children: [
-        {
-          id: "math-algebra",
-          title: "Algebra & Functions",
-          topics: [
-            { id: "linear", title: "Linear Equations", difficulty: "Beginner", quizzes: 14, resources: 8 },
-            { id: "quadratic", title: "Quadratic Equations", difficulty: "Intermediate", quizzes: 18, resources: 12 },
-            { id: "polynomials", title: "Polynomial Functions", difficulty: "Advanced", quizzes: 9, resources: 6 },
-          ],
-        },
-        {
-          id: "math-geom",
-          title: "Geometry & Trigonometry",
-          topics: [
-            { id: "euclid", title: "Euclidean Geometry", difficulty: "Beginner", quizzes: 11, resources: 7 },
-            { id: "trig-identities", title: "Trigonometric Identities", difficulty: "Intermediate", quizzes: 15, resources: 10 },
-          ],
-        },
-      ],
-    },
-    {
-      id: "physics",
-      title: "Physics",
-      children: [
-        {
-          id: "phys-mechanics",
-          title: "Classical Mechanics",
-          topics: [
-            { id: "newton", title: "Newton's Laws & Dynamics", difficulty: "Foundational", quizzes: 22, resources: 15 },
-            { id: "energy", title: "Work, Energy & Power", difficulty: "Intermediate", quizzes: 16, resources: 11 },
-          ],
-        },
-      ],
-    },
-  ];
-
-  const featuredTopics = [
-    {
-      id: "ft-1",
-      title: "Quadratic Equations & Complex Roots",
-      subject: "Mathematics",
-      desc: "Complete conceptual guide covering discriminant analysis, factoring, and parabolic graphing.",
-      quizzes: 18,
-      resources: 12,
-      difficulty: "Intermediate",
-      popularity: "98% satisfaction",
-    },
-    {
-      id: "ft-2",
-      title: "Newton's Laws & Inertial Frames",
-      subject: "Physics",
-      desc: "Core dynamics covering force diagrams, momentum conservation, and real-world mechanics.",
-      quizzes: 24,
-      resources: 16,
-      difficulty: "Beginner - Inter.",
-      popularity: "99% satisfaction",
-    },
-    {
-      id: "ft-3",
-      title: "Cellular Respiration & ATP Cycle",
-      subject: "Biology",
-      desc: "Detailed breakdown of glycolysis, Krebs cycle, and oxidative phosphorylation with 3D models.",
-      quizzes: 15,
-      resources: 9,
-      difficulty: "Intermediate",
-      popularity: "95% satisfaction",
-    },
-    {
-      id: "ft-4",
-      title: "Data Structures & Time Complexity (Big O)",
-      subject: "Computer Science",
-      desc: "Understand arrays, linked lists, trees, graphs, and algorithmic efficiency benchmarks.",
-      quizzes: 20,
-      resources: 14,
-      difficulty: "Advanced",
-      popularity: "97% satisfaction",
-    },
-  ];
+  const topicList = topicsQ.data?.topics ?? [];
+  const subjects = [{ id: "all", label: "All", icon: Compass }, ...topicList.map((topic) => ({
+    id: topic.id,
+    label: topic.name,
+    icon: BookOpen,
+  }))];
 
   return (
     <div className="mx-auto max-w-7xl space-y-8">
@@ -255,7 +168,7 @@ export function DiscoverView() {
           <Button asChild size="sm" className="mt-3 gap-1.5">
             <Link href="/live-quiz?tab=discover&first=1">
               <Gamepad2 className="size-3.5" />
-              First 5 questions
+              Local practice pack
             </Link>
           </Button>
         </div>
@@ -308,6 +221,14 @@ export function DiscoverView() {
         </div>
       </div>
 
+      {feedQ.isFetched && !feedQ.data?.sections?.some((s) => s.items.length > 0) && (
+        <EmptyState
+          icon={Compass}
+          title="No published quizzes yet"
+          description="Discover only shows quizzes and listings saved in the database. Publish a quiz or run db:seed."
+        />
+      )}
+
       {feedQ.data?.sections?.some((s) => s.items.length > 0) && (
         <section className="space-y-3">
           <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">Practice now</h2>
@@ -317,8 +238,8 @@ export function DiscoverView() {
                 <Link
                   key={`${section.id}-${item.entityId}`}
                   href={
-                    item.entityId === "first-practice" || item.entityId === "live-quiz"
-                      ? "/live-quiz?tab=discover&first=1"
+                    item.reasonKey === "listing"
+                      ? `/marketplace/${encodeURIComponent(item.entityId)}`
                       : `/live-quiz?quizId=${encodeURIComponent(item.entityId)}`
                   }
                   className="rounded-xl border p-4 hover:border-primary/40 transition-colors"
@@ -394,112 +315,35 @@ export function DiscoverView() {
         </section>
       ) : (
         <>
-          {/* Knowledge Network — Interactive Hierarchy Graph */}
           <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                  <Layers className="size-4 text-blue-500" />
-                  Knowledge Network
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Explore structured learning progressions, prerequisite maps, and concept trees.
-                </p>
+            <h2 className="text-lg font-bold">Published topics</h2>
+            {topicsQ.isLoading ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full rounded-xl" />
+                ))}
               </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-3">
-              {knowledgeNetwork.map((domain) => (
-                <Card key={domain.id} className="border-border/80 shadow-xs overflow-hidden">
-                  <CardHeader className="p-4 bg-muted/20 border-b">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2">
-                      <GraduationCap className="size-4 text-primary" />
-                      {domain.title} Syllabus
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-4 space-y-4">
-                    {domain.children.map((branch) => (
-                      <div key={branch.id} className="space-y-2">
-                        <div className="text-xs font-semibold text-foreground/80 flex items-center gap-1.5">
-                          <ChevronRight className="size-3 text-primary" />
-                          <span>{branch.title}</span>
-                        </div>
-                        <div className="pl-4 space-y-1.5 border-l-2 border-border/80">
-                          {branch.topics.map((t) => (
-                            <Link
-                              key={t.id}
-                              href="/live-quiz"
-                              className="group flex items-center justify-between p-2 rounded-lg hover:bg-muted/40 transition-colors text-xs"
-                            >
-                              <div className="min-w-0 pr-2">
-                                <span className="font-medium text-foreground group-hover:text-primary transition-colors">
-                                  {t.title}
-                                </span>
-                                <div className="text-[10px] text-muted-foreground">
-                                  {t.quizzes} quizzes · {t.resources} resources
-                                </div>
-                              </div>
-                              <Badge variant="outline" className="text-[9px] shrink-0">
-                                {t.difficulty}
-                              </Badge>
-                            </Link>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          {/* Featured Topics Cards */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="space-y-0.5">
-                <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                  <Sparkles className="size-4 text-amber-500" />
-                  Featured & High-Impact Topics
-                </h2>
-                <p className="text-xs text-muted-foreground">
-                  Comprehensive topic blueprints with step-by-step learning materials and practice quizzes.
-                </p>
+            ) : topicList.length === 0 ? (
+              <EmptyState
+                icon={Compass}
+                title="No published topics yet"
+                description="Topics appear here after quizzes are published. Run db:seed on the server if this is a new database."
+              />
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+                {topicList
+                  .filter((topic) => selectedSubject === "all" || topic.id === selectedSubject)
+                  .map((topic) => (
+                    <Card key={topic.id} className="border-border/80 p-4">
+                      <CardTitle className="text-sm">{topic.name}</CardTitle>
+                      {topic.description && (
+                        <p className="mt-1 text-xs text-muted-foreground">{topic.description}</p>
+                      )}
+                      <p className="mt-2 text-xs text-muted-foreground">{topic.quizCount ?? 0} published quizzes</p>
+                    </Card>
+                  ))}
               </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              {featuredTopics.map((topic) => (
-                <Card key={topic.id} className="border-border/80 shadow-xs hover:border-primary/40 transition-all p-5 space-y-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary" className="text-[10px] font-semibold text-primary bg-primary/10">
-                          {topic.subject}
-                        </Badge>
-                        <span className="text-[11px] text-muted-foreground">{topic.difficulty}</span>
-                      </div>
-                      <h3 className="text-base font-bold text-foreground hover:text-primary transition-colors">
-                        {topic.title}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <p className="text-xs text-muted-foreground leading-relaxed">{topic.desc}</p>
-
-                  <div className="flex items-center justify-between pt-2 border-t text-xs text-muted-foreground">
-                    <div className="flex items-center gap-3">
-                      <span>{topic.quizzes} Quizzes</span>
-                      <span>{topic.resources} Resources</span>
-                    </div>
-                    <Button asChild size="sm" variant="ghost" className="gap-1 text-xs text-primary font-semibold">
-                      <Link href="/live-quiz?tab=discover&first=1">
-                        Start Practice <ArrowRight className="size-3" />
-                      </Link>
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
+            )}
           </section>
 
           {/* Contextual AI Generator Callout */}

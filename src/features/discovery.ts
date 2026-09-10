@@ -88,7 +88,7 @@ export async function getTopics(..._args: any[]): Promise<any> {
       quizCounts[row.category] = row._count._all;
     }
   } catch {
-    quizCounts = { mathematics: 2, science: 3, technology: 1, language: 1, history: 1 };
+    quizCounts = {};
   }
 
   return SUBJECTS.map((subject) => ({
@@ -101,7 +101,7 @@ export async function getTopics(..._args: any[]): Promise<any> {
     children: [],
     resourceCount: 0,
     quizCount: quizCounts[subject.id] ?? 0,
-  }));
+  })).filter((subject) => subject.quizCount > 0);
 }
 export type getTopics = any;
 export async function getTopicTree(...args: any[]): Promise<any> {
@@ -117,66 +117,82 @@ export async function getTopicTree(...args: any[]): Promise<any> {
 }
 export type getTopicTree = any;
 
-function starterFeedItems() {
-  return [
-    {
-      entityType: "quiz",
-      entityId: "first-practice",
-      title: "First 5-question practice",
-      description: "Math, biology, physics, and CS. A miss opens Tutor.",
-      score: 1,
-      reason: "Start here",
-      reasonKey: "start",
-      language: "en",
-    },
-    {
-      entityType: "quiz",
-      entityId: "live-quiz",
-      title: "Join or play a class quiz",
-      description: "Use a teacher PIN, or play a published quiz.",
-      score: 0.8,
-      reason: "Practice",
-      reasonKey: "practice",
-      language: "en",
-    },
-  ];
-}
-
 export async function getPersonalizedFeed(userId?: string, _locale?: string) {
-  let items = starterFeedItems();
+  const sections: Array<{
+    id: string;
+    title: string;
+    titleKey: string;
+    items: Array<{
+      entityType: string;
+      entityId: string;
+      title: string;
+      description: string | null;
+      score: number;
+      reason: string;
+      reasonKey: string;
+      language: string;
+    }>;
+  }> = [];
+
   try {
     const quizzes = await db.quiz.findMany({
       where: { isPublished: true },
       orderBy: [{ publishedAt: "desc" }, { createdAt: "desc" }],
-      take: 8,
+      take: 12,
       select: { id: true, title: true, description: true, category: true },
     });
     if (quizzes.length > 0) {
-      items = quizzes.map((q) => ({
-        entityType: "quiz",
-        entityId: q.id,
-        title: q.title,
-        description: q.description,
-        score: 1,
-        reason: q.category || "Quiz",
-        reasonKey: "quiz",
-        language: "en",
-      }));
+      sections.push({
+        id: "quizzes",
+        title: "Published quizzes",
+        titleKey: "quizzes",
+        items: quizzes.map((q) => ({
+          entityType: "quiz",
+          entityId: q.id,
+          title: q.title,
+          description: q.description,
+          score: 1,
+          reason: q.category || "Quiz",
+          reasonKey: "quiz",
+          language: "en",
+        })),
+      });
     }
-  } catch {
-    /* starter items */
+  } catch (error) {
+    console.error("[discovery] quiz feed failed", error);
+  }
+
+  try {
+    const listings = await db.marketplaceListing.findMany({
+      where: { status: { in: ["published", "approved", "active"] } },
+      orderBy: { publishedAt: "desc" },
+      take: 12,
+      select: { id: true, title: true, description: true, contentType: true },
+    });
+    if (listings.length > 0) {
+      sections.push({
+        id: "marketplace",
+        title: "Marketplace",
+        titleKey: "marketplace",
+        items: listings.map((row) => ({
+          entityType: row.contentType || "listing",
+          entityId: row.id,
+          title: row.title,
+          description: row.description,
+          score: 1,
+          reason: "Marketplace",
+          reasonKey: "listing",
+          language: "en",
+        })),
+      });
+    }
+  } catch (error) {
+    console.error("[discovery] listing feed failed", error);
   }
 
   return {
     userId: userId || "guest",
-    sections: [
-      {
-        id: "practice",
-        title: "Practice now",
-        titleKey: "practice",
-        items,
-      },
-    ],
+    sections,
     generatedAt: new Date().toISOString(),
     ttlSeconds: 60,
   };

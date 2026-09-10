@@ -43,106 +43,6 @@ type ListingRow = {
   seller?: { name: string | null; username: string | null } | null;
 };
 
-const DEMO_CATALOG: Array<{
-  id: string;
-  title: string;
-  description: string;
-  resourceType: string;
-  price: number;
-  currency: string;
-  featured: boolean;
-  creatorName: string;
-  ratingAverage: number;
-  ratingCount: number;
-  categories: string[];
-  contentId: string;
-}> = [
-  {
-    id: "demo-algebra",
-    title: "Algebra Fundamentals: Linear Equations",
-    description: "Grade 8–9 linear equations, slopes, and intercepts. Five practice items with explanations.",
-    resourceType: "quiz",
-    price: 0,
-    currency: "EDU",
-    featured: true,
-    creatorName: "Sarah Chen",
-    ratingAverage: 4.8,
-    ratingCount: 124,
-    categories: ["mathematics"],
-    contentId: "demo-algebra",
-  },
-  {
-    id: "demo-photosynthesis",
-    title: "Photosynthesis: Energy from Sunlight",
-    description: "Chloroplasts, light reactions, and the Calvin cycle for Grade 10 biology.",
-    resourceType: "quiz",
-    price: 5,
-    currency: "EDU",
-    featured: true,
-    creatorName: "Akmal Karimov",
-    ratingAverage: 4.9,
-    ratingCount: 86,
-    categories: ["science"],
-    contentId: "demo-photosynthesis",
-  },
-  {
-    id: "demo-newton",
-    title: "Newton's Laws of Motion",
-    description: "Inertia, F=ma, and action–reaction with worked numeric items.",
-    resourceType: "quiz",
-    price: 8,
-    currency: "EDU",
-    featured: true,
-    creatorName: "David Park",
-    ratingAverage: 4.9,
-    ratingCount: 63,
-    categories: ["science"],
-    contentId: "demo-newton",
-  },
-  {
-    id: "demo-python",
-    title: "Python Programming Basics",
-    description: "Variables, types, functions, and lists for first-year CS students.",
-    resourceType: "quiz",
-    price: 0,
-    currency: "EDU",
-    featured: false,
-    creatorName: "James Okafor",
-    ratingAverage: 4.8,
-    ratingCount: 341,
-    categories: ["technology"],
-    contentId: "demo-python",
-  },
-  {
-    id: "demo-tenses",
-    title: "English Grammar: Tenses Mastery",
-    description: "Twelve English tenses with B1–B2 examples.",
-    resourceType: "quiz",
-    price: 0,
-    currency: "EDU",
-    featured: false,
-    creatorName: "Maria Silva",
-    ratingAverage: 4.7,
-    ratingCount: 210,
-    categories: ["language"],
-    contentId: "demo-tenses",
-  },
-  {
-    id: "demo-cells",
-    title: "Cell Biology: Structure and Function",
-    description: "Organelles and membrane transport for Grade 10–12.",
-    resourceType: "quiz",
-    price: 10,
-    currency: "EDU",
-    featured: false,
-    creatorName: "Akmal Karimov",
-    ratingAverage: 4.9,
-    ratingCount: 41,
-    categories: ["science"],
-    contentId: "demo-cells",
-  },
-];
-
 function toDto(row: ListingRow) {
   return {
     id: row.id,
@@ -155,7 +55,7 @@ function toDto(row: ListingRow) {
     featured: row.tier === "featured" || (row.priceEduTokens ?? 0) === 0,
     viewCount: 0,
     favoriteCount: 0,
-    ratingAverage: 4.8,
+    ratingAverage: 0,
     ratingCount: 0,
     creatorName: row.seller?.name || row.seller?.username || "EduBek Creator",
     categories: [] as string[],
@@ -199,6 +99,7 @@ export async function browseListings(_ctx: AuthContext, query?: Record<string, u
   const offset = Math.max(0, Number(query?.offset ?? 0) || 0);
 
   let items: ReturnType<typeof toDto>[] = [];
+  let total = 0;
   try {
     const where: Record<string, unknown> = {
       status: { in: [...VISIBLE_STATUSES] },
@@ -226,33 +127,17 @@ export async function browseListings(_ctx: AuthContext, query?: Record<string, u
       skip: offset,
     });
     items = rows.map((row) => toDto(row));
+    total = await db.marketplaceListing.count({ where });
   } catch (error) {
-    console.warn("[marketplace] browse fell back to demo catalog", error);
-  }
-
-  if (items.length === 0 && offset === 0) {
-    items = DEMO_CATALOG.filter((item) => {
-      if (search && !`${item.title} ${item.description}`.toLowerCase().includes(search.toLowerCase())) {
-        return false;
-      }
-      if (free && !paid && item.price !== 0) return false;
-      if (paid && !free && item.price === 0) return false;
-      return true;
-    }).map((item) => ({
-      ...item,
-      thumbnailUrl: null,
-      viewCount: 0,
-      favoriteCount: 0,
-      publishedAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      contentType: item.resourceType,
-    }));
+    console.error("[marketplace] browse failed", error);
+    items = [];
+    total = 0;
   }
 
   return {
     success: true,
     listings: items,
-    total: items.length,
+    total,
     items,
     data: items,
     list: items,
@@ -260,24 +145,10 @@ export async function browseListings(_ctx: AuthContext, query?: Record<string, u
 }
 
 export async function getListing(_ctx: AuthContext, id: string, _full?: boolean) {
-  if (id.startsWith("demo-")) {
-    const demo = DEMO_CATALOG.find((item) => item.id === id);
-    if (!demo) throw notFound("Listing not found");
-    return {
-      id: demo.id,
-      sellerId: "demo",
-      title: demo.title,
-      description: demo.description,
-      contentType: demo.resourceType,
-      contentId: demo.contentId,
-      priceEduTokens: demo.price,
-      priceFiat: 0,
-      currency: "EDU",
-      status: "published",
-      publishedAt: new Date(),
-    };
-  }
-  const listing = await db.marketplaceListing.findUnique({ where: { id } });
+  const listing = await db.marketplaceListing.findUnique({
+    where: { id },
+    include: { seller: { select: { name: true, username: true } } },
+  });
   if (!listing) throw notFound("Listing not found");
   return listing;
 }
@@ -315,26 +186,18 @@ export async function approveListing(ctx: AuthContext, id: string) {
 export async function getCategories() {
   try {
     const items = await db.marketplaceCategory.findMany({ take: 100 });
-    if (items.length > 0) {
-      return items.map((item) => ({
-        id: item.id,
-        slug: item.slug,
-        name: safeName(item.nameI18n) || item.slug,
-        description: null,
-        icon: null,
-        sortOrder: 0,
-      }));
-    }
-  } catch {
-    // fall through to demo subjects
+    return items.map((item) => ({
+      id: item.id,
+      slug: item.slug,
+      name: safeName(item.nameI18n) || item.slug,
+      description: null,
+      icon: null,
+      sortOrder: 0,
+    }));
+  } catch (error) {
+    console.error("[marketplace] categories failed", error);
+    return [];
   }
-  return [
-    { id: "mathematics", slug: "mathematics", name: "Mathematics", description: null, icon: null, sortOrder: 1 },
-    { id: "science", slug: "science", name: "Science", description: null, icon: null, sortOrder: 2 },
-    { id: "language", slug: "language", name: "Language", description: null, icon: null, sortOrder: 3 },
-    { id: "technology", slug: "technology", name: "Computer Science", description: null, icon: null, sortOrder: 4 },
-    { id: "history", slug: "history", name: "History", description: null, icon: null, sortOrder: 5 },
-  ];
 }
 
 function safeName(raw: string | null | undefined) {
