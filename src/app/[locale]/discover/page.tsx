@@ -1,6 +1,4 @@
-/** Discover page — Server Component wrapper. */
 import { setRequestLocale } from "next-intl/server";
-import { getTranslations } from "next-intl/server";
 
 import { AppShell } from "@/components/edubek/app-shell";
 import { DiscoverView } from "./view";
@@ -14,7 +12,6 @@ export default async function DiscoverPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  await getTranslations("discover");
   return (
     <AppShell>
       <DiscoverView />
