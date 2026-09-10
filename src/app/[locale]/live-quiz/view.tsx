@@ -310,8 +310,21 @@ export function LiveQuizClient() {
   const handleJoinMultiplayerRoom = async (code: string) => {
     setIsCreatingMultiplayer(true);
     setMultiplayerError(null);
+    let displayName = "";
     try {
-      const displayName = `Player_${Math.floor(1000 + Math.random() * 9000)}`;
+      try {
+        displayName = sessionStorage.getItem("edubek_live_name") || "";
+      } catch {
+        displayName = "";
+      }
+      if (!displayName) {
+        displayName = `Student_${Math.floor(1000 + Math.random() * 9000)}`;
+        try {
+          sessionStorage.setItem("edubek_live_name", displayName);
+        } catch {
+          /* ignore */
+        }
+      }
       let res = await fetch("/api/live/guest/join", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -342,7 +355,7 @@ export function LiveQuizClient() {
       setMultiplayerRoom({
         code: code.trim().toUpperCase(),
         isHost: false,
-        displayName: `Player_${Math.floor(1000 + Math.random() * 9000)}`,
+        displayName,
       });
       setMultiplayerError(err?.message || "Joining via live server");
     } finally {

@@ -212,7 +212,12 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
           hasSubmittedAnswer: false,
           activeQuestion: {
             id: `q_${data.index}`,
-            prompt: data.question,
+            prompt:
+              typeof data.question === "string"
+                ? data.question
+                : typeof data.prompt === "string"
+                  ? data.prompt
+                  : data.question?.text || data.question?.prompt || "",
             type: "multiple_choice",
             options: data.options || [],
             points: 100,
@@ -224,7 +229,18 @@ export function useMultiplayer(options: UseMultiplayerOptions) {
       });
 
       socketInstance.on("game:timer", (data: { time: number }) => {
-        setTimeRemainingSeconds(data.time);
+        setTimeRemainingSeconds(Math.max(0, Number(data.time) || 0));
+      });
+
+      socketInstance.on("player:answer_result", (data: any) => {
+        setIsSubmitting(false);
+        setRoomState((prev) => (prev ? { ...prev, hasSubmittedAnswer: true } : prev));
+        setMyAnswerResult({
+          isCorrect: Boolean(data?.is_correct),
+          pointsAwarded: Number(data?.points || 0),
+          speedBonus: 0,
+          streakBonus: 0,
+        });
       });
 
       socketInstance.on("player:answer_result", (data: any) => {

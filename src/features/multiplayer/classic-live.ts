@@ -30,6 +30,7 @@ type ClassicSession = {
   teacherSocket?: string;
   timeLeft: number;
   timer?: ReturnType<typeof setInterval>;
+  advanceTimer?: ReturnType<typeof setTimeout>;
   revealed: boolean;
   answer_stats: Record<number, number[]>;
   eliminated: Record<string, boolean>;
@@ -110,7 +111,8 @@ function sendQuestion(io: SocketIOServer, code: string) {
   const payload = {
     index: session.current_question,
     total: session.questions.length,
-    question: q.question,
+    question: typeof q.question === "string" ? q.question : String(q.question ?? ""),
+    prompt: typeof q.question === "string" ? q.question : String(q.question ?? ""),
     options: q.options,
     time: 20,
     mode: session.mode,
@@ -122,6 +124,7 @@ function sendQuestion(io: SocketIOServer, code: string) {
   });
 
   if (session.timer) clearInterval(session.timer);
+  if (session.advanceTimer) clearTimeout(session.advanceTimer);
   session.timer = setInterval(() => {
     session.timeLeft -= 1;
     io.to(`session:${code}`).emit("game:timer", { time: session.timeLeft });
@@ -145,7 +148,8 @@ function revealAnswer(io: SocketIOServer, code: string) {
   });
   io.to(`session:${code}`).emit("game:ranking", { ranking: ranking(session) });
 
-  setTimeout(() => {
+  if (session.advanceTimer) clearTimeout(session.advanceTimer);
+  session.advanceTimer = setTimeout(() => {
     const sess = activeSessions[code];
     if (!sess || sess.status !== "playing") return;
     sess.current_question += 1;
@@ -251,16 +255,11 @@ export function attachClassicLive(io: SocketIOServer) {
         socket.emit("error", "O'yin allaqachon boshlangan");
         return cb?.({ error: "O'yin allaqachon boshlangan" });
       }
-      const display = String(name || "").trim();
-      if (!display) {
-        socket.emit("error", "Ism kerak");
-        return cb?.({ error: "Ism kerak" });
-      }
-      const taken = Object.values(session.players).some((p) => p.name.toLowerCase() === display.toLowerCase());
-      if (taken) {
-        socket.emit("error", "Bu ism band, boshqa ism tanlang");
-        return cb?.({ error: "Bu ism band" });
-      }
+      let display = String(name || "").trim() || `Student_${socket.id.slice(-4)}`;
+      const taken = Object.values(session.players).some(
+        (p) => p.socket_id !== socket.id && p.name.toLowerCase() === display.toLowerCase(),
+      );
+      if (taken) display = `${display}_${socket.id.slice(-3)}`;
 
       const player: ClassicPlayer = {
         id: `p_${socket.id.slice(-6)}`,
@@ -376,6 +375,11 @@ export function attachClassicLive(io: SocketIOServer) {
     socket.on("teacher:next", ({ code }: { code?: string }) => {
       const session = activeSessions[String(code || socket.data.code || "").toUpperCase()];
       if (!session) return;
+      if (session.advanceTimer) clearTimeout(session.advanceTimer);
+      if (!session.revealed) {
+        revealAnswer(io, session.code);
+        return;
+      }
       session.current_question += 1;
       if (session.current_question >= session.questions.length) {
         void endGame(io, session.code);

@@ -151,6 +151,19 @@ export const DEFAULT_QUESTIONS: GuestQuizQuestion[] = [
   },
 ];
 
+function resolveCorrectIndex(q: GuestQuizQuestion | any): number | null {
+  if (typeof q?.correctIndex === "number") return q.correctIndex;
+  if (typeof q?.correct_index === "number") return q.correct_index;
+  const answer = q?.correctAnswer ?? q?.payload?.correctAnswer ?? q?.payload?.correctIndex;
+  if (typeof answer === "number") return answer;
+  const options = q?.options || q?.payload?.options || [];
+  if (typeof answer === "string" && Array.isArray(options)) {
+    const i = options.findIndex((o: string) => String(o) === answer);
+    if (i >= 0) return i;
+  }
+  return null;
+}
+
 function readQuestionText(q: GuestQuizQuestion | any): string {
   const raw = q?.prompt ?? q?.question ?? q?.text ?? q?.title ?? q?.payload?.prompt ?? q?.payload?.question;
   if (typeof raw === "string" && raw.trim() && raw.trim() !== "Question") return raw.trim();
@@ -274,9 +287,16 @@ export function GuestQuizPlayer({
                 id: aq.id,
                 questionId: aq.questionId,
                 questionType: aq.questionType || "multiple_choice",
-                prompt: aq.payload?.prompt || aq.prompt || "Question",
-                question: aq.payload?.prompt || aq.prompt || "Question",
-                options: aq.payload?.options || ["True", "False"],
+                prompt: aq.payload?.prompt || aq.prompt || aq.question || "",
+                question: aq.payload?.prompt || aq.prompt || aq.question || "",
+                options: aq.payload?.options || aq.options || [],
+                correctIndex:
+                  typeof aq.payload?.correctIndex === "number"
+                    ? aq.payload.correctIndex
+                    : typeof aq.correctIndex === "number"
+                      ? aq.correctIndex
+                      : undefined,
+                correctAnswer: aq.payload?.correctAnswer || aq.correctAnswer,
                 topic: data.assessment.title,
                 points: aq.points || 1,
                 payload: aq.payload,
@@ -328,7 +348,7 @@ export function GuestQuizPlayer({
     }));
 
     setIsAnswered(true);
-    applyModeResult(index === currentQ.correctIndex || currentQ.correctIndex === undefined, timeSpent);
+    applyModeResult(index === resolveCorrectIndex(currentQ), timeSpent);
   };
 
   const applyModeResult = (isCorrect: boolean, timeSpent: number) => {
@@ -641,23 +661,31 @@ export function GuestQuizPlayer({
   };
 
   const questionSeconds = mode === "heist" ? 15 : 30;
+  const handleNextRef = React.useRef(handleNext);
+  handleNextRef.current = handleNext;
+  const expireLockRef = React.useRef(false);
 
   React.useEffect(() => {
+    expireLockRef.current = false;
     setTimeLeft(questionSeconds);
   }, [currentIndex, questionSeconds]);
 
   React.useEffect(() => {
     if (isFinished || isSubmitting || isAnswered) return;
     const timer = window.setInterval(() => {
-      setTimeLeft((prev) => Math.max(0, prev - 1));
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          if (!expireLockRef.current) {
+            expireLockRef.current = true;
+            window.setTimeout(() => handleNextRef.current(), 350);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
     }, 1000);
     return () => window.clearInterval(timer);
   }, [currentIndex, isFinished, isSubmitting, isAnswered]);
-
-  React.useEffect(() => {
-    if (timeLeft > 0 || isFinished || isSubmitting || isAnswered) return;
-    handleNext();
-  }, [timeLeft, isFinished, isSubmitting, isAnswered]);
 
   // Loading Screen
   if (isLoadingAttempt) {
