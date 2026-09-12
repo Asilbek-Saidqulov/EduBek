@@ -165,14 +165,106 @@ function resolveCorrectIndex(q: GuestQuizQuestion | any): number | null {
   return null;
 }
 
-function readQuestionText(q: GuestQuizQuestion | any): string {
-  const raw = q?.prompt ?? q?.question ?? q?.text ?? q?.title ?? q?.payload?.prompt ?? q?.payload?.question;
-  if (typeof raw === "string" && raw.trim() && raw.trim() !== "Question") return raw.trim();
-  if (raw && typeof raw === "object") {
-    const nested = raw.text || raw.prompt || raw.en || raw.uz || raw.ru;
-    if (typeof nested === "string" && nested.trim()) return nested.trim();
+const EMPTY_PROMPTS = new Set(["", "question", "new question prompt", "prompt", "untitled", "enter question prompt..."]);
+
+function parseMaybeJson(value: unknown) {
+  if (typeof value !== "string") return value;
+  const t = value.trim();
+  if ((t.startsWith("{") && t.endsWith("}")) || (t.startsWith("[") && t.endsWith("]"))) {
+    try {
+      return JSON.parse(t);
+    } catch {
+      return value;
+    }
+  }
+  return value;
+}
+
+function asQuestionText(value: unknown, locale?: string): string {
+  if (value == null) return "";
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (typeof value === "string") {
+    const parsed = parseMaybeJson(value);
+    if (parsed !== value) return asQuestionText(parsed, locale);
+    const t = value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    if (!t || EMPTY_PROMPTS.has(t.toLowerCase())) return "";
+    return t;
+  }
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const t = asQuestionText(item, locale);
+      if (t) return t;
+    }
+    return "";
+  }
+  if (typeof value === "object") {
+    const rec = value as Record<string, unknown>;
+    const prefer = [locale, "uz", "ru", "en", "text", "prompt", "question", "questionText", "stem", "body", "content", "html", "title", "value"];
+    for (const key of prefer) {
+      if (!key || rec[key] == null) continue;
+      const t = asQuestionText(rec[key], locale);
+      if (t) return t;
+    }
+    for (const nested of Object.values(rec)) {
+      const t = asQuestionText(nested, locale);
+      if (t && t.length > 12) return t;
+    }
   }
   return "";
+}
+
+export function readQuestionText(q: GuestQuizQuestion | any, locale?: string): string {
+  if (!q) return "";
+  const payload = parseMaybeJson(q.payload) as any;
+  const sources = [
+    q.prompt,
+    q.question,
+    q.questionText,
+    q.stem,
+    q.text,
+    q.body,
+    q.content,
+    q.title,
+    payload?.prompt,
+    payload?.question,
+    payload?.questionText,
+    payload?.stem,
+    payload?.text,
+    payload?.body,
+    payload?.content,
+    payload?.html,
+    payload?.stimulus,
+    q.item?.prompt,
+  ];
+  for (const source of sources) {
+    const t = asQuestionText(source, locale);
+    if (t) return t;
+  }
+  return "";
+}
+
+function mapServerQuestion(aq: any, topic?: string, locale?: string): GuestQuizQuestion {
+  const payload = parseMaybeJson(aq?.payload) as any;
+  const prompt = readQuestionText({ ...aq, payload }, locale);
+  return {
+    id: aq.id,
+    questionId: aq.questionId || aq.id,
+    questionType: aq.questionType || "multiple_choice",
+    prompt,
+    question: prompt,
+    options: payload?.options || aq.options || [],
+    correctIndex:
+      typeof payload?.correctIndex === "number"
+        ? payload.correctIndex
+        : typeof aq.correctIndex === "number"
+          ? aq.correctIndex
+          : undefined,
+    correctAnswer: payload?.correctAnswer || aq.correctAnswer,
+    explanation: payload?.explanation || aq.explanation,
+    topic: topic || aq.topic,
+    points: aq.points || 1,
+    payload,
+  };
 }
 
 const EMPIRE_STAGES = [
@@ -285,25 +377,25 @@ export function GuestQuizPlayer({
           if (res.ok) {
             const data = await res.json();
             if (isMounted && data.assessment?.questions) {
-              setCurrentAttemptId(data.attempt.id);
-              const mappedQuestions = data.assessment.questions.map((aq: any) => ({
-                id: aq.id,
-                questionId: aq.questionId,
-                questionType: aq.questionType || "multiple_choice",
-                prompt: aq.payload?.prompt || aq.prompt || aq.question || "",
-                question: aq.payload?.prompt || aq.prompt || aq.question || "",
-                options: aq.payload?.options || aq.options || [],
-                correctIndex:
-                  typeof aq.payload?.correctIndex === "number"
-                    ? aq.payload.correctIndex
-                    : typeof aq.correctIndex === "number"
-                      ? aq.correctIndex
-                      : undefined,
-                correctAnswer: aq.payload?.correctAnswer || aq.correctAnswer,
-                topic: data.assessment.title,
-                points: aq.points || 1,
-                payload: aq.payload,
-              }));
+              setCurrentAttemptId(data.attempt?.id);
+              let mappedQuestions = data.assessment.questions.map((aq: any) =>
+                mapServerQuestion(aq, data.assessment.title, locale),
+              );
+              const missingStems = mappedQuestions.some((q: GuestQuizQuestion) => !readQuestionText(q, locale));
+              if (missingStems) {
+                try {
+                  const full = await fetch(`/api/assessments/${activeAssessmentId}`);
+                  if (full.ok) {
+                    const detail = await full.json();
+                    const rows = detail.assessment?.questions || detail.questions || [];
+                    if (Array.isArray(rows) && rows.length > 0) {
+                      mappedQuestions = rows.map((aq: any) => mapServerQuestion(aq, detail.assessment?.title || data.assessment.title, locale));
+                    }
+                  }
+                } catch {
+                  /* keep start payload */
+                }
+              }
               setActiveQuestions(mappedQuestions);
             }
           }
@@ -323,7 +415,7 @@ export function GuestQuizPlayer({
 
   const currentQ = activeQuestions[currentIndex] || activeQuestions[0] || DEFAULT_QUESTIONS[0];
   const qType = currentQ.questionType || "multiple_choice";
-  const questionPrompt = readQuestionText(currentQ) || "Question";
+  const questionPrompt = readQuestionText(currentQ, locale) || "";
   const questionOptions = currentQ.options || currentQ.payload?.options || [];
   const qId = currentQ.questionId || currentQ.id || `q-${currentIndex}`;
 
@@ -735,7 +827,7 @@ export function GuestQuizPlayer({
     const totalMaxPoints = totalQuestions;
 
     return (
-      <ModeArena mode={mode} className="mx-auto max-w-3xl space-y-6">
+      <ModeArena mode={mode} className="mx-auto max-w-3xl space-y-6" id="assessment-results-view">
         <Card className="border-border/80 p-8 shadow-xl space-y-6">
           <div className="text-center space-y-2">
             <div className="flex justify-center">
@@ -1001,7 +1093,7 @@ export function GuestQuizPlayer({
   const empireStage = EMPIRE_STAGES[Math.min(EMPIRE_STAGES.length - 1, Math.max(0, empireScore - 1))] ?? EMPIRE_STAGES[0];
 
   return (
-    <ModeArena mode={mode} className={`mode-rise mx-auto max-w-3xl space-y-4 ${skin.shell}`}>
+    <ModeArena mode={mode} className={`mode-rise mx-auto max-w-3xl space-y-4 ${skin.shell}`} id="active-assessment-container">
       <div className={`flex items-center justify-between gap-4 backdrop-blur-md p-4 rounded-2xl border shadow-xs ${skin.hud}`}>
         <div className="flex items-center gap-3 min-w-0">
           <ModeMascot
@@ -1120,7 +1212,9 @@ export function GuestQuizPlayer({
                 {currentQ.topic}
               </Badge>
             )}
-            <h2 className={`text-xl sm:text-2xl font-bold leading-snug ${mode === "heist" || mode === "royale" || mode === "battle" ? "text-white" : "text-foreground"}`}>{questionPrompt}</h2>
+            <h2 className={`text-xl sm:text-2xl font-bold leading-snug ${mode === "heist" || mode === "royale" || mode === "battle" ? "text-white" : "text-foreground"}`}>
+              {questionPrompt || currentQ.topic || quizTitle || t("qLabel", { n: currentIndex + 1 })}
+            </h2>
           </div>
 
           <Button

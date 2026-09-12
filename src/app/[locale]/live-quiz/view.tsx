@@ -55,7 +55,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { GuestQuizPlayer, GameModeType, DEFAULT_QUESTIONS } from "@/components/edubek/guest-quiz-player";
+import { GuestQuizPlayer, GameModeType, DEFAULT_QUESTIONS, readQuestionText } from "@/components/edubek/guest-quiz-player";
 import { MultiplayerLivePlayer } from "@/components/edubek/multiplayer-live-player";
 import { GameModePicker } from "@/components/edubek/game-modes";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -648,7 +648,7 @@ export function LiveQuizClient() {
       ...prev,
       {
         questionType: bq.questionType || "multiple_choice",
-        prompt: parsed.prompt || bq.prompt || "Question",
+        prompt: readQuestionText(bq) || parsed.prompt || bq.prompt || "",
         points: bq.points || 1,
         difficulty: bq.difficulty || "medium",
         options: parsed.options || ["A", "B", "C", "D"],
