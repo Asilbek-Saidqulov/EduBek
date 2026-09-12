@@ -28,6 +28,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { InteractiveDashboard } from "@/components/edubek/interactive-dashboard";
 
 type TutorSession = {
   id: string;
@@ -135,6 +136,8 @@ export function DashboardView({
           </>
         )}
       </section>
+
+      <InteractiveDashboard role={role} credits={credits ?? 0} />
 
       <div className="grid gap-6 lg:grid-cols-3 items-start">
         <div className="space-y-6 lg:col-span-2">

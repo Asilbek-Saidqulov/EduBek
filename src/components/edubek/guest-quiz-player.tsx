@@ -34,7 +34,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useTranslations, useLocale } from "next-intl";
-import { MODE_SKIN, ModeStatusChips, type GameModeType } from "@/components/edubek/game-modes";
+import { MODE_SKIN, ModeStatusChips, ModeFeedbackBanner, type GameModeType } from "@/components/edubek/game-modes";
+import { ModeArena, ModeMascot } from "@/components/edubek/mode-mascots";
 import {
   classicScore,
   heistEarnOnCorrect,
@@ -240,6 +241,8 @@ export function GuestQuizPlayer({
   const [resources, setResources] = React.useState<Resources>(emptyResources);
   const [empireTier, setEmpireTier] = React.useState(0);
   const [lastAward, setLastAward] = React.useState<string | null>(null);
+  const [lastWasCorrect, setLastWasCorrect] = React.useState<boolean | null>(null);
+  const [correctCount, setCorrectCount] = React.useState(0);
   const [heistChoiceOpen, setHeistChoiceOpen] = React.useState(false);
   const [pendingGold, setPendingGold] = React.useState(0);
   const [battleYou, setBattleYou] = React.useState(0);
@@ -332,6 +335,8 @@ export function GuestQuizPlayer({
     setIsAnswered(false);
     setHiddenOptions([]);
     setPowerupUsedFiftyFifty(false);
+    setLastWasCorrect(null);
+    setLastAward(null);
     questionStartTimeRef.current = Date.now();
   }, [currentIndex]);
 
@@ -352,6 +357,8 @@ export function GuestQuizPlayer({
   };
 
   const applyModeResult = (isCorrect: boolean, timeSpent: number) => {
+    setLastWasCorrect(isCorrect);
+    if (isCorrect) setCorrectCount((n) => n + 1);
     if (mode === "classic" || mode === "battle") {
       const pts = classicScore(isCorrect, timeSpent);
       setScore((s) => s + pts.totalPoints);
@@ -649,6 +656,9 @@ export function GuestQuizPlayer({
     setResponsesMap({});
     setMistakes([]);
     setScore(0);
+    setCorrectCount(0);
+    setLastWasCorrect(null);
+    setLastAward(null);
     setHp(100);
     setShields(50);
     setVaultGold(0);
@@ -715,17 +725,22 @@ export function GuestQuizPlayer({
   // RESULTS SCREEN (Server Authoritative & Persistent)
   // ---------------------------------------------------------------------------
   if (isFinished) {
-    const totalMaxPoints = serverAttemptResult?.pointsMax ?? activeQuestions.reduce((s, q) => s + (q.points || 1), 0);
-    const totalAwardedPoints = serverAttemptResult?.pointsAwarded ?? score;
-    const calculatedPct =
-      serverAttemptResult?.score ??
-      (totalMaxPoints > 0 ? Math.round((totalAwardedPoints / totalMaxPoints) * 100) : 100);
+    const questionLimit =
+      mode === "battle" ? Math.min(BATTLE_DUEL_QUESTIONS, activeQuestions.length) : activeQuestions.length;
+    const answeredCorrect = serverAttemptResult?.correctCount ?? correctCount;
+    const totalQuestions = Math.max(1, questionLimit);
+    const calculatedPct = Math.min(100, Math.max(0, Math.round((answeredCorrect / totalQuestions) * 100)));
     const hasPassed = serverAttemptResult?.passed ?? calculatedPct >= 60;
+    const totalAwardedPoints = answeredCorrect;
+    const totalMaxPoints = totalQuestions;
 
     return (
-      <div className="mx-auto max-w-3xl space-y-6" id="assessment-results-view">
+      <ModeArena mode={mode} className="mx-auto max-w-3xl space-y-6">
         <Card className="border-border/80 p-8 shadow-xl space-y-6">
           <div className="text-center space-y-2">
+            <div className="flex justify-center">
+              <ModeMascot mode={mode} mood={hasPassed ? "win" : "worry"} size={96} showLine />
+            </div>
             <div
               className={`inline-flex h-16 w-16 items-center justify-center rounded-2xl border mb-2 ${
                 hasPassed ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" : "bg-rose-500/10 text-rose-600 border-rose-500/20"
@@ -750,6 +765,9 @@ export function GuestQuizPlayer({
                 {totalAwardedPoints} / {totalMaxPoints}
               </div>
               <span className="text-[11px] text-muted-foreground">{t("pointsEarned")}</span>
+              {score > 0 ? (
+                <div className="text-[10px] text-muted-foreground mt-1">{score} XP</div>
+              ) : null}
             </div>
             <div>
               <div className="text-xs text-muted-foreground font-semibold uppercase tracking-wider">{t("percentage")}</div>
@@ -968,7 +986,7 @@ export function GuestQuizPlayer({
             )}
           </div>
         </Card>
-      </div>
+      </ModeArena>
     );
   }
 
@@ -983,9 +1001,15 @@ export function GuestQuizPlayer({
   const empireStage = EMPIRE_STAGES[Math.min(EMPIRE_STAGES.length - 1, Math.max(0, empireScore - 1))] ?? EMPIRE_STAGES[0];
 
   return (
-    <div className={`mode-rise mx-auto max-w-3xl space-y-4 ${skin.shell}`} id="active-assessment-container">
+    <ModeArena mode={mode} className={`mode-rise mx-auto max-w-3xl space-y-4 ${skin.shell}`}>
       <div className={`flex items-center justify-between gap-4 backdrop-blur-md p-4 rounded-2xl border shadow-xs ${skin.hud}`}>
         <div className="flex items-center gap-3 min-w-0">
+          <ModeMascot
+            mode={mode}
+            mood={lastWasCorrect === true ? "cheer" : lastWasCorrect === false ? "worry" : "idle"}
+            size={64}
+            showLine={false}
+          />
           {onExit && (
             <Button variant="ghost" size="sm" onClick={onExit} className="h-8 px-2 text-xs">
               <ChevronLeft className="size-4 mr-1" /> Exit
@@ -1030,35 +1054,57 @@ export function GuestQuizPlayer({
         </div>
       </div>
 
-      {lastAward && (
-        <div className="mode-rise rounded-xl border bg-card/80 px-4 py-2 text-xs font-medium">{lastAward}</div>
-      )}
+      <div className="h-1.5 overflow-hidden rounded-full bg-black/10 dark:bg-white/10">
+        <div
+          className={`h-full rounded-full transition-[width] duration-1000 ease-linear ${
+            timeLeft <= 5 ? "bg-rose-500" : mode === "heist" ? "bg-yellow-400" : "bg-primary"
+          }`}
+          style={{ width: `${Math.max(0, (timeLeft / questionSeconds) * 100)}%` }}
+        />
+      </div>
+
+      <ModeFeedbackBanner mode={mode} text={lastAward} isCorrect={lastWasCorrect} />
 
       {mode === "empire" && (
-        <div className="mode-rise rounded-xl border border-emerald-300/50 bg-emerald-50/70 dark:bg-emerald-950/40 px-4 py-3 text-xs space-y-2">
+        <div className="mode-rise rounded-2xl border border-emerald-300/50 bg-emerald-50/80 dark:bg-emerald-950/40 px-4 py-3 text-xs space-y-3">
           <div className="flex items-center justify-between">
-            <span className="font-semibold">{EMPIRE_TIERS[empireTier]}</span>
-            <span>Power {empirePower(empireTier, resources)}</span>
+            <span className="font-bold text-emerald-900 dark:text-emerald-100">{EMPIRE_TIERS[empireTier]}</span>
+            <span className="font-semibold">Power {empirePower(empireTier, resources)}</span>
           </div>
-          <div className="grid grid-cols-4 gap-2 text-center">
-            <span>Wood {resources.wood}</span>
-            <span>Stone {resources.stone}</span>
-            <span>Gold {resources.gold}</span>
-            <span>Food {resources.food}</span>
+          <div className="grid grid-cols-4 gap-2">
+            {[
+              ["Wood", resources.wood],
+              ["Stone", resources.stone],
+              ["Gold", resources.gold],
+              ["Food", resources.food],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-xl bg-background/70 px-2 py-2 text-center">
+                <div className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</div>
+                <div className="text-sm font-black">{value}</div>
+              </div>
+            ))}
           </div>
-          <Button size="sm" className="w-full h-8 text-xs" disabled={!canUpgradeEmpire(empireTier, resources)} onClick={tryEmpireUpgrade}>
+          <Button size="sm" className="w-full h-9 text-xs font-semibold" disabled={!canUpgradeEmpire(empireTier, resources)} onClick={tryEmpireUpgrade}>
             Upgrade to {EMPIRE_TIERS[Math.min(EMPIRE_TIERS.length - 1, empireTier + 1)]}
           </Button>
         </div>
       )}
 
       {heistChoiceOpen && (
-        <div className="mode-rise rounded-xl border border-yellow-500/40 bg-zinc-950/80 text-yellow-50 p-4 space-y-3">
-          <p className="text-sm font-semibold">You earned {pendingGold} gold. What now?</p>
+        <div className="mode-rise rounded-2xl border border-yellow-500/40 bg-zinc-950 text-yellow-50 p-4 space-y-3">
+          <p className="text-sm font-bold">You earned {pendingGold} gold. Lock it in.</p>
           <div className="grid gap-2 sm:grid-cols-3">
-            <Button size="sm" variant="secondary" onClick={() => finishHeistChoice("save")}>Save</Button>
-            <Button size="sm" variant="secondary" onClick={() => finishHeistChoice("invest")}>Invest (50% +200)</Button>
-            <Button size="sm" variant="secondary" onClick={() => finishHeistChoice("raid")}>Raid pot (+300 / −100)</Button>
+            <Button size="sm" className="h-11 bg-yellow-400 text-zinc-900 hover:bg-yellow-300 font-semibold" onClick={() => finishHeistChoice("save")}>
+              Save
+            </Button>
+            <Button size="sm" variant="secondary" className="h-11 font-semibold" onClick={() => finishHeistChoice("invest")}>
+              Invest
+              <span className="ml-1 text-[10px] opacity-70">50% +200</span>
+            </Button>
+            <Button size="sm" variant="secondary" className="h-11 font-semibold" onClick={() => finishHeistChoice("raid")}>
+              Raid pot
+              <span className="ml-1 text-[10px] opacity-70">+300 / −100</span>
+            </Button>
           </div>
         </div>
       )}
@@ -1119,8 +1165,17 @@ export function GuestQuizPlayer({
               }
 
               const isSelected = selectedOption === idx;
+              const correctIdx = resolveCorrectIndex(currentQ);
               let btnStyle = "border-border/80 bg-card hover:border-primary/60 hover:bg-muted/30 text-foreground";
-              if (isSelected) {
+              if (isAnswered && correctIdx !== null) {
+                if (idx === correctIdx) {
+                  btnStyle = "border-emerald-500 bg-emerald-500/15 text-emerald-900 dark:text-emerald-100 ring-2 ring-emerald-400/40 font-bold";
+                } else if (isSelected) {
+                  btnStyle = "border-rose-500 bg-rose-500/15 text-rose-900 dark:text-rose-100 ring-2 ring-rose-400/30 font-bold";
+                } else {
+                  btnStyle = "border-border/50 bg-card/60 text-muted-foreground";
+                }
+              } else if (isSelected) {
                 btnStyle = `${skin.optionOn} font-bold`;
               }
 
@@ -1230,12 +1285,16 @@ export function GuestQuizPlayer({
             ))}
           </div>
 
-          <Button onClick={handleNext} disabled={heistChoiceOpen} className="gap-2 text-xs font-bold">
-            <span>{isLastQuestion ? t("submitQuiz") : t("nextQuestion")}</span>
+          <Button
+            onClick={handleNext}
+            disabled={heistChoiceOpen || (!isAnswered && qType === "multiple_choice")}
+            className="gap-2 text-xs font-bold min-w-[140px]"
+          >
+            <span>{isLastQuestion ? t("submitQuiz") : isAnswered ? "Continue" : t("nextQuestion")}</span>
             <ChevronRight className="size-4" />
           </Button>
         </div>
       </Card>
-    </div>
+    </ModeArena>
   );
 }

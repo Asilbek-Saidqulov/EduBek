@@ -25,6 +25,7 @@ import { useHttpMultiplayer } from "@/hooks/use-http-multiplayer";
 import { useRealtimeHealth } from "@/hooks/use-realtime-health";
 import { MODE_SKIN, type GameModeType } from "@/components/edubek/game-modes";
 import { ModePlayHud, HeistActionBar, EmpireUpgradeBar } from "@/components/edubek/mode-play-hud";
+import { ModeArena, ModeMascot } from "@/components/edubek/mode-mascots";
 
 export interface MultiplayerLivePlayerProps {
   initialCode: string;
@@ -130,6 +131,7 @@ export function MultiplayerLivePlayer({
   if (countdownSeconds !== null && countdownSeconds > 0) {
     return (
       <div className={`fixed inset-0 z-50 flex flex-col items-center justify-center text-white p-4 ${skin.card}`}>
+        <ModeMascot mode={mode} mood="cheer" size={120} />
         <div className="text-9xl font-black tracking-tight mode-urgent text-amber-400">
           {countdownSeconds}
         </div>
@@ -146,7 +148,7 @@ export function MultiplayerLivePlayer({
     const me = board.find((p: any) => p.playerId === roomState.myPlayerId);
 
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
+      <ModeArena mode={mode} className="max-w-4xl mx-auto space-y-6">
         <Card className={`shadow-sm ${skin.card}`}>
           <CardHeader className="pb-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -228,7 +230,7 @@ export function MultiplayerLivePlayer({
             </div>
           </CardContent>
         </Card>
-      </div>
+      </ModeArena>
     );
   }
 
@@ -237,7 +239,7 @@ export function MultiplayerLivePlayer({
     const hasSubmitted = roomState.hasSubmittedAnswer;
 
     return (
-      <div className="max-w-3xl mx-auto space-y-6">
+      <ModeArena mode={mode} className="max-w-3xl mx-auto space-y-6">
         <div className="flex items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="text-xs font-semibold px-2.5 py-1">
@@ -324,7 +326,7 @@ export function MultiplayerLivePlayer({
             )}
           </CardContent>
         </Card>
-      </div>
+      </ModeArena>
     );
   }
 
@@ -333,7 +335,7 @@ export function MultiplayerLivePlayer({
     const isPlayerHost = roomState.isHost;
 
     return (
-      <div className="max-w-3xl mx-auto space-y-6">
+      <ModeArena mode={mode} className="max-w-3xl mx-auto space-y-6">
         <ModePlayHud
           mode={mode}
           gold={hud.gold ?? 0}
@@ -412,18 +414,16 @@ export function MultiplayerLivePlayer({
             )}
           </CardContent>
         </Card>
-      </div>
+      </ModeArena>
     );
   }
 
   if (roomState.status === "finished") {
     const top3 = roomState.leaderboard.slice(0, 3);
     return (
-      <div className="max-w-2xl mx-auto space-y-6 text-center">
-        <div className="space-y-2">
-          <div className="w-16 h-16 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-            <Trophy className="w-8 h-8" />
-          </div>
+      <ModeArena mode={mode} className="max-w-2xl mx-auto space-y-6 text-center">
+        <div className="space-y-2 flex flex-col items-center">
+          <ModeMascot mode={mode} mood="win" size={110} />
           <h2 className="text-3xl font-black tracking-tight">Match Complete!</h2>
         </div>
         <div className="grid grid-cols-3 gap-3 items-end pt-8 pb-4">
@@ -469,7 +469,7 @@ export function MultiplayerLivePlayer({
         <Button onClick={handleLeave} size="lg" className="w-full font-bold">
           <RotateCcw className="w-4 h-4 mr-2" /> Return to Game Hub
         </Button>
-      </div>
+      </ModeArena>
     );
   }
 

@@ -11,10 +11,16 @@ import {
   Users,
   Zap,
   Crown,
+  Heart,
+  Timer,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ModeArena, ModeMascot, MODE_CAST } from "@/components/edubek/mode-mascots";
+import "@/components/edubek/mode-stage.css";
+
 export type GameModeType = "classic" | "royale" | "heist" | "empire" | "battle";
 
 export type GameModeMeta = {
@@ -23,6 +29,7 @@ export type GameModeMeta = {
   tagline: string;
   badge: string;
   features: string[];
+  howTo: string;
   icon: LucideIcon;
 };
 
@@ -33,6 +40,7 @@ export const GAME_MODE_META: GameModeMeta[] = [
     tagline: "Be fast. 500 points plus a speed bonus. Highest score wins.",
     badge: "Speed",
     features: ["+500 if correct", "Up to +500 for speed", "Live leaderboard"],
+    howTo: "Answer before the timer ends. Faster correct answers earn more.",
     icon: Trophy,
   },
   {
@@ -41,6 +49,7 @@ export const GAME_MODE_META: GameModeMeta[] = [
     tagline: "Correct answers pay gold. Save it, invest it, or raid the pot.",
     badge: "Risk",
     features: ["+100 gold if correct", "Save / Invest / Raid", "Most gold wins"],
+    howTo: "Bank safe gold, or gamble it. A miss pays nothing.",
     icon: Zap,
   },
   {
@@ -49,6 +58,7 @@ export const GAME_MODE_META: GameModeMeta[] = [
     tagline: "Turn right answers into wood, stone, gold, and food. Build up.",
     badge: "Build",
     features: ["Hut → Empire", "Spend resources to upgrade", "Highest Empire Power wins"],
+    howTo: "Collect resources, then upgrade your settlement between questions.",
     icon: Castle,
   },
   {
@@ -57,6 +67,7 @@ export const GAME_MODE_META: GameModeMeta[] = [
     tagline: "Three hearts. A miss costs one. Last player standing wins.",
     badge: "Survive",
     features: ["3 hearts", "5-streak earns a shield", "Outlast the lobby"],
+    howTo: "Stay alive. A 5-streak gives a shield that blocks one miss.",
     icon: Swords,
   },
   {
@@ -65,6 +76,7 @@ export const GAME_MODE_META: GameModeMeta[] = [
     tagline: "Head-to-head 5-question duels. Win the bracket to be champion.",
     badge: "Duel",
     features: ["1v1 over 5 questions", "Better score advances", "Up to 64-player bracket"],
+    howTo: "Five questions. Beat the rival’s score on the same prompts.",
     icon: Crown,
   },
 ];
@@ -81,6 +93,7 @@ export const MODE_SKIN: Record<
     hud: string;
     optionOn: string;
     chip: string;
+    accent: string;
   }
 > = {
   classic: {
@@ -93,6 +106,7 @@ export const MODE_SKIN: Record<
     hud: "border-sky-200/80 bg-white/80 dark:bg-slate-900/80",
     optionOn: "border-sky-500 bg-sky-500/10 text-sky-800 dark:text-sky-200 ring-2 ring-sky-400/30",
     chip: "bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20",
+    accent: "text-sky-600",
   },
   royale: {
     card: "bg-gradient-to-br from-slate-900 via-slate-800 to-amber-950 text-white border-amber-500/30",
@@ -104,6 +118,7 @@ export const MODE_SKIN: Record<
     hud: "border-amber-500/30 bg-slate-900/90 text-amber-50",
     optionOn: "border-amber-400 bg-amber-400/15 text-amber-100 ring-2 ring-amber-400/30",
     chip: "bg-amber-400/15 text-amber-200 border-amber-400/30",
+    accent: "text-amber-400",
   },
   heist: {
     card: "bg-gradient-to-br from-zinc-950 via-yellow-950 to-zinc-900 text-amber-50 border-yellow-500/40",
@@ -115,6 +130,7 @@ export const MODE_SKIN: Record<
     hud: "border-yellow-500/40 bg-zinc-950/90 text-yellow-50",
     optionOn: "border-yellow-400 bg-yellow-400/15 text-yellow-100 ring-2 ring-yellow-400/40",
     chip: "bg-yellow-400/15 text-yellow-200 border-yellow-400/30",
+    accent: "text-yellow-400",
   },
   empire: {
     card: "bg-gradient-to-br from-emerald-50 via-amber-50 to-stone-100 dark:from-emerald-950/40 dark:to-stone-900 border-emerald-300/70",
@@ -126,6 +142,7 @@ export const MODE_SKIN: Record<
     hud: "border-emerald-300/70 bg-amber-50/80 dark:bg-emerald-950/70",
     optionOn: "border-emerald-600 bg-emerald-600/10 text-emerald-900 dark:text-emerald-100 ring-2 ring-emerald-500/30",
     chip: "bg-emerald-600/10 text-emerald-800 dark:text-emerald-200 border-emerald-600/20",
+    accent: "text-emerald-700 dark:text-emerald-300",
   },
   battle: {
     card: "bg-gradient-to-br from-violet-950 via-fuchsia-950 to-slate-900 text-white border-violet-400/40",
@@ -137,6 +154,7 @@ export const MODE_SKIN: Record<
     hud: "border-violet-500/30 bg-violet-950/90 text-violet-50",
     optionOn: "border-violet-400 bg-violet-400/15 text-violet-100 ring-2 ring-violet-400/30",
     chip: "bg-violet-400/15 text-violet-200 border-violet-400/30",
+    accent: "text-violet-300",
   },
 };
 
@@ -157,80 +175,80 @@ export function GameModePicker({
   soloLabel: string;
   multiplayerLabel: string;
 }) {
+  const active = GAME_MODE_META.find((m) => m.id === selected) ?? GAME_MODE_META[0];
+  const activeSkin = MODE_SKIN[active.id];
+  const darkHero = active.id === "royale" || active.id === "heist" || active.id === "battle";
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {GAME_MODE_META.map((mode) => {
-        const skin = MODE_SKIN[mode.id];
-        const Icon = mode.icon;
-        const on = selected === mode.id;
-        const darkText = mode.id === "royale" || mode.id === "heist";
-        return (
-          <div 
-            role="button" 
-            tabIndex={0}
-            key={mode.id}
-            onClick={() => onSelect(mode.id)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onSelect(mode.id);
-              }
-            }}
-            className={`mode-shine relative overflow-hidden rounded-2xl border text-left p-5 min-h-[220px] flex flex-col justify-between transition-all duration-300 ${skin.card} ${on ? `${skin.selected} ${mode.id === "royale" || mode.id === "heist" ? "mode-glow" : ""}` : "hover:-translate-y-1 hover:shadow-lg"}`}
-          >
-            <div className={`pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-gradient-to-br ${skin.glow} to-transparent ${on ? "mode-pulse" : ""}`} />
-            <div className="relative space-y-3">
-              <div className="flex items-start justify-between gap-3">
-                <div className={`flex size-11 items-center justify-center rounded-2xl shadow-sm ${skin.iconWrap} ${on ? "mode-float" : ""}`}>
-                  <Icon className="size-5" />
-                </div>
-                <Badge className={`text-[10px] uppercase tracking-wider ${darkText ? "bg-white/10 text-white border-white/20" : ""}`} variant="outline">
+    <div className="space-y-5">
+      <ModeArena mode={active.id} className={`relative overflow-hidden rounded-3xl border p-5 sm:p-6 ${activeSkin.card}`}>
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-4">
+            <ModeMascot mode={active.id} mood="idle" size={96} showLine={false} />
+            <div>
+              <p className={`text-[10px] font-semibold uppercase tracking-[0.18em] ${darkHero ? "text-white/60" : "text-muted-foreground"}`}>
+                Meet {MODE_CAST[active.id].name} · {MODE_CAST[active.id].title}
+              </p>
+              <h2 className={`text-2xl font-black tracking-tight ${darkHero ? "text-white" : "text-foreground"}`}>
+                {active.title}
+              </h2>
+              <p className={`mt-1 max-w-xl text-sm leading-relaxed ${darkHero ? "text-white/70" : "text-muted-foreground"}`}>
+                {active.howTo}
+              </p>
+            </div>
+          </div>
+          <div className="flex w-full gap-2 sm:w-auto">
+            <Button
+              className={`flex-1 sm:flex-none h-11 px-5 font-semibold ${activeSkin.play}`}
+              onClick={() => onSolo(active.id, active.title)}
+            >
+              <Play className="size-4 fill-current" />
+              {soloLabel}
+            </Button>
+            <Button
+              variant={darkHero ? "secondary" : "outline"}
+              className="flex-1 sm:flex-none h-11 px-5 font-semibold"
+              disabled={multiplayerBusy}
+              onClick={() => onMultiplayer(active.id, active.title)}
+            >
+              <Users className="size-4" />
+              {multiplayerLabel}
+            </Button>
+          </div>
+        </div>
+      </ModeArena>
+
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        {GAME_MODE_META.map((mode) => {
+          const skin = MODE_SKIN[mode.id];
+          const on = selected === mode.id;
+          const darkText = mode.id === "royale" || mode.id === "heist" || mode.id === "battle";
+          return (
+            <button
+              type="button"
+              key={mode.id}
+              onClick={() => onSelect(mode.id)}
+              className={`mode-shine relative overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 min-h-[168px] flex flex-col ${skin.card} ${
+                on ? skin.selected : "hover:-translate-y-0.5 hover:shadow-md"
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2">
+                <ModeMascot mode={mode.id} mood={on ? "cheer" : "idle"} size={44} showLine={false} />
+                <Badge
+                  className={`text-[9px] uppercase tracking-wider ${darkText ? "bg-white/10 text-white border-white/20" : ""}`}
+                  variant="outline"
+                >
                   {mode.badge}
                 </Badge>
               </div>
-              <div>
-                <h3 className={`text-lg font-bold ${darkText ? "text-white" : "text-foreground"}`}>{mode.title}</h3>
-                <p className={`text-xs mt-1 leading-relaxed ${darkText ? "text-white/70" : "text-muted-foreground"}`}>
-                  {mode.tagline}
-                </p>
-              </div>
-              <ul className="space-y-1">
-                {mode.features.map((f) => (
-                  <li key={f} className={`text-[11px] ${darkText ? "text-white/65" : "text-muted-foreground"}`}>
-                    · {f}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="relative flex gap-2 pt-4">
-              <Button
-                size="sm"
-                className={`flex-1 h-9 text-xs font-semibold ${skin.play}`}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSolo(mode.id, mode.title);
-                }}
-              >
-                <Play className="size-3.5 fill-current" />
-                {soloLabel}
-              </Button>
-              <Button
-                size="sm"
-                variant={darkText ? "secondary" : "outline"}
-                className="flex-1 h-9 text-xs font-semibold"
-                disabled={multiplayerBusy}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onMultiplayer(mode.id, mode.title);
-                }}
-              >
-                <Users className="size-3.5" />
-                {multiplayerLabel}
-              </Button>
-            </div>
-          </div>
-        );
-      })}
+              <h3 className={`mt-3 text-sm font-bold ${darkText ? "text-white" : "text-foreground"}`}>{mode.title}</h3>
+              <p className={`mt-1 text-[11px] leading-relaxed ${darkText ? "text-white/65" : "text-muted-foreground"}`}>
+                {mode.tagline}
+              </p>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -239,10 +257,6 @@ export function ModeStatusChips({
   mode,
   vaultGold,
   streakCombo,
-  shields,
-  hp,
-  empireScore,
-  masonryStone,
   hearts,
   hasShield,
   classicPoints,
@@ -274,29 +288,48 @@ export function ModeStatusChips({
   }
   if (mode === "royale") {
     const h = hearts ?? 3;
-    const danger = h <= 1;
     return (
-      <div className={`flex items-center gap-2 text-sm ${danger ? "mode-glow" : ""}`}>
-        <span aria-label={`${h} hearts`}>{h > 0 ? "❤️".repeat(h) : "💔"}</span>
+      <div className={`flex items-center gap-1.5 ${h <= 1 ? "mode-glow" : ""}`}>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Heart
+            key={i}
+            className={`size-4 ${i < h ? "fill-rose-500 text-rose-500" : "text-white/25"}`}
+          />
+        ))}
         {hasShield ? (
-          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-200">
+          <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-semibold text-amber-200">
             <Shield className="size-3" /> shield
           </span>
+        ) : null}
+        {(streakCombo ?? 0) > 1 ? (
+          <span className="text-[10px] font-bold text-amber-300">{streakCombo}×</span>
         ) : null}
       </div>
     );
   }
   if (mode === "empire") {
     return (
-      <div className="text-xs font-semibold text-emerald-800 dark:text-emerald-200">
+      <div className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 dark:text-emerald-200">
+        <Castle className="size-3.5" />
         {empireTier || "Hut"}
       </div>
     );
   }
   if (mode === "battle") {
+    const you = battleYou ?? 0;
+    const them = battleThem ?? 0;
     return (
-      <div className="text-[11px] font-semibold text-violet-100">
-        You {battleYou ?? 0} – {battleThem ?? 0} Rival
+      <div className="min-w-[132px] space-y-1">
+        <div className="flex items-center justify-between text-[10px] font-semibold text-violet-100">
+          <span>You {you}</span>
+          <span>Rival {them}</span>
+        </div>
+        <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+          <div
+            className="h-full rounded-full bg-violet-400"
+            style={{ width: `${Math.min(100, you + them === 0 ? 50 : (you / (you + them)) * 100)}%` }}
+          />
+        </div>
       </div>
     );
   }
@@ -304,6 +337,34 @@ export function ModeStatusChips({
     <div className="mode-float inline-flex items-center gap-1.5 rounded-lg border border-sky-200 bg-sky-50 px-2.5 py-1 text-[11px] font-semibold text-sky-800 dark:border-sky-800 dark:bg-sky-950 dark:text-sky-200">
       <Trophy className="size-3.5" />
       {classicPoints ?? 0} pts
+    </div>
+  );
+}
+
+export function ModeFeedbackBanner({
+  mode,
+  text,
+  isCorrect,
+}: {
+  mode: GameModeType;
+  text: string | null;
+  isCorrect?: boolean | null;
+}) {
+  if (!text) return null;
+  const good = isCorrect === true;
+  const bad = isCorrect === false;
+  return (
+    <div
+      className={`mode-rise flex items-center gap-2 rounded-2xl border px-4 py-2.5 text-sm font-semibold ${
+        good
+          ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+          : bad
+            ? "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-300"
+            : MODE_SKIN[mode].hud
+      }`}
+    >
+      {good ? <Sparkles className="size-4 shrink-0" /> : <Timer className="size-4 shrink-0 opacity-70" />}
+      <span>{text}</span>
     </div>
   );
 }
