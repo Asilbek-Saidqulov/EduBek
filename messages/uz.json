@@ -172,7 +172,8 @@
     "locale": "Hududiy til",
     "step": "Qadam",
     "system": "Tizim",
-    "searchPlaceholder": "Qidirish..."
+    "searchPlaceholder": "Qidirish...",
+    "noDescription": "Tavsif yo‘q"
   },
   "errors": {
     "unauthorized": "Tizimga kirish talab qilinadi",
@@ -17649,7 +17650,7 @@
       "emptyTeacher": "Hali sinf yo‘q.",
       "join": "Qo‘shilish",
       "create": "Sinf yaratish",
-      "meta": "{students} o‘quvchi, {assignments} topshiriq"
+      "meta": "{students} o‘quvchi • {assignments} topshiriq"
     },
     "credits": {
       "title": "AI kreditlar",

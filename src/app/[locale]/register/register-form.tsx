@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { GoogleAuthButton } from "@/components/edubek/google-auth-button";
 
 // Mirrors the backend registerBodySchema (see features/auth/auth.schema.ts).
 const registerSchema = z
@@ -274,6 +275,11 @@ export function RegisterForm() {
             t("register.submit")
           )}
         </Button>
+
+        <div className="relative my-1 text-center text-xs text-muted-foreground">
+          <span className="bg-background px-2">or</span>
+        </div>
+        <GoogleAuthButton label="Continue with Google" />
 
         <p className="text-center text-xs text-muted-foreground">
           {t("register.termsNotice")}

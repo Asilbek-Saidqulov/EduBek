@@ -509,5 +509,114 @@ export async function updateMyProfile(
   return getCurrentUser(updated.id);
 }
 
+export async function loginOrRegisterWithGoogle(input: {
+  email: string;
+  name?: string | null;
+  avatarUrl?: string | null;
+  emailVerified?: boolean;
+  locale?: string;
+  userAgent?: string;
+  ipAddress?: string;
+}) {
+  const email = input.email.trim().toLowerCase();
+  if (!email) throw unauthorized("Google account has no email");
+
+  let user = await (db as any).user.findUnique({
+    where: { email },
+    include: { roles: true, profile: true },
+  });
+
+  if (user?.isBanned) {
+    throw forbidden("This account has been banned", undefined, "errors.accountBanned");
+  }
+
+  if (!user) {
+    const username = await generateUniqueUsername(input.name || email.split("@")[0]);
+    user = await (db as any).user.create({
+      data: {
+        email,
+        passwordHash: null,
+        name: (input.name || email.split("@")[0]).trim(),
+        username,
+        avatarUrl: input.avatarUrl || null,
+        emailVerified: input.emailVerified ? new Date() : new Date(),
+        locale: input.locale || "uz",
+        country: "UZ",
+        primaryRole: "student",
+        profile: {
+          create: { displayName: (input.name || email.split("@")[0]).trim() },
+        },
+        roles: {
+          create: [{ role: "user" }, { role: "student" }],
+        },
+        wallet: {
+          create: { eduTokensBalance: 0, fiatBalance: 0, currency: "UZS" },
+        },
+      },
+      include: { roles: true, profile: true },
+    });
+  } else {
+    try {
+      await (db as any).user.update({
+        where: { id: user.id },
+        data: {
+          lastLoginAt: new Date(),
+          emailVerified: user.emailVerified || new Date(),
+          avatarUrl: user.avatarUrl || input.avatarUrl || null,
+          lastLoginIpHash: input.ipAddress
+            ? createHash("sha256").update(input.ipAddress).digest("hex")
+            : undefined,
+        },
+      });
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const rawRoles = user.roles?.map((r: any) => String(r.role).toUpperCase()) || [];
+  const platformRoles = rawRoles.length > 0 ? rawRoles : ["STUDENT", "USER"];
+  const tokens = buildSessionTokens({
+    id: user.id,
+    email: user.email,
+    roles: platformRoles,
+  });
+
+  try {
+    await (db as any).userSession.create({
+      data: {
+        userId: user.id,
+        sessionTokenHash: tokens.sessionTokenHash,
+        refreshTokenHash: tokens.refreshTokenHash,
+        expiresAt: tokens.expiresAt,
+        userAgent: input.userAgent || null,
+        ipHash: input.ipAddress
+          ? createHash("sha256").update(input.ipAddress).digest("hex")
+          : null,
+      },
+    });
+  } catch (err) {
+    console.warn("Failed to persist Google userSession:", err);
+  }
+
+  return {
+    session: {
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        username: user.username,
+        roles: platformRoles,
+        platformRoles,
+        locale: user.locale || input.locale || "uz",
+        country: user.country || "UZ",
+        avatarUrl: user.avatarUrl || input.avatarUrl,
+      },
+      sessionToken: tokens.sessionToken,
+      refreshToken: tokens.refreshToken,
+      expiresAt: tokens.expiresAt,
+    },
+  };
+}
+
 export const login = loginUser;
 export const register = registerUser;

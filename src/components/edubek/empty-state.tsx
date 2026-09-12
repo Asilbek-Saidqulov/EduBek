@@ -10,11 +10,20 @@ export interface EmptyStateProps {
   className?: string;
 }
 
+function isComponentType(value: unknown): value is React.ComponentType<{ className?: string }> {
+  if (typeof value === "function") return true;
+  if (!value || typeof value !== "object") return false;
+  const obj = value as { $$typeof?: unknown; render?: unknown };
+  return typeof obj.render === "function" || Boolean(obj.$$typeof);
+}
+
 export function EmptyState({ title, description, icon, action, className }: EmptyStateProps) {
-  const iconNode =
-    typeof icon === "function"
-      ? React.createElement(icon, { className: "h-6 w-6" })
-      : icon;
+  let iconNode: React.ReactNode = <FolderOpen className="h-6 w-6" />;
+  if (React.isValidElement(icon)) {
+    iconNode = icon;
+  } else if (isComponentType(icon)) {
+    iconNode = React.createElement(icon, { className: "h-6 w-6" });
+  }
 
   return (
     <div
@@ -23,8 +32,8 @@ export function EmptyState({ title, description, icon, action, className }: Empt
         className
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground mb-4">
-        {iconNode || <FolderOpen className="h-6 w-6" />}
+      <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        {iconNode}
       </div>
       <h3 className="text-base font-semibold tracking-tight">{title}</h3>
       {description && (

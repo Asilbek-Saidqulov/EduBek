@@ -15,6 +15,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Loader2, AlertCircle } from "lucide-react";
+import { GoogleAuthButton } from "@/components/edubek/google-auth-button";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -55,6 +56,11 @@ export function LoginForm() {
   const t = useTranslations("auth");
   const tErr = useTranslations("errors");
   const [formError, setFormError] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const err = new URLSearchParams(window.location.search).get("error");
+    if (err) setFormError("Google sign-in was cancelled or is not configured yet.");
+  }, []);
   const [submitting, setSubmitting] = React.useState(false);
 
   const form = useForm<LoginValues>({
@@ -191,6 +197,11 @@ export function LoginForm() {
             t("login.submit")
           )}
         </Button>
+
+        <div className="relative my-1 text-center text-xs text-muted-foreground">
+          <span className="bg-background px-2">or</span>
+        </div>
+        <GoogleAuthButton label="Continue with Google" />
       </form>
     </Form>
   );

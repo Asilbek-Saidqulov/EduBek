@@ -153,7 +153,8 @@
     "language": "Язык",
     "locale": "Локаль",
     "step": "Шаг",
-    "system": "Система"
+    "system": "Система",
+    "noDescription": "Нет описания"
   },
   "errors": {
     "unauthorized": "Требуется аутентификация",
@@ -17609,7 +17610,7 @@
       "emptyTeacher": "Классов пока нет.",
       "join": "Присоединиться",
       "create": "Создать класс",
-      "meta": "{students} учеников, {assignments} заданий"
+      "meta": "{students} учеников • {assignments} заданий"
     },
     "credits": {
       "title": "AI-кредиты",

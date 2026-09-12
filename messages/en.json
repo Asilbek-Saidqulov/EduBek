@@ -153,7 +153,8 @@
     "language": "Language",
     "locale": "Locale",
     "step": "Step",
-    "system": "System"
+    "system": "System",
+    "noDescription": "No description"
   },
   "errors": {
     "unauthorized": "Authentication required",
@@ -17609,7 +17610,7 @@
       "emptyStudent": "You haven't joined any classes yet. Ask your teacher for a class code to join.",
       "create": "Create class",
       "join": "Join class",
-      "meta": "{students} students • {assignment} tasks"
+      "meta": "{students} students • {assignments} tasks"
     },
     "credits": {
       "title": "AI credits",

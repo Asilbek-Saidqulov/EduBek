@@ -226,6 +226,7 @@ export function DashboardView({
                         <p className="text-xs text-muted-foreground">
                           {t("classes.meta", {
                             students: c.studentCount ?? 0,
+                            assignment: c.assignmentCount ?? 0,
                             assignments: c.assignmentCount ?? 0,
                           })}
                         </p>
