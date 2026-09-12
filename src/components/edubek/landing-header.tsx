@@ -18,15 +18,17 @@ export function LandingHeader() {
     <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur-md transition-colors" id="landing-header">
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight group" id="landing-logo">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-xs transition-transform duration-200 group-hover:scale-105">
-            <GraduationCap className="h-5 w-5" />
-          </div>
-          <div className="flex flex-col">
-            <span className="font-semibold tracking-tight text-foreground text-lg leading-tight">
-              EduBek
-            </span>
-          </div>
+        <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
+          <img
+            src="/logo.svg"
+            alt="EduBek"
+            width={36}
+            height={36}
+            className="h-9 w-9 rounded-xl"
+          />
+          <span className="font-semibold tracking-tight text-lg leading-tight">
+            EduBek
+          </span>
         </Link>
 
         {/* Center / Desktop Navigation */}

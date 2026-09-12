@@ -131,9 +131,13 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
         {/* Brand Header */}
         <div className="flex h-16 items-center justify-between border-b px-4">
           <Link href="/dashboard" className="flex items-center gap-2.5 font-bold tracking-tight">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shrink-0">
-              <GraduationCap className="h-5 w-5" />
-            </div>
+            <img
+              src="/logo.svg"
+              alt="EduBek"
+              width={36}
+              height={36}
+              className="h-9 w-9 shrink-0 rounded-xl"
+            />
             {!collapsed && (
               <div className="flex flex-col">
                 <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">

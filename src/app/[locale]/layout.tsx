@@ -59,7 +59,11 @@ export async function generateMetadata({
     ],
     authors: [{ name: "EduBek Team" }],
     icons: {
-      icon: "/favicon.ico",
+      icon: [
+        { url: "/icon.svg", type: "image/svg+xml" },
+        { url: "/logo.svg", type: "image/svg+xml" },
+      ],
+      apple: "/app-mark.png",
     },
     metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://edubek.vercel.app"),
     alternates: {
