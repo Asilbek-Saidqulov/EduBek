@@ -77,6 +77,44 @@ export function TutorView({
   const [mobileTab, setMobileTab] = useState<"blackboard" | "companion">("blackboard");
   const [isSaving, setIsSaving] = useState(false);
   const [hasStartedRemediation, setHasStartedRemediation] = useState(false);
+  const [draftOffer, setDraftOffer] = useState<{
+    conversationId?: string;
+    document: BlackboardDocument;
+    messages?: TranscriptMessage[];
+    savedAt?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    if (initialSessionId || initialTopic || mistakeQuestion) return;
+    try {
+      const raw = window.localStorage.getItem("edubek_blackboard_draft_v1");
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (Array.isArray(draft?.document?.sections) && draft.document.sections.length > 0) {
+        setDraftOffer(draft);
+      }
+    } catch {
+      /* ignore broken draft */
+    }
+  }, [initialSessionId, initialTopic, mistakeQuestion]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (historyState.present.sections.length === 0) return;
+    try {
+      window.localStorage.setItem(
+        "edubek_blackboard_draft_v1",
+        JSON.stringify({
+          conversationId,
+          document: historyState.present,
+          messages: messages.slice(-12),
+          savedAt: new Date().toISOString(),
+        }),
+      );
+    } catch {
+      /* quota */
+    }
+  }, [conversationId, historyState.present, messages]);
 
   // Restore existing session from database if sessionId was provided in URL
   useEffect(() => {
@@ -347,6 +385,23 @@ export function TutorView({
     handleSendMessage(remedialPrompt);
   };
 
+  const resumeDraft = () => {
+    if (!draftOffer) return;
+    dispatch({ type: "SET_DOCUMENT", payload: draftOffer.document });
+    if (draftOffer.conversationId) setConversationId(draftOffer.conversationId);
+    if (draftOffer.messages?.length) setMessages(draftOffer.messages);
+    setDraftOffer(null);
+  };
+
+  const discardDraft = () => {
+    try {
+      window.localStorage.removeItem("edubek_blackboard_draft_v1");
+    } catch {
+      /* ignore */
+    }
+    setDraftOffer(null);
+  };
+
   const handleSaveToLibrary = async () => {
     if (historyState.present.sections.length === 0) return;
     setIsSaving(true);
@@ -410,6 +465,36 @@ export function TutorView({
               <span>Start Review Lesson</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
+          </div>
+        )}
+
+        {draftOffer && (
+          <div className="shrink-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold">Continue last lesson?</p>
+              <p className="text-xs text-muted-foreground truncate">
+                {draftOffer.document.title || "Untitled lesson"}
+                {draftOffer.document.sections?.length
+                  ? ` · ${draftOffer.document.sections.length} board sections`
+                  : ""}
+              </p>
+            </div>
+            <div className="flex gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={discardDraft}
+                className="rounded-lg border px-3 py-1.5 text-xs"
+              >
+                Start fresh
+              </button>
+              <button
+                type="button"
+                onClick={resumeDraft}
+                className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white"
+              >
+                Continue
+              </button>
+            </div>
           </div>
         )}
 
