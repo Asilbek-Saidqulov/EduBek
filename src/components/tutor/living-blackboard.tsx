@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
@@ -123,6 +123,33 @@ export function LivingBlackboard({
   const t = useTranslations("tutor");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [revealedCount, setRevealedCount] = useState(0);
+
+  const sectionKey = document.sections.map((section) => section.id).join(",");
+  useEffect(() => {
+    const total = document.sections.length;
+    if (total === 0) {
+      setRevealedCount(0);
+      return;
+    }
+    if (revealedCount >= total) return;
+    const timer = window.setTimeout(() => {
+      setRevealedCount((count) => Math.min(count + 1, total));
+    }, revealedCount === 0 ? 80 : 480);
+    return () => window.clearTimeout(timer);
+  }, [sectionKey, revealedCount, document.sections.length]);
+
+  useEffect(() => {
+    if (revealedCount <= 0) return;
+    const section = document.sections[revealedCount - 1];
+    if (!section) return;
+    window.document
+      .getElementById(`section-${section.id}`)
+      ?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [revealedCount, document.sections]);
+
+  const visibleSections = document.sections.slice(0, revealedCount);
+  const isWriting = revealedCount < document.sections.length;
 
   const handleAnswerCheckpoint = (checkpointId: string, answeredIndex: number) => {
     dispatch({
@@ -172,7 +199,11 @@ export function LivingBlackboard({
               )}
             </div>
             <p className="text-xs text-emerald-100/60 truncate">
-              {document.topic ? `${t("topic")}: ${document.topic}` : t("blackboardSubtitle")}
+              {isWriting
+                ? "Writing the next board section…"
+                : document.topic
+                  ? `${t("topic")}: ${document.topic}`
+                  : t("blackboardSubtitle")}
             </p>
           </div>
         </div>
@@ -264,26 +295,32 @@ export function LivingBlackboard({
           <div className="max-w-4xl mx-auto space-y-4">
             <div className="flex items-center gap-2 overflow-x-auto pb-1">
               <List className="w-3.5 h-3.5 shrink-0 text-emerald-200/70" />
-              {document.sections.map((section) => {
+              {document.sections.map((section, index) => {
                 const cfg = sectionConfig[section.type] || sectionConfig.explanation;
+                const ready = index < revealedCount;
                 return (
                   <button
                     key={section.id}
                     type="button"
+                    disabled={!ready}
                     onClick={() =>
                       window.document
                         .getElementById(`section-${section.id}`)
                         ?.scrollIntoView({ behavior: "smooth", block: "start" })
                     }
-                    className="shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full border border-white/10 bg-black/20 hover:bg-black/40"
+                    className={`shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-full border ${
+                      ready
+                        ? "border-white/10 bg-black/20 hover:bg-black/40"
+                        : "border-white/5 bg-black/10 text-emerald-100/30"
+                    }`}
                   >
-                    {t(cfg.labelKey as any)}
+                    {ready ? t(cfg.labelKey as any) : "…"}
                   </button>
                 );
               })}
             </div>
 
-            {document.sections.map((section: BlackboardSection, index) => {
+            {visibleSections.map((section: BlackboardSection, index) => {
               const cfg = sectionConfig[section.type] || sectionConfig.explanation;
               const Icon = cfg.icon;
               const isClosed = !!collapsed[section.id];
@@ -361,6 +398,41 @@ export function LivingBlackboard({
                         <InteractiveCheckpointCard
                           checkpoint={section.checkpointData}
                           onAnswer={handleAnswerCheckpoint}
+                          onWhyWrong={
+                            onQuickPrompt
+                              ? (checkpoint, chosenIndex) => {
+                                  const chosen = checkpoint.options[chosenIndex] ?? "";
+                                  const correct = checkpoint.options[checkpoint.correctIndex] ?? "";
+                                  onQuickPrompt(
+                                    [
+                                      "The student just missed a checkpoint on this blackboard.",
+                                      `Question: ${checkpoint.question}`,
+                                      `They chose: ${chosen}`,
+                                      `Correct answer: ${correct}`,
+                                      checkpoint.explanation ? `Short key: ${checkpoint.explanation}` : "",
+                                      "Do not restart the lesson and do not repeat earlier sections.",
+                                      "Add one short explanation section that only says why their choice is wrong.",
+                                      "Then add one new similar checkpoint.",
+                                    ]
+                                      .filter(Boolean)
+                                      .join("\n"),
+                                  );
+                                }
+                              : undefined
+                          }
+                          onHarder={
+                            onQuickPrompt
+                              ? (checkpoint) =>
+                                  onQuickPrompt(
+                                    [
+                                      "The student answered this checkpoint correctly:",
+                                      checkpoint.question,
+                                      "Do not rewrite earlier sections.",
+                                      "Add one slightly harder checkpoint on the same idea.",
+                                    ].join("\n"),
+                                  )
+                              : undefined
+                          }
                         />
                       )}
 

@@ -9,6 +9,8 @@ interface InteractiveCheckpointCardProps {
   checkpoint: CheckpointData;
   onAnswer: (checkpointId: string, selectedIndex: number) => void;
   onContinue?: () => void;
+  onWhyWrong?: (checkpoint: CheckpointData, chosenIndex: number) => void;
+  onHarder?: (checkpoint: CheckpointData) => void;
   readOnly?: boolean;
 }
 
@@ -16,6 +18,8 @@ export function InteractiveCheckpointCard({
   checkpoint,
   onAnswer,
   onContinue,
+  onWhyWrong,
+  onHarder,
   readOnly = false,
 }: InteractiveCheckpointCardProps) {
   const t = useTranslations("tutor");
@@ -161,8 +165,26 @@ export function InteractiveCheckpointCard({
           </div>
           <p className="text-foreground/90 leading-relaxed">{checkpoint.explanation}</p>
 
-          {onContinue && (
-            <div className="pt-2 flex justify-end">
+          <div className="pt-2 flex flex-wrap justify-end gap-2">
+            {!isCorrect && onWhyWrong && answeredIdx !== null && (
+              <button
+                type="button"
+                onClick={() => onWhyWrong(checkpoint, answeredIdx)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-950 dark:text-amber-100 text-xs font-medium hover:bg-amber-500/20"
+              >
+                Why is this wrong?
+              </button>
+            )}
+            {isCorrect && onHarder && (
+              <button
+                type="button"
+                onClick={() => onHarder(checkpoint)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-emerald-500/40 bg-emerald-500/10 text-xs font-medium hover:bg-emerald-500/20"
+              >
+                One harder question
+              </button>
+            )}
+            {onContinue && (
               <button
                 type="button"
                 onClick={onContinue}
@@ -171,8 +193,8 @@ export function InteractiveCheckpointCard({
                 <span>{t("continue")}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       )}
     </div>
