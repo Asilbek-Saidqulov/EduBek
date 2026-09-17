@@ -22,6 +22,7 @@ import {
   Copy,
   Check,
   List,
+  Pencil,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type {
@@ -191,6 +192,79 @@ const sectionConfig = {
     rail: "from-rose-400 to-rose-600",
   },
 } as const;
+
+function BoardWorkPad({
+  sectionTitle,
+  sectionContent,
+  onSubmit,
+}: {
+  sectionTitle: string;
+  sectionContent: string;
+  onSubmit: (prompt: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [work, setWork] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const submit = () => {
+    const text = work.trim();
+    if (!text) return;
+    onSubmit(
+      [
+        "The student wrote on the blackboard. Check their work.",
+        `Board section: ${sectionTitle}`,
+        sectionContent ? `Section gist: ${sectionContent.slice(0, 400)}` : "",
+        `Student writing: ${text}`,
+        "Do not restart the lesson.",
+        "Add one short section that marks the work correct or shows the exact fix.",
+        "If they asked to finish an equation, complete only the missing part.",
+      ]
+        .filter(Boolean)
+        .join("\n"),
+    );
+    setSent(true);
+  };
+
+  return (
+    <div className="rounded-xl border border-dashed border-emerald-400/25 bg-black/20 p-3">
+      <button
+        type="button"
+        onClick={() => setOpen((value) => !value)}
+        className="flex items-center gap-1.5 text-[11px] font-semibold text-emerald-200"
+      >
+        <Pencil className="size-3.5" />
+        Write on the board
+      </button>
+      {open && (
+        <div className="mt-2 space-y-2">
+          <textarea
+            value={work}
+            onChange={(e) => {
+              setWork(e.target.value);
+              setSent(false);
+            }}
+            rows={3}
+            placeholder="Finish the step, write a formula, or explain in your words…"
+            className="w-full resize-y rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-sm text-emerald-50 placeholder:text-emerald-100/35 focus:outline-none"
+          />
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] text-emerald-100/45">
+              {sent ? "Sent to tutor. Wait for the next board section." : "The tutor will mark this, not replace the whole lesson."}
+            </p>
+            <button
+              type="button"
+              disabled={!work.trim()}
+              onClick={submit}
+              className="rounded-lg bg-emerald-500 px-3 py-1.5 text-[11px] font-semibold text-emerald-950 disabled:opacity-40"
+            >
+              Check my work
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function LivingBlackboard({
   document,
@@ -571,6 +645,14 @@ export function LivingBlackboard({
                                   )
                               : undefined
                           }
+                        />
+                      )}
+
+                      {onQuickPrompt && (
+                        <BoardWorkPad
+                          sectionTitle={section.title}
+                          sectionContent={section.content}
+                          onSubmit={onQuickPrompt}
                         />
                       )}
 
