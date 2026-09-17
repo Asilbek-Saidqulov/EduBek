@@ -49,7 +49,7 @@ export const InsertDiagramInputSchema = z.object({
   svg: z
     .string()
     .min(10)
-    .describe("Clean, valid SVG code representing the visual diagram. Must include viewBox and responsive width/height."),
+    .describe("Clean SVG with viewBox. Group drawing order as <g data-step=\"1\">, <g data-step=\"2\"> so the board can reveal the figure step by step."),
   caption: z.string().optional().describe("Optional caption explaining key visual details."),
 });
 

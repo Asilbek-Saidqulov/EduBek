@@ -41,26 +41,107 @@ interface LivingBlackboardProps {
   isSaving?: boolean;
 }
 
+const SKIP_SVG_TAGS = new Set(["defs", "title", "desc", "style", "metadata", "clippath", "mask", "lineargradient", "radialgradient"]);
+
+function sanitizeSvg(svg: string) {
+  return svg
+    .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
+    .replace(/<foreignObject[\s\S]*?>[\s\S]*?<\/foreignObject>/gi, "")
+    .replace(/on\w+="[^"]*"/gi, "")
+    .replace(/on\w+='[^']*'/gi, "");
+}
+
 function SafeSvgDiagram({ svg, caption }: { svg: string; caption?: string }) {
-  const sanitizedSvg = useMemo(() => {
-    if (!svg) return "";
-    return svg
-      .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, "")
-      .replace(/<foreignObject[\s\S]*?>[\s\S]*?<\/foreignObject>/gi, "")
-      .replace(/on\w+="[^"]*"/gi, "")
-      .replace(/on\w+='[^']*'/gi, "");
+  const frameRef = React.useRef<HTMLDivElement>(null);
+  const [step, setStep] = useState(1);
+  const [showAll, setShowAll] = useState(false);
+
+  const prepared = useMemo(() => {
+    const sanitized = sanitizeSvg(svg || "");
+    if (!sanitized) return { html: "", steps: 1 };
+    if (typeof window === "undefined") return { html: sanitized, steps: 1 };
+    try {
+      const doc = new DOMParser().parseFromString(sanitized, "image/svg+xml");
+      const root = doc.querySelector("svg");
+      if (!root) return { html: sanitized, steps: 1 };
+      const kids = Array.from(root.children).filter(
+        (el) => !SKIP_SVG_TAGS.has(el.tagName.toLowerCase()),
+      );
+      kids.forEach((el, index) => {
+        if (!el.getAttribute("data-step")) {
+          el.setAttribute("data-step", String(index + 1));
+        }
+      });
+      const steps = Math.max(
+        1,
+        ...kids.map((el) => Number(el.getAttribute("data-step")) || 1),
+      );
+      return { html: root.outerHTML, steps };
+    } catch {
+      return { html: sanitized, steps: 1 };
+    }
   }, [svg]);
 
+  useEffect(() => {
+    setStep(1);
+    setShowAll(false);
+  }, [prepared.html]);
+
+  useEffect(() => {
+    const nodes = frameRef.current?.querySelectorAll<HTMLElement>("[data-step]");
+    nodes?.forEach((node) => {
+      const nodeStep = Number(node.getAttribute("data-step")) || 1;
+      const visible = showAll || nodeStep <= step;
+      node.style.opacity = visible ? "1" : "0.12";
+      node.style.transition = "opacity 280ms ease";
+    });
+  }, [prepared.html, step, showAll]);
+
+  const last = prepared.steps;
+
   return (
-    <div className="my-4 rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-6 overflow-hidden">
+    <div className="my-4 overflow-hidden rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-6">
       <div
-        className="w-full flex items-center justify-center min-h-[160px] max-h-[420px] overflow-auto [&>svg]:max-w-full [&>svg]:h-auto text-foreground"
-        dangerouslySetInnerHTML={{ __html: sanitizedSvg }}
+        ref={frameRef}
+        className="flex max-h-[420px] min-h-[160px] w-full items-center justify-center overflow-auto text-foreground [&>svg]:h-auto [&>svg]:max-w-full"
+        dangerouslySetInnerHTML={{ __html: prepared.html }}
       />
       {caption && (
-        <p className="mt-3 text-center text-xs sm:text-sm font-medium text-muted-foreground italic">
+        <p className="mt-3 text-center text-xs font-medium italic text-muted-foreground sm:text-sm">
           {caption}
         </p>
+      )}
+      {last > 1 && (
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-[11px] font-medium text-emerald-100/60">
+            Step {showAll ? last : step} of {last}
+          </p>
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              disabled={showAll || step <= 1}
+              onClick={() => setStep((value) => Math.max(1, value - 1))}
+              className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px] disabled:opacity-40"
+            >
+              Back
+            </button>
+            <button
+              type="button"
+              disabled={showAll || step >= last}
+              onClick={() => setStep((value) => Math.min(last, value + 1))}
+              className="rounded-lg border border-white/15 bg-emerald-500/20 px-2.5 py-1 text-[11px] font-medium disabled:opacity-40"
+            >
+              Next step
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAll((value) => !value)}
+              className="rounded-lg border border-white/15 px-2.5 py-1 text-[11px]"
+            >
+              {showAll ? "Play steps" : "Show all"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
