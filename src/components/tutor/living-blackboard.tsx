@@ -24,7 +24,7 @@ import {
   List,
   Pencil,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type {
   BlackboardDocument,
   BlackboardSection,
@@ -276,6 +276,8 @@ export function LivingBlackboard({
   isSaving = false,
 }: LivingBlackboardProps) {
   const t = useTranslations("tutor");
+  const locale = useLocale();
+  const otherLocale = locale === "uz" ? "English" : locale === "en" ? "Russian" : "Uzbek";
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [revealedCount, setRevealedCount] = useState(0);
@@ -661,29 +663,48 @@ export function LivingBlackboard({
                           <button
                             type="button"
                             onClick={() =>
-                              onQuickPrompt(`${t("quickStepExamplePrompt")} (${section.title})`)
+                              onQuickPrompt(
+                                [
+                                  `Rewrite ONLY this blackboard section more simply: "${section.title}".`,
+                                  `Section id: ${section.id}`,
+                                  "Use update_section on this id. Do not restart the lesson or add extra sections.",
+                                  "Shorter sentences, easier words, same meaning.",
+                                ].join("\n"),
+                              )
                             }
-                            className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 hover:bg-white/10"
+                            className="rounded-full border border-white/15 px-2.5 py-1 text-[11px] hover:bg-white/10"
                           >
-                            {t("quickStepExample")}
+                            Say it simpler
                           </button>
                           <button
                             type="button"
                             onClick={() =>
-                              onQuickPrompt(`${t("quickAddDiagramPrompt")} (${section.title})`)
+                              onQuickPrompt(
+                                [
+                                  `Add one new example for this section only: "${section.title}".`,
+                                  "Do not rewrite earlier sections.",
+                                  "Keep it short and on the same idea.",
+                                ].join("\n"),
+                              )
                             }
-                            className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 hover:bg-white/10"
+                            className="rounded-full border border-white/15 px-2.5 py-1 text-[11px] hover:bg-white/10"
                           >
-                            {t("quickAddDiagram")}
+                            Another example
                           </button>
                           <button
                             type="button"
                             onClick={() =>
-                              onQuickPrompt(`${t("quickAddQuizPrompt")} (${section.title})`)
+                              onQuickPrompt(
+                                [
+                                  `Rewrite ONLY this blackboard section in ${otherLocale}: "${section.title}".`,
+                                  `Section id: ${section.id}`,
+                                  "Use update_section on this id. Do not restart the lesson.",
+                                ].join("\n"),
+                              )
                             }
-                            className="text-[11px] px-2.5 py-1 rounded-full border border-white/15 hover:bg-white/10"
+                            className="rounded-full border border-white/15 px-2.5 py-1 text-[11px] hover:bg-white/10"
                           >
-                            {t("quickAddQuiz")}
+                            In {otherLocale}
                           </button>
                         </div>
                       )}
