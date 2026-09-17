@@ -498,48 +498,8 @@ export function TutorView({
           </div>
         )}
 
-        {/* Mobile Tab Switcher */}
-        <div className="flex lg:hidden items-center justify-between p-1 bg-muted rounded-xl shrink-0">
-          <button
-            type="button"
-            onClick={() => setMobileTab("blackboard")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all ${
-              mobileTab === "blackboard"
-                ? "bg-card text-foreground shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <BookOpen className="w-4 h-4 text-primary" />
-            <span>{t("blackboardTab")}</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-primary/10 text-primary">
-              {historyState.present.sections.length}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setMobileTab("companion")}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 text-xs font-semibold rounded-lg transition-all ${
-              mobileTab === "companion"
-                ? "bg-card text-foreground shadow-2xs"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            <MessageSquare className="w-4 h-4 text-primary" />
-            <span>{t("companionTab")}</span>
-            <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-secondary text-secondary-foreground">
-              {messages.length}
-            </span>
-          </button>
-        </div>
-
-        {/* Desktop Split Layout (70% Blackboard / 30% Tutor Companion) */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden">
-          {/* Left / Primary Area: Living Blackboard */}
-          <div
-            className={`flex-1 h-full min-h-0 lg:flex ${
-              mobileTab === "blackboard" ? "flex" : "hidden lg:flex"
-            }`}
-          >
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 min-h-0 overflow-hidden relative">
+          <div className="flex-1 h-full min-h-0 flex">
             <LivingBlackboard
               document={historyState.present}
               canUndo={historyState.past.length > 0}
@@ -551,19 +511,11 @@ export function TutorView({
             />
           </div>
 
-          {/* Right / Secondary Area: Tutor Companion & Transcript */}
-          <div
-            className={`w-full lg:w-[340px] xl:w-[380px] h-full min-h-0 flex-col gap-3 shrink-0 ${
-              mobileTab === "companion" ? "flex" : "hidden lg:flex"
-            }`}
-          >
-            {/* Top Companion Status Orb */}
+          <div className="hidden lg:flex w-full lg:w-[340px] xl:w-[380px] h-full min-h-0 flex-col gap-3 shrink-0">
             <TutorVoiceOrb
               status={tutorStatus}
               statusMessage={statusMessage}
             />
-
-            {/* Bottom Transcript Dialogue */}
             <div className="flex-1 min-h-0">
               <TutorTranscript
                 messages={messages}
@@ -573,6 +525,50 @@ export function TutorView({
               />
             </div>
           </div>
+
+          {mobileTab !== "companion" && (
+            <button
+              type="button"
+              onClick={() => setMobileTab("companion")}
+              className="lg:hidden absolute bottom-3 inset-x-3 z-20 flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg"
+              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Ask tutor
+              {messages.length > 0 && (
+                <span className="rounded-full bg-white/20 px-1.5 text-[11px]">{messages.length}</span>
+              )}
+            </button>
+          )}
+
+          {mobileTab === "companion" && (
+            <div className="lg:hidden absolute inset-x-0 bottom-0 z-30 flex max-h-[70%] flex-col rounded-t-3xl border-t bg-background shadow-2xl">
+              <div className="flex items-center justify-between px-4 py-2">
+                <p className="text-sm font-semibold">{t("companionTab")}</p>
+                <button
+                  type="button"
+                  onClick={() => setMobileTab("blackboard")}
+                  className="rounded-lg border px-2.5 py-1 text-xs"
+                >
+                  Back to board
+                </button>
+              </div>
+              <div className="min-h-0 flex-1 overflow-hidden px-2 pb-2">
+                <TutorVoiceOrb
+                  status={tutorStatus}
+                  statusMessage={statusMessage}
+                />
+                <div className="h-[46vh] min-h-0">
+                  <TutorTranscript
+                    messages={messages}
+                    onSendMessage={handleSendMessage}
+                    isLoading={isLoading}
+                    onQuickAction={handleSendMessage}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppShell>

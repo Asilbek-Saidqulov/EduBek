@@ -283,6 +283,7 @@ export function LivingBlackboard({
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const [revealedCount, setRevealedCount] = useState(0);
 
   useEffect(() => {
     return () => {
@@ -292,30 +293,45 @@ export function LivingBlackboard({
     };
   }, []);
 
-  const speakSection = (section: BlackboardSection) => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-    if (speakingId === section.id) {
-      window.speechSynthesis.cancel();
-      setSpeakingId(null);
-      return;
-    }
-    const text = `${section.title}. ${section.content || ""}`
+  const boardText = (section: BlackboardSection, short = false) =>
+    `${section.title}. ${section.content || ""}`
       .replace(/[#*_`]/g, " ")
       .replace(/\$\$[\s\S]*?\$\$/g, " formula ")
       .replace(/\$[^$]+\$/g, " formula ")
       .replace(/\s+/g, " ")
       .trim()
-      .slice(0, 800);
+      .slice(0, short ? 420 : 800);
+
+  const speakSection = (section: BlackboardSection, onDone?: () => void, short = false) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      onDone?.();
+      return;
+    }
+    if (!onDone && speakingId === section.id) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      return;
+    }
+    const text = boardText(section, short);
+    if (!text) {
+      onDone?.();
+      return;
+    }
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = locale === "uz" ? "uz-UZ" : locale === "ru" ? "ru-RU" : "en-US";
-    utterance.rate = 0.95;
-    utterance.onend = () => setSpeakingId(null);
-    utterance.onerror = () => setSpeakingId(null);
+    utterance.rate = 0.96;
+    utterance.onend = () => {
+      setSpeakingId(null);
+      onDone?.();
+    };
+    utterance.onerror = () => {
+      setSpeakingId(null);
+      onDone?.();
+    };
     setSpeakingId(section.id);
     window.speechSynthesis.speak(utterance);
   };
-  const [revealedCount, setRevealedCount] = useState(0);
 
   const sectionKey = document.sections.map((section) => section.id).join(",");
   useEffect(() => {
@@ -325,10 +341,43 @@ export function LivingBlackboard({
       return;
     }
     if (revealedCount >= total) return;
-    const timer = window.setTimeout(() => {
-      setRevealedCount((count) => Math.min(count + 1, total));
-    }, revealedCount === 0 ? 80 : 480);
-    return () => window.clearTimeout(timer);
+
+    if (revealedCount === 0) {
+      const timer = window.setTimeout(() => setRevealedCount(1), 80);
+      return () => window.clearTimeout(timer);
+    }
+
+    const current = document.sections[revealedCount - 1];
+    if (!current) return;
+
+    if (current.type === "checkpoint") {
+      const timer = window.setTimeout(() => {
+        setRevealedCount((count) => Math.min(count + 1, total));
+      }, 900);
+      return () => window.clearTimeout(timer);
+    }
+
+    let cancelled = false;
+    const safety = window.setTimeout(() => {
+      if (!cancelled) setRevealedCount((count) => Math.min(count + 1, total));
+    }, 14000);
+    speakSection(
+      current,
+      () => {
+        if (cancelled) return;
+        window.clearTimeout(safety);
+        window.setTimeout(() => {
+          if (!cancelled) setRevealedCount((count) => Math.min(count + 1, total));
+        }, 380);
+      },
+      true,
+    );
+    return () => {
+      cancelled = true;
+      window.clearTimeout(safety);
+    };
+    // speakSection is stable enough for this lesson flow
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sectionKey, revealedCount, document.sections.length]);
 
   useEffect(() => {
@@ -392,7 +441,7 @@ export function LivingBlackboard({
             </div>
             <p className="text-xs text-emerald-100/60 truncate">
               {isWriting
-                ? "Writing the next board section…"
+                ? "Teacher is writing…"
                 : document.topic
                   ? `${t("topic")}: ${document.topic}`
                   : t("blackboardSubtitle")}
