@@ -23,6 +23,8 @@ import {
   Check,
   List,
   Pencil,
+  Volume2,
+  Square,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type {
@@ -280,6 +282,39 @@ export function LivingBlackboard({
   const otherLocale = locale === "uz" ? "English" : locale === "en" ? "Russian" : "Uzbek";
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
+
+  const speakSection = (section: BlackboardSection) => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (speakingId === section.id) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      return;
+    }
+    const text = `${section.title}. ${section.content || ""}`
+      .replace(/[#*_`]/g, " ")
+      .replace(/\$\$[\s\S]*?\$\$/g, " formula ")
+      .replace(/\$[^$]+\$/g, " formula ")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 800);
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = locale === "uz" ? "uz-UZ" : locale === "ru" ? "ru-RU" : "en-US";
+    utterance.rate = 0.95;
+    utterance.onend = () => setSpeakingId(null);
+    utterance.onerror = () => setSpeakingId(null);
+    setSpeakingId(section.id);
+    window.speechSynthesis.speak(utterance);
+  };
   const [revealedCount, setRevealedCount] = useState(0);
 
   const sectionKey = document.sections.map((section) => section.id).join(",");
@@ -565,6 +600,18 @@ export function LivingBlackboard({
                     <div className="flex items-center gap-1 shrink-0">
                       <button
                         type="button"
+                        onClick={() => speakSection(section)}
+                        className="p-1.5 rounded-md text-emerald-100/60 hover:bg-white/10"
+                        title={speakingId === section.id ? "Stop" : "Listen"}
+                      >
+                        {speakingId === section.id ? (
+                          <Square className="w-3.5 h-3.5 text-amber-300" />
+                        ) : (
+                          <Volume2 className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => copySection(section)}
                         className="p-1.5 rounded-md text-emerald-100/60 hover:bg-white/10"
                         title="Copy"
@@ -594,7 +641,7 @@ export function LivingBlackboard({
                   {!isClosed && (
                     <div className="pl-2 space-y-4">
                       {section.content && (
-                        <div className="prose prose-invert max-w-none text-emerald-50/90 leading-relaxed text-sm sm:text-base">
+                        <div className="prose prose-invert max-w-none text-emerald-50/90 leading-relaxed text-sm sm:text-base [&_.katex-display]:rounded-xl [&_.katex-display]:bg-white [&_.katex-display]:px-3 [&_.katex-display]:py-2 [&_.katex-display]:text-zinc-900 [&_.katex]:text-emerald-50">
                           <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}>
                             {section.content}
                           </ReactMarkdown>
