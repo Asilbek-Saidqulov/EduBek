@@ -292,8 +292,65 @@ export function LivingBlackboard({
             )}
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto space-y-4">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          <div className="mx-auto flex max-w-6xl gap-4">
+            <aside className="hidden w-52 shrink-0 lg:block">
+              <div className="sticky top-0 space-y-3 rounded-2xl border border-white/10 bg-black/25 p-3">
+                <p className="px-1 text-[11px] font-semibold uppercase tracking-wider text-emerald-100/50">
+                  Lesson map
+                </p>
+                <ol className="space-y-1">
+                  {document.sections.map((section, index) => {
+                    const cfg = sectionConfig[section.type] || sectionConfig.explanation;
+                    const ready = index < revealedCount;
+                    const checkpoint = section.checkpointData;
+                    const answered = checkpoint?.answeredIndex !== undefined;
+                    const correct =
+                      answered && checkpoint.answeredIndex === checkpoint.correctIndex;
+                    return (
+                      <li key={section.id}>
+                        <button
+                          type="button"
+                          disabled={!ready}
+                          onClick={() =>
+                            window.document
+                              .getElementById(`section-${section.id}`)
+                              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                          }
+                          className={`flex w-full items-start gap-2 rounded-lg px-2 py-1.5 text-left text-xs ${
+                            ready
+                              ? "text-emerald-50 hover:bg-white/10"
+                              : "text-emerald-100/30"
+                          }`}
+                        >
+                          <span
+                            className={`mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                              correct
+                                ? "bg-emerald-500 text-emerald-950"
+                                : answered
+                                  ? "bg-amber-400 text-amber-950"
+                                  : ready
+                                    ? "bg-white/15"
+                                    : "bg-white/5"
+                            }`}
+                          >
+                            {correct ? "✓" : answered ? "!" : index + 1}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-medium">{section.title || t(cfg.labelKey as any)}</span>
+                            <span className="block text-[10px] text-emerald-100/45">
+                              {ready ? t(cfg.labelKey as any) : "Writing…"}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </div>
+            </aside>
+
+            <div className="min-w-0 flex-1 space-y-4">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:hidden">
               <List className="w-3.5 h-3.5 shrink-0 text-emerald-200/70" />
               {document.sections.map((section, index) => {
                 const cfg = sectionConfig[section.type] || sectionConfig.explanation;
@@ -472,6 +529,7 @@ export function LivingBlackboard({
                 </article>
               );
             })}
+            </div>
           </div>
         )}
       </main>
