@@ -3,7 +3,7 @@
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
-import { GraduationCap, Sparkles, Menu, X, LayoutDashboard, Compass, Swords, ShoppingBag, School } from "lucide-react";
+import { Sparkles, Menu, X, LayoutDashboard, Compass, Swords, ShoppingBag, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/edubek/theme-toggle";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
@@ -15,23 +15,16 @@ export function LandingHeader() {
   const { user, isLoading } = useCurrentUser();
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/85 backdrop-blur-md transition-colors" id="landing-header">
+    <header
+      className="sticky top-0 z-50 w-full border-b border-border/70 bg-background/75 backdrop-blur-xl"
+      id="landing-header"
+    >
       <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 font-bold text-lg tracking-tight">
-          <img
-            src="/logo.svg"
-            alt="EduBek"
-            width={36}
-            height={36}
-            className="h-9 w-9 rounded-xl"
-          />
-          <span className="font-semibold tracking-tight text-lg leading-tight">
-            EduBek
-          </span>
+          <img src="/logo.svg" alt="EduBek" width={36} height={36} className="h-9 w-9 rounded-xl shadow-sm" />
+          <span className="font-semibold tracking-tight text-lg leading-tight">EduBek</span>
         </Link>
 
-        {/* Center / Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground" id="landing-desktop-nav">
           <Link href="/discover" className="transition-colors hover:text-foreground">
             {tNav("discover")}
@@ -51,13 +44,12 @@ export function LandingHeader() {
           </Link>
         </nav>
 
-        {/* Right side controls */}
         <div className="flex items-center gap-2.5" id="landing-auth-actions">
           <LanguageSwitcher />
           <ThemeToggle />
 
           {!isLoading && user ? (
-            <Button size="sm" asChild className="gap-2 font-medium" id="landing-btn-dashboard">
+            <Button size="sm" asChild className="gap-2 font-medium shadow-sm" id="landing-btn-dashboard">
               <Link href="/dashboard">
                 <LayoutDashboard className="h-4 w-4" />
                 <span>{tNav("dashboard")}</span>
@@ -65,16 +57,21 @@ export function LandingHeader() {
             </Button>
           ) : (
             <>
-              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex text-muted-foreground hover:text-foreground font-medium" id="landing-btn-signin">
+              <Button
+                variant="ghost"
+                size="sm"
+                asChild
+                className="hidden sm:inline-flex text-muted-foreground hover:text-foreground font-medium"
+                id="landing-btn-signin"
+              >
                 <Link href="/login">{tNav("login")}</Link>
               </Button>
-              <Button size="sm" asChild className="font-medium shadow-xs" id="landing-btn-getstarted">
+              <Button size="sm" asChild className="font-medium shadow-sm" id="landing-btn-getstarted">
                 <Link href="/register">{tNav("register")}</Link>
               </Button>
             </>
           )}
 
-          {/* Mobile Menu Toggle */}
           <button
             type="button"
             className="flex h-9 w-9 items-center justify-center rounded-lg border border-border text-foreground md:hidden hover:bg-muted"
@@ -87,63 +84,34 @@ export function LandingHeader() {
         </div>
       </div>
 
-      {/* Mobile navigation panel */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-b border-border bg-background px-4 py-5 shadow-lg animate-in slide-in-from-top duration-200" id="landing-mobile-menu">
+        <div className="md:hidden border-b border-border bg-background/95 px-4 py-5 shadow-lg" id="landing-mobile-menu">
           <nav className="flex flex-col space-y-3">
-            <Link
-              href="/discover"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
+            <Link href="/discover" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
               <Compass className="h-4 w-4 text-primary" />
               <span>{tNav("discover")}</span>
             </Link>
-            <Link
-              href="/live-quiz"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
+            <Link href="/live-quiz" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
               <Swords className="h-4 w-4 text-primary" />
               <span>{tNav("liveQuiz")}</span>
             </Link>
-            <Link
-              href="/marketplace"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
+            <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
               <ShoppingBag className="h-4 w-4 text-primary" />
               <span>{tNav("marketplace")}</span>
             </Link>
-            <Link
-              href="/classrooms"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
+            <Link href="/classrooms" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
               <School className="h-4 w-4 text-primary" />
               <span>{tNav("forEducators")}</span>
             </Link>
-            <Link
-              href="/ai-workspace"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
+            <Link href="/ai-workspace" onClick={() => setMobileMenuOpen(false)} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground">
               <Sparkles className="h-4 w-4 text-primary" />
               <span>{tNav("aiWorkspace")}</span>
             </Link>
             <div className="pt-2 border-t flex flex-col gap-2">
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted"
-              >
+              <Link href="/login" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted">
                 {tNav("login")}
               </Link>
-              <Link
-                href="/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-xs"
-              >
+              <Link href="/register" onClick={() => setMobileMenuOpen(false)} className="flex items-center justify-center rounded-lg bg-primary text-primary-foreground px-4 py-2 text-sm font-medium shadow-xs">
                 {tNav("register")}
               </Link>
             </div>

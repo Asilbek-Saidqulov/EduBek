@@ -42,7 +42,8 @@
     "searchPlatform": "Qidirish…",
     "tokenBalance": "Kreditlar",
     "logOutTitle": "Chiqish",
-    "productTag": "O‘qish"
+    "productTag": "O‘qish",
+    "printTests": "Chop etish testlari"
   },
   "tutor": {
     "title": "EduBek AI Repetitor",
@@ -172,8 +173,7 @@
     "locale": "Hududiy til",
     "step": "Qadam",
     "system": "Tizim",
-    "searchPlaceholder": "Qidirish...",
-    "noDescription": "Tavsif yo‘q"
+    "searchPlaceholder": "Qidirish..."
   },
   "errors": {
     "unauthorized": "Tizimga kirish talab qilinadi",
@@ -17650,7 +17650,7 @@
       "emptyTeacher": "Hali sinf yo‘q.",
       "join": "Qo‘shilish",
       "create": "Sinf yaratish",
-      "meta": "{students} o‘quvchi • {assignments} topshiriq"
+      "meta": "{students} o‘quvchi, {assignments} topshiriq"
     },
     "credits": {
       "title": "AI kreditlar",
@@ -17983,5 +17983,9 @@
     "startPractice": "5 savolni boshlash",
     "firstPracticeTitle": "Birinchi mashq testi",
     "emptyPracticeHint": "Sinf testi yo‘q. 5 savollik aralash mashqni ishlang. Xatodan keyin Tutor tushuntiradi."
+  },
+  "printTests": {
+    "title": "Har o‘quvchiga alohida test",
+    "subtitle": "Bir xil mavzu, har varaqada boshqa sonlar."
   }
 }

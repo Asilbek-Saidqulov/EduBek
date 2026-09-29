@@ -42,7 +42,8 @@
     "searchPlatform": "Search…",
     "tokenBalance": "Credits",
     "logOutTitle": "Log out",
-    "productTag": "Learn"
+    "productTag": "Learn",
+    "printTests": "Print tests"
   },
   "tutor": {
     "title": "EduBek AI Tutor",
@@ -153,8 +154,7 @@
     "language": "Language",
     "locale": "Locale",
     "step": "Step",
-    "system": "System",
-    "noDescription": "No description"
+    "system": "System"
   },
   "errors": {
     "unauthorized": "Authentication required",
@@ -17610,7 +17610,7 @@
       "emptyStudent": "You haven't joined any classes yet. Ask your teacher for a class code to join.",
       "create": "Create class",
       "join": "Join class",
-      "meta": "{students} students • {assignments} tasks"
+      "meta": "{students} students • {assignment} tasks"
     },
     "credits": {
       "title": "AI credits",
@@ -17928,5 +17928,8 @@
     "startPractice": "Start 5 questions",
     "firstPracticeTitle": "First practice quiz",
     "emptyPracticeHint": "No class quiz is waiting. Take a 5-question mix. After a miss, open Tutor to see why."
+  },
+  "printTests": {
+    "title": "Print unique tests", "subtitle": "Different numbers for every student, same skills."
   }
 }

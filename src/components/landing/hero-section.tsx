@@ -52,8 +52,9 @@ export function HeroSection() {
 
   return (
     <section className="relative overflow-hidden pt-12 pb-20 md:pt-20 md:pb-28 border-b border-border/60" id="hero-section">
-      {/* Background subtle structural grid */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:28px_28px] pointer-events-none" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#0f3b4810_1px,transparent_1px),linear-gradient(to_bottom,#0f3b4810_1px,transparent_1px)] bg-[size:32px_32px]" />
+      <div className="pointer-events-none absolute -left-24 top-10 h-72 w-72 rounded-full bg-primary/15 blur-3xl" />
+      <div className="pointer-events-none absolute right-0 top-20 h-80 w-80 rounded-full bg-amber-300/25 blur-3xl" />
 
       <div className="container relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
@@ -62,7 +63,7 @@ export function HeroSection() {
           <div className="lg:col-span-6 flex flex-col items-start text-left space-y-6">
             
             {/* Context pill */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3.5 py-1 text-xs font-medium text-primary">
+            <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-card/80 px-3.5 py-1 text-xs font-medium text-primary shadow-sm backdrop-blur">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               <span>{t("pill")}</span>
             </div>
@@ -70,7 +71,7 @@ export function HeroSection() {
             {/* Core Headline */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-foreground leading-[1.1] text-balance">
               {t("titlePart1")} <br className="hidden sm:inline" />
-              <span className="text-primary underline decoration-primary/30 decoration-wavy underline-offset-8">
+              <span className="bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent underline decoration-primary/30 decoration-wavy underline-offset-8">
                 {t("titleConnects")}
               </span>
             </h1>
@@ -82,7 +83,7 @@ export function HeroSection() {
 
             {/* CTA Buttons */}
             <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto pt-2">
-              <Button size="lg" asChild className="h-12 px-6 font-semibold shadow-sm gap-2" id="hero-cta-primary">
+              <Button size="lg" asChild className="h-12 px-6 font-semibold shadow-md gap-2" id="hero-cta-primary">
                 <Link href="/register">
                   <span>{t("getStarted")}</span>
                   <ArrowRight className="h-4 w-4" />
@@ -145,7 +146,7 @@ export function HeroSection() {
           <div className="lg:col-span-6 relative">
             
             {/* Outer window frame container */}
-            <div className="rounded-2xl border border-border/90 bg-card p-4 sm:p-6 shadow-xl relative overflow-hidden backdrop-blur-sm">
+            <div className="eb-lift-strong relative overflow-hidden rounded-3xl border border-border/80 bg-card/95 p-4 sm:p-6 backdrop-blur-sm">
               
               {/* Window header simulation */}
               <div className="flex items-center justify-between pb-4 mb-4 border-b border-border/80">

@@ -42,7 +42,8 @@
     "searchPlatform": "Поиск…",
     "tokenBalance": "Кредиты",
     "logOutTitle": "Выйти",
-    "productTag": "Учёба"
+    "productTag": "Учёба",
+    "printTests": "Печать тестов"
   },
   "tutor": {
     "title": "EduBek ИИ Репетитор",
@@ -153,8 +154,7 @@
     "language": "Язык",
     "locale": "Локаль",
     "step": "Шаг",
-    "system": "Система",
-    "noDescription": "Нет описания"
+    "system": "Система"
   },
   "errors": {
     "unauthorized": "Требуется аутентификация",
@@ -17610,7 +17610,7 @@
       "emptyTeacher": "Классов пока нет.",
       "join": "Присоединиться",
       "create": "Создать класс",
-      "meta": "{students} учеников • {assignments} заданий"
+      "meta": "{students} учеников, {assignments} заданий"
     },
     "credits": {
       "title": "AI-кредиты",
@@ -17928,5 +17928,9 @@
     "startPractice": "Начать 5 вопросов",
     "firstPracticeTitle": "Первая практическая викторина",
     "emptyPracticeHint": "Классной викторины пока нет. Пройдите смесь из 5 вопросов. После ошибки откройте Tutor."
+  },
+  "printTests": {
+    "title": "Уникальные бумажные тесты",
+    "subtitle": "Одни навыки — разные числа у каждого ученика."
   }
 }

@@ -37,8 +37,6 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Sprint 1 brand accents — each persona has a foreground/bg/border trio.
-     Tailwind sees them as bg-student, text-student, border-student, etc. */
   --color-student: var(--student);
   --color-student-foreground: var(--student-foreground);
   --color-student-border: var(--student-border);
@@ -68,59 +66,55 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --radius: 0.9rem;
+  --background: oklch(0.985 0.012 95);
+  --foreground: oklch(0.22 0.03 230);
+  --card: oklch(0.996 0.006 95);
+  --card-foreground: oklch(0.22 0.03 230);
+  --popover: oklch(0.996 0.006 95);
+  --popover-foreground: oklch(0.22 0.03 230);
+  --primary: oklch(0.42 0.1 200);
+  --primary-foreground: oklch(0.99 0.01 95);
+  --secondary: oklch(0.96 0.016 95);
+  --secondary-foreground: oklch(0.28 0.04 220);
+  --muted: oklch(0.96 0.014 95);
+  --muted-foreground: oklch(0.5 0.03 230);
+  --accent: oklch(0.96 0.03 185);
+  --accent-foreground: oklch(0.28 0.06 200);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --border: oklch(0.9 0.016 95);
+  --input: oklch(0.9 0.016 95);
+  --ring: oklch(0.42 0.1 200);
+  --chart-1: oklch(0.55 0.14 200);
+  --chart-2: oklch(0.6 0.14 160);
+  --chart-3: oklch(0.65 0.14 70);
+  --chart-4: oklch(0.6 0.16 290);
+  --chart-5: oklch(0.62 0.16 20);
+  --sidebar: oklch(0.975 0.014 95);
+  --sidebar-foreground: oklch(0.22 0.03 230);
+  --sidebar-primary: oklch(0.42 0.1 200);
+  --sidebar-primary-foreground: oklch(0.99 0.01 95);
+  --sidebar-accent: oklch(0.95 0.025 185);
+  --sidebar-accent-foreground: oklch(0.28 0.06 200);
+  --sidebar-border: oklch(0.9 0.016 95);
+  --sidebar-ring: oklch(0.42 0.1 200);
 
-  /* Sprint 1 — Brand accent palette.
-     OKLCH pairs for each persona: base color + a low-chroma tint for
-     backgrounds + a near-transparent border tint. The base colors mirror
-     the Tailwind 500/600 hue family that the landing page already uses. */
-  --student: oklch(0.65 0.18 230);            /* sky-500 */
+  --student: oklch(0.65 0.18 230);
   --student-foreground: oklch(0.985 0 0);
   --student-border: oklch(0.65 0.18 230 / 30%);
-  --teacher: oklch(0.6 0.16 160);             /* emerald-500 */
+  --teacher: oklch(0.6 0.16 160);
   --teacher-foreground: oklch(0.985 0 0);
   --teacher-border: oklch(0.6 0.16 160 / 30%);
-  --creator: oklch(0.65 0.22 0);              /* pink-500 */
+  --creator: oklch(0.65 0.22 0);
   --creator-foreground: oklch(0.985 0 0);
   --creator-border: oklch(0.65 0.22 0 / 30%);
-  --school: oklch(0.72 0.17 70);              /* amber-500 */
+  --school: oklch(0.72 0.17 70);
   --school-foreground: oklch(0.18 0 0);
   --school-border: oklch(0.72 0.17 70 / 30%);
-  --admin: oklch(0.45 0.02 250);              /* slate-600 */
+  --admin: oklch(0.45 0.02 250);
   --admin-foreground: oklch(0.985 0 0);
   --admin-border: oklch(0.45 0.02 250 / 30%);
-  --ai: oklch(0.6 0.22 290);                  /* violet-500 */
+  --ai: oklch(0.6 0.22 290);
   --ai-foreground: oklch(0.985 0 0);
   --ai-border: oklch(0.6 0.22 290 / 30%);
   --success: oklch(0.6 0.16 160);
@@ -130,39 +124,38 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
+  --background: oklch(0.18 0.02 230);
+  --foreground: oklch(0.97 0.01 95);
+  --card: oklch(0.23 0.022 230);
+  --card-foreground: oklch(0.97 0.01 95);
+  --popover: oklch(0.23 0.022 230);
+  --popover-foreground: oklch(0.97 0.01 95);
+  --primary: oklch(0.78 0.09 195);
+  --primary-foreground: oklch(0.18 0.03 230);
+  --secondary: oklch(0.28 0.02 230);
+  --secondary-foreground: oklch(0.97 0.01 95);
+  --muted: oklch(0.28 0.02 230);
+  --muted-foreground: oklch(0.74 0.02 220);
+  --accent: oklch(0.3 0.04 200);
+  --accent-foreground: oklch(0.97 0.01 95);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.78 0.09 195);
+  --chart-1: oklch(0.7 0.12 200);
+  --chart-2: oklch(0.7 0.14 160);
+  --chart-3: oklch(0.78 0.14 70);
+  --chart-4: oklch(0.7 0.16 290);
+  --chart-5: oklch(0.68 0.16 20);
+  --sidebar: oklch(0.2 0.022 230);
+  --sidebar-foreground: oklch(0.97 0.01 95);
+  --sidebar-primary: oklch(0.78 0.09 195);
+  --sidebar-primary-foreground: oklch(0.18 0.03 230);
+  --sidebar-accent: oklch(0.28 0.04 200);
+  --sidebar-accent-foreground: oklch(0.97 0.01 95);
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: oklch(0.78 0.09 195);
 
-  /* Brand accents — slightly brighter chroma in dark mode for contrast. */
   --student: oklch(0.7 0.18 230);
   --student-foreground: oklch(0.145 0 0);
   --student-border: oklch(0.7 0.18 230 / 35%);
@@ -192,11 +185,29 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(1200px 500px at 10% -10%, color-mix(in oklch, var(--primary) 10%, transparent), transparent 55%),
+      radial-gradient(900px 420px at 100% 0%, color-mix(in oklch, var(--school) 12%, transparent), transparent 50%);
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 22%, transparent);
   }
 }
 
-/* Game mode motion — respect reduced motion */
+.eb-lift {
+  box-shadow:
+    0 1px 1px rgb(20 40 50 / 0.04),
+    0 12px 32px -16px rgb(20 50 70 / 0.18);
+}
+
+.eb-lift-strong {
+  box-shadow:
+    0 1px 1px rgb(20 40 50 / 0.05),
+    0 24px 50px -24px rgb(18 60 80 / 0.28);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mode-rise,
   .mode-opt,
@@ -277,14 +288,8 @@
 }
 
 @keyframes board-section-in {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .board-section-in {
