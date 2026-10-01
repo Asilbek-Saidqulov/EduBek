@@ -1,0 +1,116 @@
+.panda-stage {
+  position: relative;
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+.panda-shadow {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  bottom: 4%;
+  height: 8%;
+  border-radius: 999px;
+  background: rgb(15 23 42 / 0.16);
+  filter: blur(2px);
+  transform-origin: center;
+  animation: panda-shadow 3.4s ease-in-out infinite;
+}
+.panda-rig {
+  position: absolute;
+  inset: 0;
+  transform-origin: 50% 88%;
+  animation: panda-sway 3.4s ease-in-out infinite;
+}
+.panda-sprite {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform-origin: 50% 72%;
+  animation: panda-breathe 3.4s ease-in-out infinite;
+  user-select: none;
+  pointer-events: none;
+}
+.panda-lid {
+  position: absolute;
+  top: 33.5%;
+  height: 7.2%;
+  width: 9.5%;
+  border-radius: 999px;
+  background: #f7f7f7;
+  transform: scaleY(0.08);
+  transform-origin: center;
+  opacity: 0;
+  pointer-events: none;
+}
+.panda-lid-l { left: 33.5%; }
+.panda-lid-r { left: 55.5%; }
+.panda-lid.is-shut {
+  opacity: 1;
+  transform: scaleY(1);
+  transition: transform 70ms ease-in, opacity 40ms linear;
+}
+.panda-pupils {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: transform 0.7s ease;
+}
+.panda-pupils::before,
+.panda-pupils::after {
+  content: "";
+  position: absolute;
+  top: 35.2%;
+  width: 2.2%;
+  height: 2.2%;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: 0 0 0 0.4px rgb(255 255 255 / 0.3);
+}
+.panda-pupils::before { left: 36.2%; }
+.panda-pupils::after { left: 58.4%; }
+.panda-tassel {
+  position: absolute;
+  top: 16%;
+  left: 62%;
+  width: 2px;
+  height: 14%;
+  border-radius: 999px;
+  background: linear-gradient(#e8c56b, #c9a24a);
+  transform-origin: top center;
+  animation: panda-tassel 2.6s ease-in-out infinite;
+  opacity: 0.0;
+}
+
+.panda-cheer .panda-rig { animation: panda-hop 0.7s ease-in-out infinite; }
+.panda-worry .panda-rig { animation: panda-worry 0.45s ease-in-out infinite; }
+.panda-win .panda-rig { animation: panda-hop 0.55s ease-in-out infinite; }
+
+@keyframes panda-breathe {
+  0%, 100% { transform: scale(1, 1); }
+  50% { transform: scale(1.015, 1.028); }
+}
+@keyframes panda-sway {
+  0%, 100% { transform: rotate(-1.1deg) translateY(0); }
+  50% { transform: rotate(1.2deg) translateY(-1.5%); }
+}
+@keyframes panda-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.7; }
+  50% { transform: scaleX(0.86); opacity: 0.45; }
+}
+@keyframes panda-tassel {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(12deg); }
+}
+@keyframes panda-hop {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  40% { transform: translateY(-8%) rotate(2deg); }
+}
+@keyframes panda-worry {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-3%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panda-rig, .panda-sprite, .panda-shadow, .panda-tassel { animation: none !important; }
+}

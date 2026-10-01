@@ -33,6 +33,7 @@ import { ThemeToggle } from "@/components/edubek/theme-toggle";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { GlobalSearchDialog } from "@/components/edubek/global-search-dialog";
+import { PandaMascot } from "@/components/edubek/panda-mascot";
 
 interface AppShellProps {
   user?: any;
@@ -198,9 +199,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
       >
         <div className="flex h-16 items-center justify-between border-b px-4">
           <Link href="/dashboard" className="flex items-center gap-2.5 font-bold tracking-tight">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm shrink-0">
-              <GraduationCap className="h-5 w-5" />
-            </div>
+            <PandaMascot size={40} mood="idle" />
             {!collapsed && (
               <div className="flex flex-col">
                 <span className="text-base font-bold bg-gradient-to-r from-foreground to-foreground/80 bg-clip-text">
@@ -390,9 +389,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
             <div className="relative flex w-72 flex-col bg-card p-4 shadow-2xl z-50">
               <div className="flex items-center justify-between border-b pb-3 mb-3">
                 <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2 font-bold">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                    <GraduationCap className="h-4 w-4" />
-                  </div>
+                  <PandaMascot size={36} mood="idle" />
                   <span>EduBek</span>
                 </Link>
                 <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
