@@ -60,6 +60,68 @@
 .mode-arena-royale .mode-sparkle { background: #f43f5e; animation-name: mode-heart-pop; animation-duration: 1.8s; }
 .mode-arena-battle .mode-sparkle { background: #c084fc; }
 
+@keyframes q-slam {
+  0% { opacity: 0; transform: translateY(18px) scale(0.96); }
+  70% { transform: translateY(-4px) scale(1.01); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes opt-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes float-award {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(0.8); }
+  20% { opacity: 1; transform: translate(-50%, -8px) scale(1.05); }
+  100% { opacity: 0; transform: translate(-50%, -42px) scale(1); }
+}
+@keyframes ready-pop {
+  0% { opacity: 0; transform: scale(0.7); }
+  55% { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 0; transform: scale(1.2); }
+}
+@keyframes lock-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+.q-slam { animation: q-slam 0.45s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.opt-in { animation: opt-in 0.38s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.float-award {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  z-index: 5;
+  pointer-events: none;
+  font-weight: 800;
+  font-size: 1.25rem;
+  animation: float-award 1.15s ease-out forwards;
+}
+.ready-beat {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in oklab, var(--background) 55%, transparent);
+  backdrop-filter: blur(6px);
+  border-radius: inherit;
+}
+.ready-beat span {
+  font-size: clamp(2.5rem, 8vw, 4.5rem);
+  font-weight: 900;
+  letter-spacing: -0.04em;
+  animation: ready-pop 0.9s ease-out forwards;
+}
+.lock-pulse { animation: lock-pulse 0.35s ease-out; }
+
+.letter-a { background: #e21b3c; color: #fff; }
+.letter-b { background: #1368ce; color: #fff; }
+.letter-c { background: #d89e00; color: #fff; }
+.letter-d { background: #26890c; color: #fff; }
+
 @media (prefers-reduced-motion: reduce) {
-  .mode-bob, .mode-cheer, .mode-worry, .mode-sparkle { animation: none !important; }
+  .mode-bob, .mode-cheer, .mode-worry, .mode-sparkle,
+  .q-slam, .opt-in, .float-award, .ready-beat span, .lock-pulse { animation: none !important; }
 }

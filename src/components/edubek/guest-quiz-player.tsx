@@ -339,6 +339,7 @@ export function GuestQuizPlayer({
   const [pendingGold, setPendingGold] = React.useState(0);
   const [battleYou, setBattleYou] = React.useState(0);
   const [battleThem, setBattleThem] = React.useState(0);
+  const [readyBeat, setReadyBeat] = React.useState(true);
 
   const startTimeRef = React.useRef<number>(Date.now());
   const questionStartTimeRef = React.useRef<number>(Date.now());
@@ -429,6 +430,7 @@ export function GuestQuizPlayer({
     setPowerupUsedFiftyFifty(false);
     setLastWasCorrect(null);
     setLastAward(null);
+    setReadyBeat(true);
     questionStartTimeRef.current = Date.now();
   }, [currentIndex]);
 
@@ -770,7 +772,15 @@ export function GuestQuizPlayer({
   React.useEffect(() => {
     expireLockRef.current = false;
     setTimeLeft(questionSeconds);
+    const beat = window.setTimeout(() => setReadyBeat(false), 900);
+    return () => window.clearTimeout(beat);
   }, [currentIndex, questionSeconds]);
+
+  React.useEffect(() => {
+    if (!isAnswered || heistChoiceOpen || isFinished || isSubmitting) return;
+    const go = window.setTimeout(() => handleNextRef.current(), 1500);
+    return () => window.clearTimeout(go);
+  }, [isAnswered, heistChoiceOpen, isFinished, isSubmitting, currentIndex]);
 
   React.useEffect(() => {
     if (isFinished || isSubmitting || isAnswered) return;
@@ -1204,8 +1214,14 @@ export function GuestQuizPlayer({
       <Progress value={progressPct} className={`h-2 rounded-full ${mode === "heist" ? "bg-yellow-900/40" : ""}`} />
 
       {/* Main Question Card */}
-      <Card className={`shadow-md p-6 sm:p-8 space-y-6 ${mode === "heist" || mode === "royale" || mode === "battle" ? "bg-black/30 border-white/10 text-inherit" : "border-border/80"}`}>
-        <div className="flex items-start justify-between gap-4">
+      <Card className={`relative overflow-hidden shadow-md p-6 sm:p-8 space-y-6 ${mode === "heist" || mode === "royale" || mode === "battle" ? "bg-black/30 border-white/10 text-inherit" : "border-border/80"}`}>
+        {readyBeat && (
+          <div className="ready-beat" aria-hidden>
+            <span>Go!</span>
+          </div>
+        )}
+        {lastAward && isAnswered && <div className={`float-award ${lastWasCorrect ? "text-emerald-500" : "text-rose-500"}`}>{lastAward}</div>}
+        <div className="q-slam flex items-start justify-between gap-4">
           <div className="space-y-1.5 flex-1">
             {currentQ.topic && (
               <Badge variant="secondary" className="text-[10px] uppercase font-semibold">
@@ -1273,18 +1289,19 @@ export function GuestQuizPlayer({
                 btnStyle = `${skin.optionOn} font-bold`;
               }
 
+              const letterClass = ["letter-a", "letter-b", "letter-c", "letter-d"][idx] || "letter-a";
               return (
                 <button
-                  key={idx}
+                  key={`${currentIndex}-${idx}`}
                   type="button"
                   onClick={() => handleSelectOption(idx)}
-                  className={`mode-opt p-4 rounded-xl border text-left text-sm transition-transform duration-200 hover:scale-[1.02] flex items-start gap-3 ${btnStyle} focus:outline-none ${isSelected ? "mode-combo" : ""}`}
-                  style={{ animationDelay: `${idx * 70}ms` }}
+                  className={`opt-in p-4 rounded-2xl border text-left text-sm transition-transform duration-200 hover:scale-[1.03] flex items-start gap-3 ${btnStyle} focus:outline-none ${isSelected ? "lock-pulse" : ""}`}
+                  style={{ animationDelay: `${180 + idx * 90}ms` }}
                 >
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-muted/60 text-xs font-mono font-bold">
+                  <span className={`flex size-8 shrink-0 items-center justify-center rounded-lg text-sm font-black ${letterClass}`}>
                     {String.fromCharCode(65 + idx)}
                   </span>
-                  <span className="leading-snug pt-0.5">{opt}</span>
+                  <span className="leading-snug pt-1">{opt}</span>
                 </button>
               );
             })}
