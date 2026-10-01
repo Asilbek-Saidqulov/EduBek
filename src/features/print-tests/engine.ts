@@ -484,6 +484,8 @@ function vocabWord(rng: () => number, locale: LocaleCode, material: string): Pri
 function wantsLanguage(subject: string, title: string, material: string): boolean {
   return /english|vocab|vocabulary|sat|language|so‘z|soz|lexic/i.test(`${subject} ${title}`) || vocabPairs(material).length >= 4;
 }
+
+const MATH_BUILDERS: Builder[] = [
   (rng, locale) => linearEquation(rng, locale),
   (rng, locale) => twoStep(rng, locale),
   (rng, locale) => percentOf(rng, locale),
