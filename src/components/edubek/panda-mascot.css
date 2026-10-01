@@ -164,4 +164,17 @@
   0%, 100% { transform: rotate(-10deg); }
   50% { transform: rotate(-2deg) translateX(-4px); }
 }
+.panda-cover { position: relative; }
+.panda-paws {
+  position: absolute;
+  left: 28%;
+  top: 34%;
+  width: 18%;
+  height: 12%;
+  border-radius: 999px;
+  background: #161616;
+  box-shadow: 28px 1px 0 #161616;
+}
+@media (prefers-reduced-motion: reduce) {
   .panda-rig, .panda-sprite, .panda-shadow, .panda-tassel { animation: none !important; }
+}
