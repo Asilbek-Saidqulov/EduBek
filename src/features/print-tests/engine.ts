@@ -149,6 +149,8 @@ export function compactSource(text: string, maxChars = 1600): string {
   const body = pairs.length >= 4 ? pairs : [...lines.filter((line) => line.length < 90).slice(0, 16), ...extractSentences(text).slice(0, 8)];
   return body.join("\n").slice(0, maxChars);
 }
+
+function extractTerms(text: string): string[] {
   const words = text.match(/[A-Za-zА-Яа-яЎўҚқҒғҲҳʼ']{5,24}/g) || [];
   const stop = new Set(
     "because there their which while after before about would could should these those using given find solve chapter section example student teacher".split(
