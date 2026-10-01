@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { PandaMascot } from "@/components/edubek/panda-mascot";
 
 export function HeroSection() {
   const t = useTranslations("landing.hero");
@@ -24,6 +25,7 @@ export function HeroSection() {
   const [pin, setPin] = React.useState("");
   const [selectedAnswer, setSelectedAnswer] = React.useState<number | null>(null);
   const [isAnswered, setIsAnswered] = React.useState(false);
+  const [cardHover, setCardHover] = React.useState(false);
 
   const sampleQuestion = {
     subject: t("sampleSubject"),
@@ -143,8 +145,18 @@ export function HeroSection() {
           </div>
 
           {/* Right Column: High-Craft Live Product Composition */}
-          <div className="lg:col-span-6 relative">
-            
+          <div
+            className="lg:col-span-6 relative pt-20"
+            onMouseEnter={() => setCardHover(true)}
+            onMouseLeave={() => setCardHover(false)}
+          >
+            {(() => {
+              const picked = sampleQuestion.options.find((opt) => opt.id === selectedAnswer);
+              const mood = isAnswered ? (picked?.correct ? "cheer" : "worry") : cardHover ? "cheer" : "idle";
+              const note = isAnswered ? (picked?.correct ? "Ha!" : "Hmm") : cardHover ? "Salom" : "";
+              return <PandaMascot size={108} mood={mood} hanging note={note} />;
+            })()}
+
             {/* Outer window frame container */}
             <div className="eb-lift-strong relative overflow-hidden rounded-3xl border border-border/80 bg-card/95 p-4 sm:p-6 backdrop-blur-sm">
               

@@ -26,6 +26,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { GoogleAuthButton } from "@/components/edubek/google-auth-button";
+import { AuthPanda } from "@/components/edubek/auth-panda";
+import type { PandaMood } from "@/components/edubek/panda-mascot";
 
 // Mirrors the backend registerBodySchema (see features/auth/auth.schema.ts).
 const registerSchema = z
@@ -74,6 +76,8 @@ export function RegisterForm() {
   const tErr = useTranslations("errors");
   const [formError, setFormError] = React.useState<string | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [focus, setFocus] = React.useState<string | null>(null);
+  const [badField, setBadField] = React.useState<string | null>(null);
 
   // The schema includes `confirmPassword` which the API doesn't want —
   // strip it before sending.
@@ -82,6 +86,11 @@ export function RegisterForm() {
     defaultValues: { name: "", email: "", password: "", confirmPassword: "", role: "student" },
     mode: "onSubmit",
   });
+  const email = form.watch("email");
+  const password = form.watch("password");
+  const confirmPassword = form.watch("confirmPassword");
+  const emailLooksWrong = email.length > 3 && !email.includes("@");
+  const mismatch = confirmPassword.length > 0 && confirmPassword !== password;
 
   async function onSubmit(values: RegisterValues) {
     setFormError(null);
@@ -100,6 +109,7 @@ export function RegisterForm() {
         credentials: "same-origin",
       });
       if (res.ok) {
+        setBadField(null);
         router.refresh();
         if (values.role === "teacher") {
           router.replace("/classrooms?first=1");
@@ -121,6 +131,7 @@ export function RegisterForm() {
                 : issue.path) as keyof RegisterValues,
               { type: "server", message: issue.message },
             );
+            setBadField(issue.path);
           }
         }
         return;
@@ -130,6 +141,7 @@ export function RegisterForm() {
       switch (code) {
         case "CONFLICT":
           message = tErr("alreadyExists");
+          setBadField("email");
           break;
         case "RATE_LIMITED":
           message = tErr("rateLimited");
@@ -145,7 +157,22 @@ export function RegisterForm() {
     }
   }
 
+  const mood: PandaMood = formError || badField || emailLooksWrong || mismatch ? "worry" : submitting ? "cheer" : "idle";
+  const note = emailLooksWrong || badField === "email"
+    ? "Email?"
+    : mismatch || badField === "confirmPassword"
+      ? "Mos emas"
+      : formError || badField
+        ? "Hmm"
+        : focus === "name"
+          ? "Salom"
+          : focus
+            ? "..."
+            : "";
+
   return (
+    <>
+      <AuthPanda mood={mood} note={note} cover={focus === "password" || focus === "confirmPassword"} />
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
@@ -171,6 +198,8 @@ export function RegisterForm() {
                   autoComplete="name"
                   placeholder="Your name"
                   {...field}
+                  onFocus={() => setFocus("name")}
+                  onBlur={() => setFocus(null)}
                 />
               </FormControl>
               <FormMessage />
@@ -219,6 +248,8 @@ export function RegisterForm() {
                   autoComplete="email"
                   placeholder="you@example.com"
                   {...field}
+                  onFocus={() => setFocus("email")}
+                  onBlur={() => setFocus(null)}
                 />
               </FormControl>
               <FormMessage />
@@ -237,6 +268,8 @@ export function RegisterForm() {
                   type="password"
                   autoComplete="new-password"
                   {...field}
+                  onFocus={() => setFocus("password")}
+                  onBlur={() => setFocus(null)}
                 />
               </FormControl>
               <FormMessage />
@@ -258,6 +291,8 @@ export function RegisterForm() {
                   type="password"
                   autoComplete="new-password"
                   {...field}
+                  onFocus={() => setFocus("confirmPassword")}
+                  onBlur={() => setFocus(null)}
                 />
               </FormControl>
               <FormMessage />
@@ -286,5 +321,6 @@ export function RegisterForm() {
         </p>
       </form>
     </Form>
+    </>
   );
 }

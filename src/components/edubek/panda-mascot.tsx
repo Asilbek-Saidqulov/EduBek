@@ -13,10 +13,14 @@ export function PandaMascot({
   size = 120,
   mood = "idle",
   className = "",
+  hanging = false,
+  note,
 }: {
   size?: number;
   mood?: PandaMood;
   className?: string;
+  hanging?: boolean;
+  note?: string;
 }) {
   const [blink, setBlink] = React.useState(false);
   const [gaze, setGaze] = React.useState({ x: 0, y: 0 });
@@ -66,11 +70,12 @@ export function PandaMascot({
 
   return (
     <span
-      className={`panda-stage panda-${mood} ${className}`}
+      className={`panda-stage panda-${mood} ${hanging ? "panda-hang" : ""} ${className}`}
       style={{ width: size, height: size }}
       aria-hidden
     >
       <span className="panda-shadow" />
+      {note ? <span className="panda-bubble">{note}</span> : null}
       <span className="panda-rig">
         <img src="/mascot-panda.png" alt="" className="panda-sprite" draggable={false} />
         <span

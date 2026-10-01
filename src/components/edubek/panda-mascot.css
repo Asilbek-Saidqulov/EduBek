@@ -111,6 +111,57 @@
   50% { transform: translateX(-3%); }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .panda-rig, .panda-sprite, .panda-shadow, .panda-tassel { animation: none !important; }
+.panda-hang {
+  position: absolute;
+  z-index: 6;
+  top: 0;
+  right: 18%;
+  transform: translateY(-58%);
+  filter: drop-shadow(0 10px 8px rgb(15 23 42 / 0.12));
+  cursor: pointer;
 }
+.panda-hang .panda-rig {
+  transform-origin: 50% 92%;
+  animation: panda-hang 2.8s ease-in-out infinite;
+}
+.panda-hang.panda-peek .panda-rig {
+  animation: panda-peek 0.7s ease-in-out infinite;
+}
+.panda-hang.panda-cheer .panda-rig {
+  animation: panda-hang-hop 0.55s ease-in-out infinite;
+}
+.panda-hang.panda-worry .panda-rig {
+  animation: panda-hang-worry 0.4s ease-in-out infinite;
+}
+.panda-bubble {
+  position: absolute;
+  left: 50%;
+  top: -6px;
+  transform: translate(-50%, -100%);
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgb(15 23 42 / 0.08);
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0f3b48;
+  box-shadow: 0 6px 16px rgb(15 23 42 / 0.08);
+  white-space: nowrap;
+}
+@keyframes panda-hang {
+  0%, 100% { transform: rotate(-7deg) translateY(0); }
+  50% { transform: rotate(6deg) translateY(2px); }
+}
+@keyframes panda-peek {
+  0%, 100% { transform: rotate(-2deg) translateY(4px) scale(1.04); }
+  50% { transform: rotate(3deg) translateY(8px) scale(1.06); }
+}
+@keyframes panda-hang-hop {
+  0%, 100% { transform: rotate(-8deg) translateY(0); }
+  45% { transform: rotate(8deg) translateY(-8px); }
+}
+@keyframes panda-hang-worry {
+  0%, 100% { transform: rotate(-10deg); }
+  50% { transform: rotate(-2deg) translateX(-4px); }
+}
+  .panda-rig, .panda-sprite, .panda-shadow, .panda-tassel { animation: none !important; }
