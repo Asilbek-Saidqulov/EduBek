@@ -1,0 +1,12 @@
+{
+  "nav.printTests": {
+    "en": "Print tests",
+    "uz": "Chop etish testlari",
+    "ru": "Печать тестов"
+  },
+  "printTests": {
+    "en": { "title": "Print unique tests", "subtitle": "Different numbers for every student, same skills." },
+    "uz": { "title": "Har o‘quvchiga alohida test", "subtitle": "Bir xil mavzu, har varaqada boshqa sonlar." },
+    "ru": { "title": "Уникальные бумажные тесты", "subtitle": "Одни навыки — разные числа у каждого ученика." }
+  }
+}

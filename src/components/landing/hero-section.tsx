@@ -145,18 +145,8 @@ export function HeroSection() {
           </div>
 
           {/* Right Column: High-Craft Live Product Composition */}
-          <div
-            className="lg:col-span-6 relative pt-20"
-            onMouseEnter={() => setCardHover(true)}
-            onMouseLeave={() => setCardHover(false)}
-          >
-            {(() => {
-              const picked = sampleQuestion.options.find((opt) => opt.id === selectedAnswer);
-              const mood = isAnswered ? (picked?.correct ? "cheer" : "worry") : cardHover ? "cheer" : "idle";
-              const note = isAnswered ? (picked?.correct ? "Ha!" : "Hmm") : cardHover ? "Salom" : "";
-              return <PandaMascot size={132} mood={mood} hanging note={note} />;
-            })()}
-
+          <div className="lg:col-span-6 relative">
+            
             {/* Outer window frame container */}
             <div className="eb-lift-strong relative overflow-hidden rounded-3xl border border-border/80 bg-card/95 p-4 sm:p-6 backdrop-blur-sm">
               

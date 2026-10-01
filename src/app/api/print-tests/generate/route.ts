@@ -6,6 +6,7 @@ import {
   generatePrintPack,
   type LocaleCode,
 } from "@/features/print-tests/engine";
+import { savePrintPack } from "@/features/print-tests/store";
 
 const bodySchema = z.object({
   title: z.string().max(160).optional(),
@@ -29,9 +30,21 @@ export async function POST(req: NextRequest) {
       locale,
       materialText: body.materialText ? extractPlainText(body.sourceName || "notes.txt", body.materialText) : "",
     });
+
+    let saved = false;
+    if (auth?.userId) {
+      try {
+        await savePrintPack(auth.userId, pack);
+        saved = true;
+      } catch (error) {
+        console.error("[print-tests] save failed", error);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       pack,
+      saved,
       teacherId: auth?.userId || null,
     });
   } catch (error: unknown) {

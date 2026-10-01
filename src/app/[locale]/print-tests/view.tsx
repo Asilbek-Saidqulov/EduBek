@@ -51,6 +51,21 @@ export function PrintTestsView() {
   const [error, setError] = React.useState<string | null>(null);
   const [pack, setPack] = React.useState<PrintPack | null>(null);
   const [previewIndex, setPreviewIndex] = React.useState(0);
+  const [savedNote, setSavedNote] = React.useState<string | null>(null);
+  const [savedPacks, setSavedPacks] = React.useState<
+    Array<{ id: string; title: string; studentCount: number; questionCount: number; createdAt: string }>
+  >([]);
+
+  const loadSaved = React.useCallback(async () => {
+    const res = await fetch("/api/print-tests").catch(() => null);
+    if (!res?.ok) return;
+    const json = await res.json().catch(() => null);
+    if (Array.isArray(json?.packs)) setSavedPacks(json.packs);
+  }, []);
+
+  React.useEffect(() => {
+    void loadSaved();
+  }, [loadSaved]);
 
   const onFile = async (file: File) => {
     setSourceName(file.name);
@@ -86,6 +101,8 @@ export function PrintTestsView() {
       if (!res.ok || !json.pack) throw new Error(json?.error?.message || "Generate failed");
       setPack(json.pack);
       setPreviewIndex(0);
+      setSavedNote(json.saved ? "Saved. You can reopen this pack later." : "Printed in this session only. Sign in and run the database migration to save it.");
+      void loadSaved();
     } catch {
       const local = generatePrintPack(payload);
       setPack(local);
@@ -93,6 +110,34 @@ export function PrintTestsView() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const openSaved = async (id: string) => {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/print-tests/${id}`);
+      const json = await res.json();
+      if (!res.ok || !json.pack) throw new Error("Could not open that pack");
+      setPack(json.pack);
+      setPreviewIndex(0);
+      setSavedNote("Opened the saved pack. Version codes are unchanged.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not open that pack");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const downloadHtml = (mode: "students" | "key") => {
+    if (!pack) return;
+    const blob = new Blob([buildPrintHtml(pack, mode)], { type: "text/html;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${pack.title.replace(/[^\w-]+/g, "-")}-${mode}.html`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const sheet = pack?.sheets[previewIndex];
@@ -202,6 +247,7 @@ export function PrintTestsView() {
             </div>
 
             {error ? <p className="text-sm text-destructive">{error}</p> : null}
+            {savedNote ? <p className="text-sm text-primary">{savedNote}</p> : null}
 
             <Button className="w-full h-11 shadow-sm" onClick={() => void generate()} disabled={busy}>
               <Sparkles className="mr-2 h-4 w-4" />
@@ -278,9 +324,30 @@ export function PrintTestsView() {
                   <KeyRound className="mr-2 h-4 w-4" />
                   Print answer key
                 </Button>
+                <Button variant="outline" onClick={() => downloadHtml("students")}>
+                  Download HTML
+                </Button>
               </div>
             </div>
           )}
+          {savedPacks.length > 0 ? (
+            <div className="mt-5 space-y-2 border-t pt-4">
+              <p className="text-sm font-medium">Saved packs</p>
+              {savedPacks.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => void openSaved(item.id)}
+                  className="flex w-full items-center justify-between rounded-xl border bg-background px-3 py-2 text-left text-sm hover:border-primary/40"
+                >
+                  <span className="truncate font-medium">{item.title}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {item.studentCount} students · {item.questionCount} questions
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </section>
       </div>
     </div>

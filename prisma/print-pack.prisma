@@ -1,0 +1,22 @@
+// Add this model to prisma/schema.prisma, and add this line on User:
+//   printPacks PrintPack[]
+// EduBek stores JSON as String, same as Question.options.
+
+model PrintPack {
+  id            String   @id @default(cuid())
+  teacherId     String
+  classroomId   String?
+  title         String
+  subject       String?
+  grade         String?
+  locale        String   @default("en")
+  skills        String   @default("[]")
+  sourceName    String?
+  studentCount  Int
+  questionCount Int
+  payload       String
+  createdAt     DateTime @default(now())
+  teacher       User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId, createdAt])
+}
