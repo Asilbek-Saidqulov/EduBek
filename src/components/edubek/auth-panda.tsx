@@ -50,7 +50,7 @@ export function AuthPanda({
       aria-hidden
     >
       <div className={cover ? "panda-cover" : ""}>
-        <PandaMascot size={128} mood={mood} note={note} />
+        <PandaMascot size={128} mood={mood} note={note} walking={!cover && mood === "idle"} />
         {cover ? <span className="panda-paws" /> : null}
       </div>
     </div>

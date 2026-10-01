@@ -5,86 +5,89 @@ import "./panda-mascot.css";
 
 export type PandaMood = "idle" | "cheer" | "worry" | "win";
 
-/**
- * Brand panda. The sprite is the supplied art; motion is layered on top
- * so it breathes, blinks, and looks around instead of sitting still.
- */
 export function PandaMascot({
   size = 120,
   mood = "idle",
   className = "",
   hanging = false,
+  walking = false,
   note,
 }: {
   size?: number;
   mood?: PandaMood;
   className?: string;
   hanging?: boolean;
+  walking?: boolean;
   note?: string;
 }) {
   const [blink, setBlink] = React.useState(false);
-  const [gaze, setGaze] = React.useState({ x: 0, y: 0 });
+  const [look, setLook] = React.useState(0);
 
   React.useEffect(() => {
     let blinkTimer = 0;
-    let gazeTimer = 0;
+    let lookTimer = 0;
     let alive = true;
-
     const scheduleBlink = () => {
-      const wait = 2200 + Math.random() * 2800;
       blinkTimer = window.setTimeout(() => {
         if (!alive) return;
         setBlink(true);
         window.setTimeout(() => {
           if (!alive) return;
           setBlink(false);
-          if (Math.random() < 0.25) {
-            window.setTimeout(() => setBlink(true), 140);
-            window.setTimeout(() => setBlink(false), 260);
-          }
           scheduleBlink();
-        }, 110);
-      }, wait);
+        }, 120);
+      }, 1800 + Math.random() * 2600);
     };
-
-    const scheduleGaze = () => {
-      const wait = 1600 + Math.random() * 2200;
-      gazeTimer = window.setTimeout(() => {
+    const scheduleLook = () => {
+      lookTimer = window.setTimeout(() => {
         if (!alive) return;
-        setGaze({
-          x: (Math.random() - 0.5) * 3.2,
-          y: (Math.random() - 0.5) * 1.6,
-        });
-        scheduleGaze();
-      }, wait);
+        setLook((Math.random() - 0.5) * 10);
+        scheduleLook();
+      }, 1400 + Math.random() * 1800);
     };
-
     scheduleBlink();
-    scheduleGaze();
+    scheduleLook();
     return () => {
       alive = false;
       window.clearTimeout(blinkTimer);
-      window.clearTimeout(gazeTimer);
+      window.clearTimeout(lookTimer);
     };
   }, []);
 
   return (
     <span
-      className={`panda-stage panda-${mood} ${hanging ? "panda-hang" : ""} ${className}`}
-      style={{ width: size, height: size }}
+      className={`panda3d panda-${mood} ${hanging ? "panda-hang" : ""} ${walking ? "is-walking" : ""} ${blink ? "is-blink" : ""} ${className}`}
+      style={{ width: size, height: size, ["--look" as string]: `${look}deg` }}
       aria-hidden
     >
-      <span className="panda-shadow" />
       {note ? <span className="panda-bubble">{note}</span> : null}
-      <span className="panda-rig">
-        <img src="/mascot-panda.png" alt="" className="panda-sprite" draggable={false} />
-        <span
-          className="panda-pupils"
-          style={{ transform: `translate(${gaze.x}px, ${gaze.y}px)` }}
-        />
-        <span className={`panda-lid panda-lid-l ${blink ? "is-shut" : ""}`} />
-        <span className={`panda-lid panda-lid-r ${blink ? "is-shut" : ""}`} />
-        <span className="panda-tassel" />
+      <span className="panda3d-stage">
+        <span className="panda3d-shadow" />
+        <span className="panda3d-body">
+          <span className="panda3d-leg panda3d-leg-l" />
+          <span className="panda3d-leg panda3d-leg-r" />
+          <span className="panda3d-torso">
+            <span className="panda3d-belly" />
+            <span className="panda3d-arm panda3d-arm-l" />
+            <span className="panda3d-arm panda3d-arm-r" />
+          </span>
+          <span className="panda3d-head">
+            <span className="panda3d-ear panda3d-ear-l" />
+            <span className="panda3d-ear panda3d-ear-r" />
+            <span className="panda3d-cap">
+              <span className="panda3d-board" />
+              <span className="panda3d-tassel" />
+            </span>
+            <span className="panda3d-face">
+              <span className="panda3d-patch panda3d-patch-l" />
+              <span className="panda3d-patch panda3d-patch-r" />
+              <span className="panda3d-eye panda3d-eye-l"><span /></span>
+              <span className="panda3d-eye panda3d-eye-r"><span /></span>
+              <span className="panda3d-nose" />
+              <span className="panda3d-smile" />
+            </span>
+          </span>
+        </span>
       </span>
     </span>
   );
