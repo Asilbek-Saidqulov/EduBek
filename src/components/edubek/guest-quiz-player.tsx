@@ -292,7 +292,7 @@ export function GuestQuizPlayer({
   const locale = useLocale();
   const activeAssessmentId = propAssessmentId || quizId;
   const [activeQuestions, setActiveQuestions] = React.useState<GuestQuizQuestion[]>(
-    propQuestions && propQuestions.length > 0 ? propQuestions : DEFAULT_QUESTIONS,
+    propQuestions && propQuestions.length > 0 ? propQuestions : quizId ? [] : DEFAULT_QUESTIONS,
   );
 
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -369,7 +369,26 @@ export function GuestQuizPlayer({
         return;
       }
 
-      if (activeAssessmentId && (!propQuestions || propQuestions.length === 0)) {
+      if (quizId && (!propQuestions || propQuestions.length === 0)) {
+        setIsLoadingAttempt(true);
+        try {
+          const play = await fetch(`/api/quizzes/${quizId}/play`);
+          if (play.ok) {
+            const data = await play.json();
+            const rows = data.quiz?.questions || data.questions || [];
+            if (isMounted && Array.isArray(rows) && rows.length > 0) {
+              setActiveQuestions(rows.map((aq: any) => mapServerQuestion(aq, data.quiz?.title || data.title, locale)));
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn("Could not load quiz questions:", err);
+        } finally {
+          if (isMounted) setIsLoadingAttempt(false);
+        }
+      }
+
+      if (activeAssessmentId && !quizId && (!propQuestions || propQuestions.length === 0)) {
         setIsLoadingAttempt(true);
         try {
           const res = await fetch(`/api/assessments/${activeAssessmentId}/start`, {
