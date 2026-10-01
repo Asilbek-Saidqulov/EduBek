@@ -154,7 +154,7 @@ export function HeroSection() {
               const picked = sampleQuestion.options.find((opt) => opt.id === selectedAnswer);
               const mood = isAnswered ? (picked?.correct ? "cheer" : "worry") : cardHover ? "cheer" : "idle";
               const note = isAnswered ? (picked?.correct ? "Ha!" : "Hmm") : cardHover ? "Salom" : "";
-              return <PandaMascot size={108} mood={mood} hanging note={note} />;
+              return <PandaMascot size={132} mood={mood} hanging note={note} />;
             })()}
 
             {/* Outer window frame container */}
