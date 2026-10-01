@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/edubek/theme-provider";
 import { QueryProvider } from "@/components/edubek/query-provider";
 import { routing, getDir, type Locale } from "@/i18n/routing";
+import { Analytics } from "@vercel/analytics/next";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -132,6 +133,7 @@ export default async function LocaleLayout({
             </NextIntlClientProvider>
           </QueryProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
