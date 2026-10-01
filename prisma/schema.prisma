@@ -94,6 +94,7 @@ model User {
   streaks              UserStreak?
   userSubs             UserSubscription[]           @relation("UserUserSubscriptions")
   wallet               Wallet?
+  printPacks           PrintPack[]
 
   @@index([email])
   @@index([username])
@@ -242,6 +243,25 @@ model UserFollow {
 
   @@unique([followerId, followeeId])
   @@index([followeeId])
+}
+
+model PrintPack {
+  id            String   @id @default(cuid())
+  teacherId     String
+  classroomId   String?
+  title         String
+  subject       String?
+  grade         String?
+  locale        String   @default("en")
+  skills        String   @default("[]")
+  sourceName    String?
+  studentCount  Int
+  questionCount Int
+  payload       String
+  createdAt     DateTime @default(now())
+  teacher       User     @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([teacherId, createdAt])
 }
 
 model Organization {
@@ -6723,7 +6743,6 @@ model AIGovernanceModel {
   @@index([status])
 }
 
-
 model EconomyJournalEntry {
   id            String               @id @default(cuid())
   journalCode   String
@@ -6739,44 +6758,44 @@ model EconomyJournalEntry {
 }
 
 model EconomyJournalLine {
-  id          String               @id @default(cuid())
+  id          String              @id @default(cuid())
   entryId     String
   account     String
   subAccount  String?
   currency    String
   direction   String
   amountMinor BigInt
-  createdAt   DateTime             @default(now())
-  entry       EconomyJournalEntry  @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  createdAt   DateTime            @default(now())
+  entry       EconomyJournalEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
 
   @@index([entryId])
 }
 
 model EconomyOrder {
-  id              String   @id @default(cuid())
-  buyerId         String
-  listingId       String?
-  status          String   @default("CREATED")
-  amountUzs       BigInt   @default(0)
-  currency        String   @default("UZS")
-  snapshot        String   @default("{}")
-  provider        String?
-  idempotencyKey  String?  @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String   @id @default(cuid())
+  buyerId        String
+  listingId      String?
+  status         String   @default("CREATED")
+  amountUzs      BigInt   @default(0)
+  currency       String   @default("UZS")
+  snapshot       String   @default("{}")
+  provider       String?
+  idempotencyKey String?  @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([buyerId])
   @@index([status])
 }
 
 model EconomyPaymentIntent {
-  id         String   @id @default(cuid())
-  orderId    String
-  provider   String
-  status     String   @default("CREATED")
-  amountUzs  BigInt
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  orderId   String
+  provider  String
+  status    String   @default("CREATED")
+  amountUzs BigInt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([orderId])
 }
@@ -6792,20 +6811,20 @@ model EconomyPaymentEvent {
 }
 
 model EconomyCreatorBalance {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  pendingUzs     BigInt   @default(0)
-  availableUzs   BigInt   @default(0)
-  payoutLockedUzs BigInt  @default(0)
-  updatedAt      DateTime @updatedAt
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  pendingUzs      BigInt   @default(0)
+  availableUzs    BigInt   @default(0)
+  payoutLockedUzs BigInt   @default(0)
+  updatedAt       DateTime @updatedAt
 }
 
 model EconomyEntitlement {
-  id         String   @id @default(cuid())
-  userId     String
-  listingId  String
-  orderId    String?
-  createdAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  listingId String
+  orderId   String?
+  createdAt DateTime @default(now())
 
   @@unique([userId, listingId])
 }

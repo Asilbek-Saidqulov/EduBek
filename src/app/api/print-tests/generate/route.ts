@@ -1,11 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getAuthContext } from "@/features/auth";
-import {
-  extractPlainText,
-  generatePrintPack,
-  type LocaleCode,
-} from "@/features/print-tests/engine";
+import { generatePrintPack, readableMaterial, type LocaleCode } from "@/features/print-tests/engine";
+import { buildItemBank } from "@/features/print-tests/ai-bank";
 import { savePrintPack } from "@/features/print-tests/store";
 
 const bodySchema = z.object({
@@ -25,12 +22,24 @@ export async function POST(req: NextRequest) {
     const auth = await getAuthContext().catch(() => null);
     const body = bodySchema.parse(await req.json());
     const locale = (body.locale || (auth as { locale?: string } | null)?.locale || "en") as LocaleCode;
-    const pack = generatePrintPack({
-      ...body,
-      locale,
-      materialText: body.materialText ? extractPlainText(body.sourceName || "notes.txt", body.materialText) : "",
-    });
-
+    const materialText = readableMaterial(body.materialText || "");
+    let bank = null;
+    let aiUsed = false;
+    if (materialText) {
+      try {
+        bank = await buildItemBank({
+          title: body.title || "",
+          subject: body.subject || "",
+          locale,
+          materialText,
+          questionCount: body.questionCount,
+        });
+        aiUsed = Boolean(bank?.length);
+      } catch (error) {
+        console.error("[print-tests] AI bank failed", error);
+      }
+    }
+    const pack = generatePrintPack({ ...body, locale, materialText, bank: bank || undefined });
     let saved = false;
     if (auth?.userId) {
       try {
@@ -40,23 +49,11 @@ export async function POST(req: NextRequest) {
         console.error("[print-tests] save failed", error);
       }
     }
-
-    return NextResponse.json({
-      success: true,
-      pack,
-      saved,
-      teacherId: auth?.userId || null,
-    });
+    return NextResponse.json({ success: true, pack, saved, aiUsed, teacherId: auth?.userId || null });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: { code: "VALIDATION_ERROR", issues: error.issues } },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: { code: "VALIDATION_ERROR", issues: error.issues } }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: { code: "INTERNAL_ERROR", message: "Could not build print variants." } },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: { code: "INTERNAL_ERROR", message: "Could not build print variants." } }, { status: 500 });
   }
 }

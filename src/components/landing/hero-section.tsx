@@ -17,7 +17,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { PandaMascot } from "@/components/edubek/panda-mascot";
 
 export function HeroSection() {
   const t = useTranslations("landing.hero");
@@ -25,7 +24,6 @@ export function HeroSection() {
   const [pin, setPin] = React.useState("");
   const [selectedAnswer, setSelectedAnswer] = React.useState<number | null>(null);
   const [isAnswered, setIsAnswered] = React.useState(false);
-  const [cardHover, setCardHover] = React.useState(false);
 
   const sampleQuestion = {
     subject: t("sampleSubject"),

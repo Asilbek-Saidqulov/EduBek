@@ -33,6 +33,8 @@ import { Badge } from "@/components/ui/badge";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { GuestQuizPlayer, GameModeType } from "@/components/edubek/guest-quiz-player";
 import { Link } from "@/i18n/navigation";
+import { buildPrintHtml, type PrintPack } from "@/features/print-tests/engine";
+import { Printer } from "lucide-react";
 
 interface GeneratedQuestion {
   question: string;
@@ -61,6 +63,20 @@ export function AiWorkspaceClient() {
   const [generatedQuestions, setGeneratedQuestions] = React.useState<GeneratedQuestion[] | null>(null);
   const [isSaved, setIsSaved] = React.useState(false);
   const [playingMode, setPlayingMode] = React.useState<GameModeType | null>(null);
+  const [uniquePapers, setUniquePapers] = React.useState(false);
+  const [studentCount, setStudentCount] = React.useState(12);
+  const [materialText, setMaterialText] = React.useState("");
+  const [printPack, setPrintPack] = React.useState<PrintPack | null>(null);
+
+  const openPrint = (mode: "students" | "key") => {
+    if (!printPack) return;
+    const frame = window.open("", "_blank", "noopener,noreferrer,width=900,height=1100");
+    if (!frame) return;
+    frame.document.open();
+    frame.document.write(buildPrintHtml(printPack, mode));
+    frame.document.close();
+    setTimeout(() => frame.print(), 250);
+  };
 
   // Tutor Chat State
   const [messages, setMessages] = React.useState<Array<{ role: "user" | "assistant"; text: string }>>([
@@ -152,10 +168,18 @@ export function AiWorkspaceClient() {
     setIsSaved(false);
 
     try {
-      const res = await fetch("/api/ai-workspace/generate-quiz", {
+      const endpoint = uniquePapers || materialText.trim() ? "/api/print-tests/from-quiz" : "/api/ai-workspace/generate-quiz";
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, count: questionCount, difficulty }),
+        body: JSON.stringify({
+          topic,
+          count: questionCount,
+          difficulty,
+          uniquePapers,
+          studentCount: uniquePapers ? studentCount : 1,
+          materialText,
+        }),
       });
       const data = await res.json();
 
@@ -167,6 +191,7 @@ export function AiWorkspaceClient() {
 
       if (data.questions && data.questions.length > 0) {
         setGeneratedQuestions(data.questions);
+        setPrintPack(data.pack || null);
         if (data.tokensDeducted) {
           setTokenBalance((prev) => Math.max(0, prev - data.tokensDeducted));
         }
@@ -341,9 +366,48 @@ export function AiWorkspaceClient() {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  Enter any syllabus subject, textbook chapter, or paste lesson notes.
+                  Enter a topic, paste notes, or upload a file. One quiz is created for play. Printing is optional.
                 </p>
+                <textarea
+                  value={materialText}
+                  onChange={(e) => setMaterialText(e.target.value)}
+                  placeholder="Optional notes or word list. A PDF/image can be pasted as text after upload."
+                  className="min-h-24 w-full rounded-lg border border-border/80 bg-card px-3 py-2 text-sm"
+                />
+                <label className="inline-flex cursor-pointer items-center gap-2 text-xs text-primary">
+                  Upload .txt, .pdf, or image
+                  <input
+                    type="file"
+                    accept=".txt,.md,.pdf,.png,.jpg,.jpeg,.webp"
+                    className="hidden"
+                    onChange={async (event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      const body = new FormData();
+                      body.set("file", file);
+                      const uploaded = await fetch("/api/print-tests/extract", { method: "POST", body });
+                      const json = await uploaded.json();
+                      if (!uploaded.ok || !json.text) {
+                        setGeneratorError(json?.error?.message || "Could not read that file.");
+                        return;
+                      }
+                      setMaterialText(json.text);
+                      if (!topic.trim()) setTopic(file.name.replace(/\.[^.]+$/, ""));
+                    }}
+                  />
+                </label>
               </div>
+
+              <label className="flex items-center gap-2 text-sm">
+                <input type="checkbox" checked={uniquePapers} onChange={(e) => setUniquePapers(e.target.checked)} />
+                Different paper for each student?
+              </label>
+              {uniquePapers ? (
+                <label className="block max-w-xs space-y-1 text-sm">
+                  <span>How many students?</span>
+                  <Input type="number" min={1} max={40} value={studentCount} onChange={(e) => setStudentCount(Number(e.target.value))} />
+                </label>
+              ) : null}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
@@ -442,6 +506,17 @@ export function AiWorkspaceClient() {
                     )}
                   </Button>
                 </div>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="outline" onClick={() => openPrint("students")} disabled={!printPack}>
+                  <Printer className="size-4" />
+                  Print papers
+                </Button>
+                <Button type="button" variant="outline" onClick={() => openPrint("key")} disabled={!printPack}>
+                  Print answer key
+                </Button>
+                {!printPack ? <span className="text-xs text-muted-foreground">Turn on different papers to print a version per student.</span> : null}
               </div>
 
               {/* Game Mode Launch Buttons */}

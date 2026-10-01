@@ -1,4 +1,3 @@
-git commit -- Incremental only. Does not replay 20260819 / 20260821 migrations.
 -- Safe to apply on a DB that already has those migrations.
 
 -- Classroom fields used by classroom.ts

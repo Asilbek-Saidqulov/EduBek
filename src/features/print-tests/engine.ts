@@ -52,6 +52,7 @@ export interface GenerateInput {
   sourceName?: string;
   studentNames?: string[];
   preferKinds?: QuestionKind[];
+  bank?: BankItem[];
 }
 
 function mulberry32(seed: number) {
@@ -110,28 +111,18 @@ function t(locale: LocaleCode, table: Record<LocaleCode, string>) {
   return table[locale] || table.en;
 }
 
+export function readableMaterial(text: string): string {
+  const clean = text.replace(/\u0000/g, " ").replace(/[^\S\n]+/g, " ").trim();
+  if (clean.includes("%PDF") || clean.includes("endobj")) return "";
+  const letters = (clean.match(/[A-Za-zА-Яа-яЎўҚқҒғҲҳ]/g) || []).length;
+  if (letters < 20 || letters / Math.max(clean.length, 1) < 0.3) return "";
+  return clean.slice(0, 40000);
+}
+
 export function extractPlainText(fileName: string, raw: string): string {
   const lower = fileName.toLowerCase();
-  if (!lower.endsWith(".pdf")) {
-    return raw.replace(/\u0000/g, " ").replace(/\s+/g, " ").trim();
-  }
-  const chunks: string[] = [];
-  const paren = /\((?:\\.|[^\\)]){2,120}\)/g;
-  let m: RegExpExecArray | null;
-  while ((m = paren.exec(raw))) {
-    const inner = m[0]
-      .slice(1, -1)
-      .replace(/\\n/g, " ")
-      .replace(/\\r/g, " ")
-      .replace(/\\\(/g, "(")
-      .replace(/\\\)/g, ")")
-      .replace(/\\[0-9]{3}/g, " ");
-    if (/[A-Za-zА-Яа-яЎўҚқҒғҲҳʼ'0-9]/.test(inner) && inner.replace(/[0-9\s.,-]/g, "").length > 1) {
-      chunks.push(inner);
-    }
-  }
-  const joined = chunks.join(" ").replace(/\s+/g, " ").trim();
-  return joined.slice(0, 40000);
+  if (lower.endsWith(".pdf") || raw.includes("%PDF")) return "";
+  return readableMaterial(raw);
 }
 
 function extractSentences(text: string): string[] {
@@ -142,7 +133,22 @@ function extractSentences(text: string): string[] {
     .slice(0, 40);
 }
 
-function extractTerms(text: string): string[] {
+export interface BankItem {
+  skill: string;
+  prompt: string;
+  options: string[];
+  answer: string;
+}
+
+export function compactSource(text: string, maxChars = 1600): string {
+  const lines = text
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter((line) => line.length > 2);
+  const pairs = lines.filter((line) => /^[A-Za-zА-Яа-я][A-Za-zА-Яа-я'’-]{1,24}\s*[-–—:|]/.test(line)).slice(0, 40);
+  const body = pairs.length >= 4 ? pairs : [...lines.filter((line) => line.length < 90).slice(0, 16), ...extractSentences(text).slice(0, 8)];
+  return body.join("\n").slice(0, maxChars);
+}
   const words = text.match(/[A-Za-zА-Яа-яЎўҚқҒғҲҳʼ']{5,24}/g) || [];
   const stop = new Set(
     "because there their which while after before about would could should these those using given find solve chapter section example student teacher".split(
@@ -418,7 +424,64 @@ function materialTrueFalse(rng: () => number, locale: LocaleCode, material: stri
   };
 }
 
-const MATH_BUILDERS: Builder[] = [
+function vocabPairs(text: string): Array<{ word: string; meaning: string }> {
+  const entries: Array<{ word: string; meaning: string }> = [];
+  const seen = new Set<string>();
+  for (const line of text.split(/\n+/)) {
+    const match = line.match(/^([A-Za-z][A-Za-z'’-]{2,24})\s*(?:[-–—:|]| means )\s+(.{4,160})$/);
+    if (!match) continue;
+    const key = match[1].toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    entries.push({ word: match[1], meaning: match[2].trim() });
+    if (entries.length >= 80) break;
+  }
+  return entries;
+}
+
+function vocabMeaning(rng: () => number, locale: LocaleCode, material: string): PrintQuestion | null {
+  const pairs = vocabPairs(material);
+  if (pairs.length < 4) return null;
+  const item = pick(rng, pairs);
+  const distractors = shuffle(rng, pairs.filter((pair) => pair.word !== item.word)).slice(0, 3);
+  const options = shuffle(rng, [item.meaning, ...distractors.map((pair) => pair.meaning)]);
+  return {
+    id: "vocab-meaning",
+    skill: "Vocabulary",
+    kind: "mcq",
+    prompt: t(locale, {
+      en: `What does "${item.word}" mean?`,
+      uz: `"${item.word}" so‘zi nimani anglatadi?`,
+      ru: `Что означает «${item.word}»?`,
+    }),
+    options,
+    answer: item.meaning,
+  };
+}
+
+function vocabWord(rng: () => number, locale: LocaleCode, material: string): PrintQuestion | null {
+  const pairs = vocabPairs(material);
+  if (pairs.length < 4) return null;
+  const item = pick(rng, pairs);
+  const distractors = shuffle(rng, pairs.filter((pair) => pair.word !== item.word)).slice(0, 3);
+  const options = shuffle(rng, [item.word, ...distractors.map((pair) => pair.word)]);
+  return {
+    id: "vocab-word",
+    skill: "Vocabulary",
+    kind: "mcq",
+    prompt: t(locale, {
+      en: `Which word means: ${item.meaning}`,
+      uz: `Qaysi so‘z shu ma’noni bildiradi: ${item.meaning}`,
+      ru: `Какое слово означает: ${item.meaning}`,
+    }),
+    options,
+    answer: item.word,
+  };
+}
+
+function wantsLanguage(subject: string, title: string, material: string): boolean {
+  return /english|vocab|vocabulary|sat|language|so‘z|soz|lexic/i.test(`${subject} ${title}`) || vocabPairs(material).length >= 4;
+}
   (rng, locale) => linearEquation(rng, locale),
   (rng, locale) => twoStep(rng, locale),
   (rng, locale) => percentOf(rng, locale),
@@ -434,7 +497,7 @@ export function generatePrintPack(input: GenerateInput): PrintPack {
   const studentCount = Math.max(1, Math.min(40, Math.floor(input.studentCount || 1)));
   const questionCount = Math.max(3, Math.min(35, Math.floor(input.questionCount || 5)));
   const locale: LocaleCode = input.locale === "uz" || input.locale === "ru" ? input.locale : "en";
-  const material = (input.materialText || "").slice(0, 40000);
+  const material = readableMaterial(input.materialText || "");
   const title = (input.title || "").trim() || t(locale, {
     en: "Class test",
     uz: "Sinf testi",
@@ -442,8 +505,25 @@ export function generatePrintPack(input: GenerateInput): PrintPack {
   });
   const packId = `pt_${hashSeed(`${title}:${Date.now()}:${studentCount}:${questionCount}`).toString(36)}`;
 
-  const builders: Builder[] = MATH_BUILDERS.slice();
-  if (material.length >= 80) {
+  const languageTest = wantsLanguage(input.subject || "", title, material);
+  const bank = (input.bank || []).filter((item) => item.prompt && item.answer && item.options.length >= 2);
+  const builders: Builder[] = bank.length
+    ? bank.map((item) => (rng) => ({
+        id: "ai",
+        skill: item.skill || "Source material",
+        kind: "mcq" as const,
+        prompt: item.prompt,
+        options: shuffle(rng, item.options).slice(0, 4),
+        answer: item.answer,
+      }))
+    : languageTest
+      ? [
+          (rng, loc, mat) => vocabMeaning(rng, loc, mat) || materialBlank(rng, loc, mat) || linearEquation(rng, loc),
+          (rng, loc, mat) => vocabWord(rng, loc, mat) || materialTrueFalse(rng, loc, mat) || percentOf(rng, loc),
+          (rng, loc, mat) => materialBlank(rng, loc, mat) || vocabMeaning(rng, loc, mat) || linearEquation(rng, loc),
+        ]
+      : MATH_BUILDERS.slice();
+  if (!bank.length && !languageTest && material.length >= 80) {
     builders.unshift((rng, loc, mat) => materialBlank(rng, loc, mat) || linearEquation(rng, loc));
     builders.unshift((rng, loc, mat) => materialTrueFalse(rng, loc, mat) || percentOf(rng, loc));
   }

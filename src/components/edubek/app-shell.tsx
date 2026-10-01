@@ -24,7 +24,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Coins,
-  Printer,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -107,11 +106,6 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
             match: "/live-quiz",
             label: readNavLabel(tNav, "create", "Create"),
             icon: Sparkles,
-          },
-          {
-            href: "/print-tests",
-            label: readNavLabel(tNav, "printTests", "Print tests"),
-            icon: Printer,
           },
         ]
       : []),
