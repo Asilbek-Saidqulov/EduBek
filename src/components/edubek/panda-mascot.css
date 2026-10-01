@@ -1,33 +1,237 @@
-.bek-panda { position: relative; display: inline-block; flex-shrink: 0; }
-.bek-panda-svg { width: 100%; height: 100%; overflow: visible; }
-.bek-head { transform-origin: 100px 108px; transition: transform 0.5s ease; }
-.bek-body { transform-origin: 100px 190px; animation: bek-sway 3.4s ease-in-out infinite; }
-.bek-arm { transform-box: fill-box; transform-origin: 50% 10%; }
-.bek-arm-l { animation: bek-arm 2.8s ease-in-out infinite; }
-.bek-arm-r { animation: bek-arm 2.8s ease-in-out infinite reverse; }
-.bek-leg { transform-box: fill-box; transform-origin: 50% 0; }
-.bek-ear-l { transform-box: fill-box; transform-origin: 50% 80%; animation: bek-ear 4.2s ease-in-out infinite; }
-.bek-tassel { transform-box: fill-box; transform-origin: 20% 0; animation: bek-tassel 1.7s ease-in-out infinite; }
-.bek-shadow { transform-origin: center; animation: bek-shadow 3.4s ease-in-out infinite; }
-.is-blink .bek-eye { transform: scaleY(0.08); transform-box: fill-box; transform-origin: center; }
-.is-walking .bek-leg-l { animation: bek-step 0.5s ease-in-out infinite; }
-.is-walking .bek-leg-r { animation: bek-step 0.5s ease-in-out infinite reverse; }
-.is-walking .bek-arm-l { animation: bek-swing 0.5s ease-in-out infinite; }
-.is-walking .bek-arm-r { animation: bek-swing 0.5s ease-in-out infinite reverse; }
-.panda-cheer .bek-body { animation: bek-hop 0.6s ease-in-out infinite; }
-.panda-worry .bek-body { animation: bek-worry 0.42s ease-in-out infinite; }
-.panda-win .bek-body { animation: bek-hop 0.5s ease-in-out infinite; }
+/* ===================================================================
+   EduBek Panda Mascot — Rich Animation System
+   =================================================================== */
+
+/* ─── Base Container ─── */
+.bek-panda {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  cursor: default;
+  transition: filter 0.3s ease;
+}
+.bek-panda-svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* ─── Head & Body Base ─── */
+.bek-head {
+  transform-origin: 100px 110px;
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.bek-body {
+  transform-origin: 100px 200px;
+  animation: bek-breathe 3.6s ease-in-out infinite;
+}
+
+/* ─── Arms ─── */
+.bek-arm {
+  transform-box: fill-box;
+  transform-origin: 50% 10%;
+  transition: transform 0.4s ease;
+}
+.bek-arm-l { animation: bek-arm-idle 3s ease-in-out infinite; }
+.bek-arm-r { animation: bek-arm-idle 3s ease-in-out infinite reverse; }
+
+/* ─── Legs ─── */
+.bek-leg {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+}
+
+/* ─── Ears ─── */
+.bek-ear {
+  transform-box: fill-box;
+  transform-origin: 50% 80%;
+}
+.bek-ear-l { animation: bek-ear-twitch 5s ease-in-out infinite; }
+.bek-ear-r { animation: bek-ear-twitch 5s ease-in-out infinite 2.5s; }
+
+/* ─── Tail ─── */
+.bek-tail {
+  transform-box: fill-box;
+  transform-origin: 100% 50%;
+  animation: bek-wag 2.4s ease-in-out infinite;
+}
+
+/* ─── Tassel ─── */
+.bek-tassel {
+  transform-box: fill-box;
+  transform-origin: 0% 0%;
+  animation: bek-tassel-swing 2s ease-in-out infinite;
+}
+.bek-tassel-end {
+  transform-box: fill-box;
+  animation: bek-tassel-dangle 1.6s ease-in-out infinite;
+}
+
+/* ─── Shadow ─── */
+.bek-shadow {
+  transform-origin: center;
+  animation: bek-shadow 3.6s ease-in-out infinite;
+}
+
+/* ─── Mouth ─── */
+.bek-mouth {
+  transition: d 0.3s ease;
+}
+
+/* ─── Tongue ─── */
+.bek-tongue {
+  animation: bek-tongue 0.6s ease-in-out infinite;
+}
+
+/* ─── Blush ─── */
+.bek-blush ellipse {
+  transition: opacity 0.6s ease;
+}
+.is-hovered .bek-blush ellipse,
+.panda-cheer .bek-blush ellipse,
+.panda-win .bek-blush ellipse {
+  opacity: 0.45 !important;
+}
+
+/* ─── Eyebrows ─── */
+.bek-brows path {
+  transition: d 0.4s ease, stroke-width 0.3s ease;
+}
+.panda-worry .bek-brows path {
+  stroke-width: 2.6;
+}
+
+/* ─── Pupils ─── */
+.bek-pupil {
+  transition: transform 0.3s ease;
+}
+
+/* ─── Eyes ─── */
+.bek-eye {
+  transition: transform 0.12s ease;
+}
+
+/* ===================================================================
+   BLINK
+   =================================================================== */
+.is-blink .bek-eye {
+  transform: scaleY(0.06);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ===================================================================
+   MOODS
+   =================================================================== */
+
+/* --- Idle --- */
+.panda-idle .bek-body {
+  animation: bek-breathe 3.6s ease-in-out infinite;
+}
+
+/* --- Cheer --- */
+.panda-cheer .bek-body {
+  animation: bek-bounce 0.5s ease-in-out infinite;
+}
+.panda-cheer .bek-arm-l {
+  animation: bek-wave-l 0.4s ease-in-out infinite;
+}
+.panda-cheer .bek-arm-r {
+  animation: bek-wave-r 0.4s ease-in-out infinite;
+}
+.panda-cheer .bek-ear-l,
+.panda-cheer .bek-ear-r {
+  animation: bek-ear-perk 0.5s ease-in-out infinite;
+}
+.panda-cheer .bek-tail {
+  animation: bek-wag-fast 0.35s ease-in-out infinite;
+}
+
+/* --- Worry --- */
+.panda-worry .bek-body {
+  animation: bek-tremble 0.32s ease-in-out infinite;
+}
+.panda-worry .bek-arm-l,
+.panda-worry .bek-arm-r {
+  animation: bek-arm-hug 0.6s ease-in-out infinite;
+}
+.panda-worry .bek-ear-l,
+.panda-worry .bek-ear-r {
+  animation: bek-ear-droop 1.2s ease-in-out infinite;
+}
+.panda-worry .bek-tail {
+  animation: none;
+}
+
+/* --- Win --- */
+.panda-win .bek-body {
+  animation: bek-celebrate 0.6s ease-in-out infinite;
+}
+.panda-win .bek-arm-l {
+  animation: bek-raise-l 0.7s ease-in-out infinite;
+}
+.panda-win .bek-arm-r {
+  animation: bek-raise-r 0.7s ease-in-out infinite;
+}
+.panda-win .bek-ear-l,
+.panda-win .bek-ear-r {
+  animation: bek-ear-perk 0.4s ease-in-out infinite;
+}
+.panda-win .bek-tail {
+  animation: bek-wag-fast 0.3s ease-in-out infinite;
+}
+
+/* ===================================================================
+   WALKING
+   =================================================================== */
+.is-walking .bek-leg-l { animation: bek-walk-leg 0.5s ease-in-out infinite; }
+.is-walking .bek-leg-r { animation: bek-walk-leg 0.5s ease-in-out infinite reverse; }
+.is-walking .bek-arm-l { animation: bek-walk-arm 0.5s ease-in-out infinite !important; }
+.is-walking .bek-arm-r { animation: bek-walk-arm 0.5s ease-in-out infinite reverse !important; }
+.is-walking .bek-body { animation: bek-walk-bob 0.25s ease-in-out infinite !important; }
+.is-walking .bek-tail { animation: bek-wag-fast 0.35s ease-in-out infinite; }
+.is-walking .bek-tassel { animation: bek-tassel-walk 0.5s ease-in-out infinite; }
+
+/* ===================================================================
+   HANGING
+   =================================================================== */
 .is-hanging {
   position: absolute;
   z-index: 6;
   top: 0;
   right: 12%;
   transform: translateY(-38%);
-  filter: drop-shadow(0 10px 10px rgb(15 23 42 / 0.12));
+  filter: drop-shadow(0 10px 16px rgb(15 23 42 / 0.14));
 }
 .is-hanging .bek-arm-l,
-.is-hanging .bek-arm-r { animation: none; transform: rotate(28deg); }
-.is-hanging .bek-body { animation: bek-hang 2.6s ease-in-out infinite; }
+.is-hanging .bek-arm-r {
+  animation: none !important;
+  transform: rotate(32deg);
+}
+.is-hanging .bek-body {
+  animation: bek-hang-swing 3s ease-in-out infinite !important;
+}
+.is-hanging .bek-tassel {
+  animation: bek-tassel-hang 2.4s ease-in-out infinite;
+}
+.is-hanging .bek-leg-l { animation: bek-hang-kick-l 2.8s ease-in-out infinite; }
+.is-hanging .bek-leg-r { animation: bek-hang-kick-r 2.8s ease-in-out infinite 0.4s; }
+
+/* ===================================================================
+   HOVER EFFECTS
+   =================================================================== */
+.is-hovered {
+  filter: drop-shadow(0 4px 12px rgb(15 23 42 / 0.1));
+}
+.is-hovered .bek-pupil {
+  transform: scale(1.15);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* ===================================================================
+   SPEECH BUBBLE
+   =================================================================== */
 .panda-bubble {
   position: absolute;
   left: 50%;
@@ -36,13 +240,19 @@
   transform: translate(-50%, -80%);
   border-radius: 999px;
   background: #fff;
-  border: 1px solid rgb(15 23 42 / 0.08);
-  padding: 2px 8px;
+  border: 1.5px solid rgb(15 23 42 / 0.1);
+  padding: 3px 10px;
   font-size: 11px;
   font-weight: 700;
   color: #0f3b48;
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgb(15 23 42 / 0.06);
+  animation: bek-bubble-in 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
+/* ===================================================================
+   AUTH PANDA - COVER & PAWS (kept for compatibility)
+   =================================================================== */
 .panda-cover { position: relative; }
 .panda-paws {
   position: absolute;
@@ -53,17 +263,230 @@
   border-radius: 999px;
   background: #161616;
   box-shadow: 22px 0 0 #161616;
+  animation: bek-paws-wiggle 0.5s ease-in-out infinite;
 }
-@keyframes bek-sway { 50% { transform: rotate(1.4deg) translateY(-2px); } }
-@keyframes bek-arm { 50% { transform: rotate(7deg); } }
-@keyframes bek-ear { 72% { transform: rotate(0); } 80% { transform: rotate(-10deg); } 88% { transform: rotate(0); } }
-@keyframes bek-tassel { 50% { transform: rotate(14deg); } }
-@keyframes bek-shadow { 50% { transform: scaleX(0.84); opacity: 0.55; } }
-@keyframes bek-step { 50% { transform: rotate(16deg); } }
-@keyframes bek-swing { 50% { transform: rotate(-18deg); } }
-@keyframes bek-hop { 40% { transform: translateY(-10px) rotate(3deg); } }
-@keyframes bek-worry { 50% { transform: translateX(-4px) rotate(-3deg); } }
-@keyframes bek-hang { 50% { transform: rotate(5deg) translateY(3px); } }
+
+/* ===================================================================
+   WIN SPARKLES
+   =================================================================== */
+.bek-spark {
+  animation: bek-sparkle 1.2s ease-in-out infinite;
+}
+.bek-spark-1 { animation-delay: 0s; }
+.bek-spark-2 { animation-delay: 0.15s; }
+.bek-spark-3 { animation-delay: 0.3s; }
+.bek-spark-4 { animation-delay: 0.45s; }
+.bek-spark-5 { animation-delay: 0.6s; }
+.bek-spark-6 { animation-delay: 0.75s; }
+.bek-spark-7 { animation-delay: 0.1s; }
+.bek-spark-8 { animation-delay: 0.5s; }
+
+/* ===================================================================
+   CHEER PARTICLES
+   =================================================================== */
+.bek-particle {
+  animation: bek-float-up 1.4s ease-in-out infinite;
+}
+.bek-p1 { animation-delay: 0s; }
+.bek-p2 { animation-delay: 0.35s; }
+.bek-p3 { animation-delay: 0.7s; }
+.bek-p4 { animation-delay: 1.05s; }
+
+/* ===================================================================
+   KEYFRAMES
+   =================================================================== */
+
+/* Breathing — gentle scale pulse */
+@keyframes bek-breathe {
+  0%, 100% { transform: scaleY(1) translateY(0); }
+  50% { transform: scaleY(1.012) translateY(-2px); }
+}
+
+/* Idle arm sway */
+@keyframes bek-arm-idle {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(5deg); }
+}
+
+/* Ear twitch */
+@keyframes bek-ear-twitch {
+  0%, 70%, 100% { transform: rotate(0); }
+  76% { transform: rotate(-12deg); }
+  82% { transform: rotate(4deg); }
+  88% { transform: rotate(-6deg); }
+  94% { transform: rotate(0); }
+}
+
+/* Tail wag */
+@keyframes bek-wag {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(8deg); }
+  75% { transform: rotate(-8deg); }
+}
+@keyframes bek-wag-fast {
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(12deg); }
+}
+
+/* Tassel physics */
+@keyframes bek-tassel-swing {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(12deg); }
+}
+@keyframes bek-tassel-dangle {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  50% { transform: rotate(3deg) translateY(1px); }
+}
+@keyframes bek-tassel-walk {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(8deg); }
+}
+@keyframes bek-tassel-hang {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(18deg); }
+}
+
+/* Shadow breathing */
+@keyframes bek-shadow {
+  0%, 100% { transform: scaleX(1); opacity: 0.8; }
+  50% { transform: scaleX(0.88); opacity: 0.5; }
+}
+
+/* Tongue lick */
+@keyframes bek-tongue {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(0.7); }
+}
+
+/* ─── CHEER ─── */
+@keyframes bek-bounce {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  30% { transform: translateY(-14px) rotate(2deg); }
+  60% { transform: translateY(-2px) rotate(-1deg); }
+}
+@keyframes bek-wave-l {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-25deg); }
+}
+@keyframes bek-wave-r {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(25deg); }
+}
+@keyframes bek-ear-perk {
+  0%, 100% { transform: rotate(0) scale(1); }
+  50% { transform: rotate(-5deg) scale(1.06); }
+}
+
+/* ─── WORRY ─── */
+@keyframes bek-tremble {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-3px) rotate(-2deg); }
+  75% { transform: translateX(3px) rotate(2deg); }
+}
+@keyframes bek-arm-hug {
+  0%, 100% { transform: rotate(6deg); }
+  50% { transform: rotate(12deg); }
+}
+@keyframes bek-ear-droop {
+  0%, 100% { transform: rotate(-8deg); }
+  50% { transform: rotate(-12deg); }
+}
+
+/* ─── WIN ─── */
+@keyframes bek-celebrate {
+  0%, 100% { transform: translateY(0) rotate(0) scale(1); }
+  25% { transform: translateY(-16px) rotate(4deg) scale(1.02); }
+  50% { transform: translateY(-4px) rotate(-2deg) scale(1); }
+  75% { transform: translateY(-12px) rotate(-3deg) scale(1.01); }
+}
+@keyframes bek-raise-l {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(-40deg); }
+}
+@keyframes bek-raise-r {
+  0%, 100% { transform: rotate(5deg); }
+  50% { transform: rotate(40deg); }
+}
+
+/* ─── WALKING ─── */
+@keyframes bek-walk-leg {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(18deg); }
+}
+@keyframes bek-walk-arm {
+  0%, 100% { transform: rotate(0); }
+  50% { transform: rotate(-20deg); }
+}
+@keyframes bek-walk-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* ─── HANGING ─── */
+@keyframes bek-hang-swing {
+  0%, 100% { transform: rotate(0) translateY(0); }
+  25% { transform: rotate(5deg) translateY(3px); }
+  75% { transform: rotate(-4deg) translateY(2px); }
+}
+@keyframes bek-hang-kick-l {
+  0%, 100% { transform: rotate(0); }
+  40% { transform: rotate(10deg); }
+  70% { transform: rotate(-4deg); }
+}
+@keyframes bek-hang-kick-r {
+  0%, 100% { transform: rotate(0); }
+  40% { transform: rotate(-10deg); }
+  70% { transform: rotate(4deg); }
+}
+
+/* ─── SPARKLES ─── */
+@keyframes bek-sparkle {
+  0%, 100% { opacity: 0; transform: scale(0) rotate(0); }
+  20% { opacity: 1; transform: scale(1.4) rotate(20deg); }
+  50% { opacity: 1; transform: scale(1) rotate(45deg); }
+  80% { opacity: 0.4; transform: scale(0.6) rotate(70deg); }
+}
+
+/* ─── FLOAT UP ─── */
+@keyframes bek-float-up {
+  0% { opacity: 0; transform: translateY(0) scale(0.5); }
+  30% { opacity: 0.9; transform: translateY(-8px) scale(1.2); }
+  70% { opacity: 0.6; transform: translateY(-18px) scale(0.8); }
+  100% { opacity: 0; transform: translateY(-28px) scale(0.3); }
+}
+
+/* ─── BUBBLE POP IN ─── */
+@keyframes bek-bubble-in {
+  0% { opacity: 0; transform: translate(-50%, -80%) scale(0.5); }
+  100% { opacity: 1; transform: translate(-50%, -80%) scale(1); }
+}
+
+/* ─── PAWS WIGGLE ─── */
+@keyframes bek-paws-wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(2deg); }
+  75% { transform: rotate(-2deg); }
+}
+
+/* ===================================================================
+   REDUCED MOTION
+   =================================================================== */
 @media (prefers-reduced-motion: reduce) {
-  .bek-body, .bek-arm, .bek-leg, .bek-tassel, .bek-ear-l, .bek-shadow { animation: none !important; }
+  .bek-body,
+  .bek-arm,
+  .bek-leg,
+  .bek-tassel,
+  .bek-tassel-end,
+  .bek-ear,
+  .bek-ear-l,
+  .bek-ear-r,
+  .bek-shadow,
+  .bek-tail,
+  .bek-tongue,
+  .bek-spark,
+  .bek-particle,
+  .panda-paws {
+    animation: none !important;
+  }
+  .bek-head { transition: none; }
 }
