@@ -268,10 +268,14 @@ export async function addQuestions(authCtx: AuthContext, assessmentId: string, b
   for (const item of body.questions) {
     let qId = item.questionId;
     if (!qId) {
-      const payloadStr =
+      const rawPayload =
         typeof item.payload === "string"
-          ? item.payload
-          : JSON.stringify(item.payload || { prompt: item.prompt || "" });
+          ? (() => { try { return JSON.parse(item.payload); } catch { return {}; } })()
+          : (item.payload || {});
+      const payloadStr = JSON.stringify({
+        ...rawPayload,
+        prompt: rawPayload.prompt || item.prompt || "",
+      });
       const created = await db.bankQuestion.create({
         data: {
           ownerId: userId,
