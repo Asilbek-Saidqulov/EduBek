@@ -194,13 +194,15 @@ export function ModeArena({
   mode,
   children,
   className = "",
+  id,
 }: {
   mode: GameModeType;
   children: React.ReactNode;
   className?: string;
+  id?: string;
 }) {
   return (
-    <div className={`mode-arena mode-arena-${mode} ${className}`}>
+    <div id={id} className={`mode-arena mode-arena-${mode} ${className}`}>
       <div className="mode-arena-fx" aria-hidden>
         {Array.from({ length: 8 }).map((_, i) => (
           <span

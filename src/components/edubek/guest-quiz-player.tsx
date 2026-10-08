@@ -291,9 +291,11 @@ export function GuestQuizPlayer({
   const t = useTranslations("quizPlayer");
   const locale = useLocale();
   const activeAssessmentId = propAssessmentId || quizId;
+  const savedQuizId = propAssessmentId || quizId;
   const [activeQuestions, setActiveQuestions] = React.useState<GuestQuizQuestion[]>(
-    propQuestions && propQuestions.length > 0 ? propQuestions : quizId ? [] : DEFAULT_QUESTIONS,
+    propQuestions && propQuestions.length > 0 ? propQuestions : savedQuizId ? [] : DEFAULT_QUESTIONS,
   );
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [selectedOption, setSelectedOption] = React.useState<number | null>(null);
@@ -369,58 +371,64 @@ export function GuestQuizPlayer({
         return;
       }
 
-      if (quizId && (!propQuestions || propQuestions.length === 0)) {
+      if (savedQuizId && (!propQuestions || propQuestions.length === 0)) {
         setIsLoadingAttempt(true);
+        setLoadError(null);
         try {
-          const play = await fetch(`/api/quizzes/${quizId}/play`);
-          if (play.ok) {
-            const data = await play.json();
-            const rows = data.quiz?.questions || data.questions || [];
-            if (isMounted && Array.isArray(rows) && rows.length > 0) {
-              setActiveQuestions(rows.map((aq: any) => mapServerQuestion(aq, data.quiz?.title || data.title, locale)));
-              return;
+          const catalogId = quizId && quizId !== propAssessmentId ? quizId : null;
+          if (catalogId) {
+            const play = await fetch(`/api/quizzes/${catalogId}/play`);
+            if (play.ok) {
+              const data = await play.json();
+              const rows = data.quiz?.questions || data.questions || [];
+              if (isMounted && Array.isArray(rows) && rows.length > 0) {
+                setActiveQuestions(rows.map((aq: any) => mapServerQuestion(aq, data.quiz?.title || data.title, locale)));
+                return;
+              }
             }
+          }
+
+          const assessmentId = propAssessmentId || quizId;
+          if (assessmentId) {
+            const res = await fetch(`/api/assessments/${assessmentId}/start`, { method: "POST" });
+            if (res.ok) {
+              const data = await res.json();
+              if (isMounted && data.attempt?.id) setCurrentAttemptId(data.attempt.id);
+              let rows = data.assessment?.questions || [];
+              let mappedQuestions = rows.map((aq: any) =>
+                mapServerQuestion(aq.question ? { ...aq.question, ...aq, payload: aq.question.payload || aq.payload } : aq, data.assessment?.title, locale),
+              );
+              const missingStems = mappedQuestions.length === 0 || mappedQuestions.some((q: GuestQuizQuestion) => !readQuestionText(q, locale));
+              if (missingStems) {
+                const full = await fetch(`/api/assessments/${assessmentId}`);
+                if (full.ok) {
+                  const detail = await full.json();
+                  const detailRows = detail.assessment?.questions || detail.questions || [];
+                  if (Array.isArray(detailRows) && detailRows.length > 0) {
+                    mappedQuestions = detailRows.map((aq: any) =>
+                      mapServerQuestion(aq.question ? { ...aq.question, ...aq, payload: aq.question.payload || aq.payload } : aq, detail.title || detail.assessment?.title, locale),
+                    );
+                  }
+                }
+              }
+              const playable = mappedQuestions.filter((q: GuestQuizQuestion) => readQuestionText(q, locale));
+              if (isMounted && playable.length > 0) {
+                setActiveQuestions(playable);
+                return;
+              }
+            }
+          }
+
+          if (isMounted) {
+            setActiveQuestions([]);
+            setLoadError("This quiz has no questions yet.");
           }
         } catch (err) {
           console.warn("Could not load quiz questions:", err);
-        } finally {
-          if (isMounted) setIsLoadingAttempt(false);
-        }
-      }
-
-      if (activeAssessmentId && !quizId && (!propQuestions || propQuestions.length === 0)) {
-        setIsLoadingAttempt(true);
-        try {
-          const res = await fetch(`/api/assessments/${activeAssessmentId}/start`, {
-            method: "POST",
-          });
-          if (res.ok) {
-            const data = await res.json();
-            if (isMounted && data.assessment?.questions) {
-              setCurrentAttemptId(data.attempt?.id);
-              let mappedQuestions = data.assessment.questions.map((aq: any) =>
-                mapServerQuestion(aq, data.assessment.title, locale),
-              );
-              const missingStems = mappedQuestions.some((q: GuestQuizQuestion) => !readQuestionText(q, locale));
-              if (missingStems) {
-                try {
-                  const full = await fetch(`/api/assessments/${activeAssessmentId}`);
-                  if (full.ok) {
-                    const detail = await full.json();
-                    const rows = detail.assessment?.questions || detail.questions || [];
-                    if (Array.isArray(rows) && rows.length > 0) {
-                      mappedQuestions = rows.map((aq: any) => mapServerQuestion(aq, detail.assessment?.title || data.assessment.title, locale));
-                    }
-                  }
-                } catch {
-                  /* keep start payload */
-                }
-              }
-              setActiveQuestions(mappedQuestions);
-            }
+          if (isMounted) {
+            setActiveQuestions([]);
+            setLoadError("Could not load this quiz.");
           }
-        } catch (err) {
-          console.warn("Could not start server assessment attempt, running local mode:", err);
         } finally {
           if (isMounted) setIsLoadingAttempt(false);
         }
@@ -431,13 +439,13 @@ export function GuestQuizPlayer({
     return () => {
       isMounted = false;
     };
-  }, [activeAssessmentId, initialAttemptId, propQuestions]);
+  }, [activeAssessmentId, quizId, propAssessmentId, savedQuizId, initialAttemptId, propQuestions, locale]);
 
-  const currentQ = activeQuestions[currentIndex] || activeQuestions[0] || DEFAULT_QUESTIONS[0];
-  const qType = currentQ.questionType || "multiple_choice";
+  const currentQ = activeQuestions[currentIndex] || activeQuestions[0] || (!savedQuizId ? DEFAULT_QUESTIONS[0] : undefined);
+  const qType = currentQ?.questionType || "multiple_choice";
   const questionPrompt = readQuestionText(currentQ, locale) || "";
-  const questionOptions = currentQ.options || currentQ.payload?.options || [];
-  const qId = currentQ.questionId || currentQ.id || `q-${currentIndex}`;
+  const questionOptions = currentQ?.options || currentQ?.payload?.options || [];
+  const qId = currentQ?.questionId || currentQ?.id || `q-${currentIndex}`;
 
   // Sync inputs when switching question
   React.useEffect(() => {
@@ -817,6 +825,16 @@ export function GuestQuizPlayer({
     }, 1000);
     return () => window.clearInterval(timer);
   }, [currentIndex, isFinished, isSubmitting, isAnswered]);
+
+  if (!isLoadingAttempt && savedQuizId && !currentQ) {
+    return (
+      <Card className="mx-auto max-w-lg border-border/80 p-10 text-center space-y-4 shadow-xl">
+        <CardTitle className="text-xl font-bold">{quizTitle}</CardTitle>
+        <CardDescription className="text-sm">{loadError || "This quiz has no questions yet."}</CardDescription>
+        <Button type="button" variant="outline" onClick={onExit}>Exit</Button>
+      </Card>
+    );
+  }
 
   // Loading Screen
   if (isLoadingAttempt) {

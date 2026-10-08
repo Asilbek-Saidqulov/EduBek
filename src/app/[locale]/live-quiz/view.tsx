@@ -679,7 +679,7 @@ export function LiveQuizClient() {
     return (
       <GuestQuizPlayer
         joinCode={playingQuiz.code || "ARENA"}
-        quizId={playingQuiz.assessmentId || playingQuiz.quizId}
+        quizId={playingQuiz.assessmentId ? undefined : playingQuiz.quizId}
         assessmentId={playingQuiz.assessmentId}
         attemptId={playingQuiz.attemptId}
         quizTitle={playingQuiz.quizTitle || playingQuiz.title || "Assessment Arena"}
