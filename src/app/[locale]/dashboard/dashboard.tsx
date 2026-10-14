@@ -13,8 +13,7 @@ import {
   ArrowRight,
   Bell,
   BookOpen,
-  BrainCircuit,
-  Coins,
+  Compass,
   Gamepad2,
   Loader2,
   Plus,
@@ -67,13 +66,6 @@ export function DashboardView({
     }
   }, [userLoading, user, initialUser, router]);
 
-  const { data: wallet, isLoading: walletLoading } = useQuery({
-    queryKey: ["wallet-balance"],
-    queryFn: () => api.get<{ balance: number }>("/api/wallet/balance"),
-    enabled: !!currentUser?.id,
-    staleTime: 30_000,
-  });
-
   const { data: notifData } = useQuery({
     queryKey: ["dash-notifs"],
     queryFn: () => api.get<{ notifications: Array<{ id: string; title: string; body?: string }> }>("/api/notifications/inbox?limit=5"),
@@ -107,7 +99,7 @@ export function DashboardView({
   const sessions = historyData?.sessions ?? [];
   const classrooms = classData?.classrooms ?? [];
   const lastLesson = sessions[0];
-  const credits = wallet?.balance ?? currentUser?.balanceEduTokens;
+  const credits = 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
@@ -122,19 +114,9 @@ export function DashboardView({
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        {role === "teacher" ? (
-          <>
-            <HomeAction href="/classrooms" icon={Users} title={t("actions.openClass")} desc={t("actions.openClassDesc")} />
-            <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title={t("actions.createQuiz")} desc={t("actions.createQuizDesc")} />
-            <HomeAction href="/tutor" icon={BrainCircuit} title={t("actions.previewTutor")} desc={t("actions.previewTutorDesc")} />
-          </>
-        ) : (
-          <>
-            <HomeAction href="/tutor" icon={BrainCircuit} title={t("actions.askTutor")} desc={t("actions.askTutorDesc")} primary />
-            <HomeAction href="/live-quiz" icon={Gamepad2} title={t("actions.practice")} desc={t("actions.practiceDesc")} />
-            <HomeAction href="/classrooms" icon={Users} title={t("actions.classes")} desc={t("actions.classesDesc")} />
-          </>
-        )}
+        <HomeAction href="/classrooms" icon={Users} title={t("actions.openClass")} desc={t("actions.openClassDesc")} />
+        <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title={t("actions.createQuiz")} desc={t("actions.createQuizDesc")} />
+        <HomeAction href="/discover" icon={Compass} title={t("actions.discover")} desc={t("actions.discoverDesc")} />
       </section>
 
       <InteractiveDashboard role={role} credits={credits ?? 0} />
@@ -291,6 +273,20 @@ export function DashboardView({
           </Card>
         </div>
       </div>
+
+      {/* Embedded AI Tutor Chat — content & quizzes render inside the transcript */}
+      <Card className="border-border/80 shadow-xs overflow-hidden">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            AI Tutor
+          </CardTitle>
+          <CardDescription>Continue your last lesson or ask anything. Lessons and questions appear right in the chat.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-0 h-[420px]">
+          <HomeTutorChat />
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -353,4 +349,41 @@ function getPrimaryRole(user: CurrentUser | null): "admin" | "creator" | "teache
   if (roles.some((r) => /creator/i.test(r))) return "creator";
   if (roles.some((r) => /teacher/i.test(r))) return "teacher";
   return "student";
+}
+
+function HomeTutorChat() {
+  const [messages, setMessages] = React.useState<TranscriptMessage[]>([
+    {
+      id: "welcome",
+      role: "tutor",
+      text: "Assalomu alaykum! Men sizning AI o'qituvchingizman. Oxirgi darsingizni davom ettirishni yoki yangi savol berishni xohlaysizmi?",
+    },
+  ]);
+  const [loading, setLoading] = React.useState(false);
+
+  const onSend = (text: string) => {
+    const userMsg: TranscriptMessage = { id: Date.now().toString(), role: "user", text };
+    setMessages((m) => [...m, userMsg]);
+    setLoading(true);
+    // TODO: wire to /api/tutor/chat and merge blackboard sections into messages
+    setTimeout(() => {
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "tutor",
+          text: "Yaxshi savol! (Bu yerda real AI javobi va inline blackboard / savollar chiqadi)",
+        },
+      ]);
+      setLoading(false);
+    }, 800);
+  };
+
+  return (
+    <TutorTranscript
+      messages={messages}
+      onSendMessage={onSend}
+      isLoading={loading}
+    />
+  );
 }
