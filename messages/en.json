@@ -17591,7 +17591,9 @@
       "createQuiz": "Create quiz",
       "createQuizDesc": "Make a quiz for your class or the marketplace.",
       "PreviewTutor": "Tutor",
-      "PreviewTutorDesc": "See how the AI tutor can help your students."
+      "PreviewTutorDesc": "See how the AI tutor can help your students.",
+      "discover": "Discover",
+      "discoverDesc": "Browse quizzes and learning materials"
     },
     "continue": {
       "title": "Continue Learning",
@@ -17930,6 +17932,7 @@
     "emptyPracticeHint": "No class quiz is waiting. Take a 5-question mix. After a miss, open Tutor to see why."
   },
   "printTests": {
-    "title": "Print unique tests", "subtitle": "Different numbers for every student, same skills."
+    "title": "Print unique tests",
+    "subtitle": "Different numbers for every student, same skills."
   }
 }
