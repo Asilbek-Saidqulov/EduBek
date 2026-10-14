@@ -753,22 +753,38 @@ export function LiveQuizClient() {
         </div>
       )}
 
+      {/* Center PIN join area */}
+      {activeTab === "join" && (
+        <div className="flex flex-col items-center justify-center py-10 gap-4">
+          <div className="text-center space-y-1">
+            <h2 className="text-xl font-bold">Join Live Quiz</h2>
+            <p className="text-sm text-muted-foreground">Enter the PIN code</p>
+          </div>
+          <div className="flex gap-2 max-w-xs w-full">
+            <Input
+              placeholder="PIN"
+              value={joinCode}
+              onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+              className="text-center text-lg tracking-widest font-mono"
+              maxLength={8}
+            />
+            <Button onClick={() => handleJoinWithCode()} disabled={!joinCode.trim()}>
+              Join
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 border-b pb-3 overflow-x-auto">
-        {(isTeacher
-          ? [
-              { id: "discover" as const, label: t("tabQuizzes", { count: assessments.length }), icon: BookOpen },
-              { id: "create" as const, label: t("tabCreate"), icon: Sparkles },
-              { id: "gradebook" as const, label: t("tabGradebook"), icon: Award },
-              { id: "questionbank" as const, label: t("tabBank"), icon: Layers },
-              { id: "join" as const, label: t("tabTestCode"), icon: Radio },
-              { id: "modes" as const, label: t("tabLiveModes"), icon: Gamepad2 },
-            ]
-          : [
-              { id: "join" as const, label: t("tabJoin"), icon: Radio },
-              { id: "discover" as const, label: t("tabPlay"), icon: BookOpen },
-              { id: "modes" as const, label: t("tabLive"), icon: Gamepad2 },
-            ]
-        ).map((tab) => {
+        {[
+          { id: "join" as const, label: "Join", icon: Radio },
+          { id: "create" as const, label: "Create", icon: Sparkles },
+          { id: "discover" as const, label: t("tabQuizzes", { count: assessments.length }), icon: BookOpen },
+          ...(isTeacher ? [
+            { id: "gradebook" as const, label: t("tabGradebook"), icon: Award },
+            { id: "questionbank" as const, label: t("tabBank"), icon: Layers },
+          ] : []),
+        ].map((tab) => {
           const Icon = tab.icon;
           const on = activeTab === tab.id;
           return (
@@ -786,30 +802,6 @@ export function LiveQuizClient() {
         })}
       </div>
 
-      {/* --------------------------------------------------------------------- */}
-      {/* 1. GAME MODES TAB */}
-      {/* --------------------------------------------------------------------- */}
-      {activeTab === "modes" && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Pick a mode, then create a live room. Students join with the PIN. The starter practice pack is used until you pick a quiz on Discover.
-          </p>
-          <GameModePicker
-            selected={selectedGameMode}
-            onSelect={setSelectedGameMode}
-            onSolo={(id, title) => {
-              setSelectedGameMode(id);
-              setPlayingQuiz({ mode: id, title });
-            }}
-            onMultiplayer={(id, title) => handleCreateMultiplayerRoom(id, title)}
-            multiplayerBusy={isCreatingMultiplayer}
-            soloLabel={t("solo")}
-            multiplayerLabel={t("multiplayer")}
-          />
-        </div>
-      )}
-
-      {/* --------------------------------------------------------------------- */}
       {/* 2. DISCOVER / BROWSE ASSESSMENTS TAB */}
       {/* --------------------------------------------------------------------- */}
       {activeTab === "discover" && (

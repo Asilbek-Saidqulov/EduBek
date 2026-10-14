@@ -66,13 +66,6 @@ export function DashboardView({
     }
   }, [userLoading, user, initialUser, router]);
 
-  const { data: wallet, isLoading: walletLoading } = useQuery({
-    queryKey: ["wallet-balance"],
-    queryFn: () => api.get<{ balance: number }>("/api/wallet/balance"),
-    enabled: !!currentUser?.id,
-    staleTime: 30_000,
-  });
-
   const { data: notifData } = useQuery({
     queryKey: ["dash-notifs"],
     queryFn: () => api.get<{ notifications: Array<{ id: string; title: string; body?: string }> }>("/api/notifications/inbox?limit=5"),
@@ -106,7 +99,7 @@ export function DashboardView({
   const sessions = historyData?.sessions ?? [];
   const classrooms = classData?.classrooms ?? [];
   const lastLesson = sessions[0];
-  const credits = wallet?.balance ?? currentUser?.balanceEduTokens;
+  const credits = 0;
 
   return (
     <div className="mx-auto max-w-5xl space-y-8">
