@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
   Gamepad2,
-  Users,
+  School,
   Bell,
   Settings,
   Shield,
@@ -82,7 +82,7 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
   const primaryNavItems: NavItem[] = [
     { href: "/dashboard", label: readNavLabel(tNav, "home", "Home"), icon: LayoutDashboard },
     { href: "/live-quiz", label: readNavLabel(tNav, "quiz", "Quiz"), icon: Gamepad2 },
-    { href: "/classrooms", label: readNavLabel(tNav, "class", "Class"), icon: Users },
+    { href: "/classrooms", label: readNavLabel(tNav, "class", "Class"), icon: School },
     { href: "/friends", label: readNavLabel(tNav, "friends", "Friends"), icon: UserPlus },
   ];
 

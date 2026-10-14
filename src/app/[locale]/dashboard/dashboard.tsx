@@ -281,31 +281,17 @@ export function DashboardView({
         </div>
       </div>
 
-      {/* Embedded AI Tutor Chat (blackboard content rendered inside messages) */}
-      <Card className="border-border/80 shadow-xs">
-        <CardHeader className="pb-3">
+      {/* Embedded AI Tutor Chat — content & quizzes render inside the transcript */}
+      <Card className="border-border/80 shadow-xs overflow-hidden">
+        <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Sparkles className="size-4 text-primary" />
             AI Tutor
           </CardTitle>
-          <CardDescription>Ask questions, continue lessons — content and quizzes appear inline.</CardDescription>
+          <CardDescription>Continue your last lesson or ask anything. Lessons and questions appear right in the chat.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="min-h-[280px] rounded-xl border bg-muted/10 p-4 flex flex-col">
-            <div className="flex-1 text-sm text-muted-foreground text-center py-8">
-              Chat with your AI tutor here. Last lesson continues at the top.
-              <br />
-              (Full transcript + inline blackboard will be wired from TutorTranscript + LivingBlackboard components.)
-            </div>
-            <div className="mt-4 flex gap-2">
-              <input
-                type="text"
-                placeholder="Ask the tutor anything..."
-                className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm"
-              />
-              <Button size="sm">Send</Button>
-            </div>
-          </div>
+        <CardContent className="p-0 h-[420px]">
+          <HomeTutorChat />
         </CardContent>
       </Card>
     </div>
@@ -370,4 +356,41 @@ function getPrimaryRole(user: CurrentUser | null): "admin" | "creator" | "teache
   if (roles.some((r) => /creator/i.test(r))) return "creator";
   if (roles.some((r) => /teacher/i.test(r))) return "teacher";
   return "student";
+}
+
+function HomeTutorChat() {
+  const [messages, setMessages] = React.useState<TranscriptMessage[]>([
+    {
+      id: "welcome",
+      role: "tutor",
+      text: "Assalomu alaykum! Men sizning AI o'qituvchingizman. Oxirgi darsingizni davom ettirishni yoki yangi savol berishni xohlaysizmi?",
+    },
+  ]);
+  const [loading, setLoading] = React.useState(false);
+
+  const onSend = (text: string) => {
+    const userMsg: TranscriptMessage = { id: Date.now().toString(), role: "user", text };
+    setMessages((m) => [...m, userMsg]);
+    setLoading(true);
+    // TODO: wire to /api/tutor/chat and merge blackboard sections into messages
+    setTimeout(() => {
+      setMessages((m) => [
+        ...m,
+        {
+          id: (Date.now() + 1).toString(),
+          role: "tutor",
+          text: "Yaxshi savol! (Bu yerda real AI javobi va inline blackboard / savollar chiqadi)",
+        },
+      ]);
+      setLoading(false);
+    }, 800);
+  };
+
+  return (
+    <TutorTranscript
+      messages={messages}
+      onSendMessage={onSend}
+      isLoading={loading}
+    />
+  );
 }
