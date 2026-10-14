@@ -5,14 +5,8 @@ import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import {
   LayoutDashboard,
-  Compass,
-  Store,
-  FolderOpen,
-  Sparkles,
-  BrainCircuit,
   Gamepad2,
   Users,
-  Wallet,
   Bell,
   Settings,
   Shield,
@@ -23,7 +17,7 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Coins,
+  UserPlus,
   type LucideIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -87,32 +81,17 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
 
   const primaryNavItems: NavItem[] = [
     { href: "/dashboard", label: readNavLabel(tNav, "home", "Home"), icon: LayoutDashboard },
-    { href: "/tutor", label: readNavLabel(tNav, "learn", "Learn"), icon: BrainCircuit },
-    { href: "/live-quiz", label: readNavLabel(tNav, "practice", "Practice"), icon: Gamepad2 },
+    { href: "/live-quiz", label: readNavLabel(tNav, "quiz", "Quiz"), icon: Gamepad2 },
     { href: "/classrooms", label: readNavLabel(tNav, "class", "Class"), icon: Users },
+    { href: "/friends", label: readNavLabel(tNav, "friends", "Friends"), icon: UserPlus },
   ];
 
   const roles = user?.platformRoles ?? user?.roles ?? [];
   const isStaff = roles.some((r: string) => /teacher|admin|creator/i.test(String(r)));
 
-  const moreNavItems: NavItem[] = [
-    { href: "/discover", label: readNavLabel(tNav, "discover", "Discover"), icon: Compass },
-    { href: "/library", label: readNavLabel(tNav, "library", "Library"), icon: FolderOpen },
-    { href: "/marketplace", label: readNavLabel(tNav, "marketplace", "Marketplace"), icon: Store },
-    ...(isStaff
-      ? [
-          {
-            href: "/live-quiz?tab=create",
-            match: "/live-quiz",
-            label: readNavLabel(tNav, "create", "Create"),
-            icon: Sparkles,
-          },
-        ]
-      : []),
-  ];
+  const moreNavItems: NavItem[] = [];
 
   const secondaryNavItems: NavItem[] = [
-    { href: "/wallet", label: readNavLabel(tNav, "wallet", "Wallet"), icon: Wallet },
     { href: "/notifications", label: readNavLabel(tNav, "notifications", "Notifications"), icon: Bell },
     { href: "/settings", label: readNavLabel(tNav, "settings", "Settings"), icon: Settings },
   ];
@@ -286,9 +265,8 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
                   <div className="font-semibold text-foreground truncate">
                     {user?.name || user?.username || "Student"}
                   </div>
-                  <div className="flex items-center gap-1 text-muted-foreground font-mono text-[11px]">
-                    <Coins className="h-3 w-3 text-amber-500" />
-                    <span>{typeof user?.balanceEduTokens === "number" ? user.balanceEduTokens : "—"}</span>
+                  <div className="text-muted-foreground text-[11px] truncate">
+                    @{user?.username || "user"}
                   </div>
                 </div>
               </Link>
@@ -357,15 +335,6 @@ export function AppShell({ user: initialUser, children }: AppShellProps) {
               <span>{readNavLabel(tNav, "searchPlatform", "Search")}</span>
               <kbd className="rounded border bg-background px-1 font-mono text-[10px]">/</kbd>
             </button>
-
-            <Link
-              href="/wallet"
-              className="flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
-              title={readNavLabel(tNav, "tokenBalance", "Credits")}
-            >
-              <Coins className="h-3.5 w-3.5" />
-              <span>{typeof user?.balanceEduTokens === "number" ? user.balanceEduTokens : "—"}</span>
-            </Link>
 
             <Button variant="ghost" size="icon" asChild className="relative h-9 w-9 text-muted-foreground">
               <Link href="/notifications" title={readNavLabel(tNav, "notifications", "Notifications")}>

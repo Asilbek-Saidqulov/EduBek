@@ -13,8 +13,7 @@ import {
   ArrowRight,
   Bell,
   BookOpen,
-  BrainCircuit,
-  Coins,
+  Compass,
   Gamepad2,
   Loader2,
   Plus,
@@ -122,19 +121,9 @@ export function DashboardView({
       </header>
 
       <section className="grid gap-3 sm:grid-cols-3">
-        {role === "teacher" ? (
-          <>
-            <HomeAction href="/classrooms" icon={Users} title={t("actions.openClass")} desc={t("actions.openClassDesc")} />
-            <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title={t("actions.createQuiz")} desc={t("actions.createQuizDesc")} />
-            <HomeAction href="/tutor" icon={BrainCircuit} title={t("actions.previewTutor")} desc={t("actions.previewTutorDesc")} />
-          </>
-        ) : (
-          <>
-            <HomeAction href="/tutor" icon={BrainCircuit} title={t("actions.askTutor")} desc={t("actions.askTutorDesc")} primary />
-            <HomeAction href="/live-quiz" icon={Gamepad2} title={t("actions.practice")} desc={t("actions.practiceDesc")} />
-            <HomeAction href="/classrooms" icon={Users} title={t("actions.classes")} desc={t("actions.classesDesc")} />
-          </>
-        )}
+        <HomeAction href="/classrooms" icon={Users} title={t("actions.openClass")} desc={t("actions.openClassDesc")} />
+        <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title={t("actions.createQuiz")} desc={t("actions.createQuizDesc")} />
+        <HomeAction href="/discover" icon={Compass} title={t("actions.discover")} desc={t("actions.discoverDesc")} />
       </section>
 
       <InteractiveDashboard role={role} credits={credits ?? 0} />
@@ -291,6 +280,34 @@ export function DashboardView({
           </Card>
         </div>
       </div>
+
+      {/* Embedded AI Tutor Chat (blackboard content rendered inside messages) */}
+      <Card className="border-border/80 shadow-xs">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Sparkles className="size-4 text-primary" />
+            AI Tutor
+          </CardTitle>
+          <CardDescription>Ask questions, continue lessons — content and quizzes appear inline.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="min-h-[280px] rounded-xl border bg-muted/10 p-4 flex flex-col">
+            <div className="flex-1 text-sm text-muted-foreground text-center py-8">
+              Chat with your AI tutor here. Last lesson continues at the top.
+              <br />
+              (Full transcript + inline blackboard will be wired from TutorTranscript + LivingBlackboard components.)
+            </div>
+            <div className="mt-4 flex gap-2">
+              <input
+                type="text"
+                placeholder="Ask the tutor anything..."
+                className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm"
+              />
+              <Button size="sm">Send</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
