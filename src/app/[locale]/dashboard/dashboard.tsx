@@ -226,51 +226,7 @@ export function DashboardView({
         </div>
 
         <div className="space-y-4">
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Coins className="size-4 text-amber-500" />
-                {t("credits.title")}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="text-2xl font-bold tracking-tight">
-                {walletLoading ? <Skeleton className="h-8 w-20" /> : t("credits.amount", { count: credits ?? 0 })}
-              </div>
-              <p className="text-xs text-muted-foreground">{t("credits.hint")}</p>
-              <Button asChild size="sm" variant="outline" className="w-full">
-                <Link href="/wallet">{t("credits.manage")}</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <Bell className="size-4 text-primary" />
-                  {t("notifications")}
-                </CardTitle>
-                <Button asChild variant="ghost" size="sm" className="h-6 text-[11px] px-1">
-                  <Link href="/notifications">{t("viewAll")}</Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {(notifData?.notifications ?? []).length === 0 ? (
-                <p className="text-xs text-muted-foreground py-2">{t("noNotifications")}</p>
-              ) : (
-                <div className="space-y-2">
-                  {notifData!.notifications.slice(0, 3).map((n) => (
-                    <div key={n.id} className="text-xs rounded-lg border p-2">
-                      <p className="font-medium">{n.title}</p>
-                      {n.body ? <p className="text-muted-foreground line-clamp-1">{n.body}</p> : null}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          
         </div>
       </div>
 
