@@ -17591,7 +17591,9 @@
       "createQuiz": "Создать квиз",
       "createQuizDesc": "Вопросы для уроки или живой игры",
       "previewTutor": "Репетитор",
-      "previewTutorDesc": "Как ученик видит объяснение"
+      "previewTutorDesc": "Как ученик видит объяснение",
+      "discover": "Discover",
+      "discoverDesc": "Просмотр квизов и материалов"
     },
     "continue": {
       "title": "Продолжить",

@@ -17631,7 +17631,9 @@
       "createQuiz": "Savollar yaratish",
       "createQuizDesc": "AI yordamida yangi savollar yarating",
       "previewTutor": "Repetitor",
-      "previewTutorDesc": "Repetitorni sinab ko‘ring"
+      "previewTutorDesc": "Repetitorni sinab ko‘ring",
+      "discover": "Discover",
+      "discoverDesc": "Quiz va materiallarni ko'ring"
     },
     "continue": {
       "title": "Davom etish",
