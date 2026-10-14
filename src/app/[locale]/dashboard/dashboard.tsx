@@ -28,6 +28,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { InteractiveDashboard } from "@/components/edubek/interactive-dashboard";
+import { TutorTranscript, type TranscriptMessage } from "@/components/tutor/tutor-transcript";
+
 
 type TutorSession = {
   id: string;
