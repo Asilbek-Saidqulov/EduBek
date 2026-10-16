@@ -4,6 +4,7 @@ import * as React from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useQuery } from "@tanstack/react-query";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { useTranslations } from "next-intl";
 import {
   ArrowRight,
@@ -21,6 +22,10 @@ import {
 import { useTranslations, useLocale } from "next-intl";
 import { Sparkles, Send, Play, Brain, CheckCircle2, Circle, Flame, Users, Gamepad2, Compass } from "lucide-react";
 >>>>>>> d688e4a (fix 2)
+=======
+import { useTranslations, useLocale } from "next-intl";
+import { Sparkles, Send, Play, Brain, CheckCircle2, Circle, Flame, Users, Gamepad2, Compass } from "lucide-react";
+>>>>>>> 3ecf2db (fix v2)
 
 import { api } from "@/lib/api-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -84,6 +89,7 @@ export function DashboardView({ initialUser }: { initialUser: any }) {
   });
 
   return (
+<<<<<<< HEAD
 <<<<<<< HEAD
     <div className="mx-auto max-w-3xl flex flex-col min-h-[70vh] pt-8">
       {/* Greeting + quick links — Gemini style */}
@@ -166,10 +172,50 @@ export function DashboardView({ initialUser }: { initialUser: any }) {
         </aside>
       </div>
 >>>>>>> d688e4a (fix 2)
+=======
+    <div className="min-h-[80vh] bg-background text-foreground">
+      <header className="px-2 pt-2 pb-4 flex items-start justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t.greet(name)}</h1>
+          <p className="text-muted-foreground mt-1">{t.sub}</p>
+        </div>
+        {home?.streak > 0 && (
+          <div className="flex items-center gap-2 rounded-full bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 text-sm font-medium text-amber-700">
+            <Flame className="size-4" /> {home.streak}
+          </div>
+        )}
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+        <main className="space-y-6">
+          <ContinueCard item={home?.continueItem} t={t} loading={isLoading} />
+          <TodayPlan items={home?.todayPlan ?? []} t={t} />
+          <WeakTopics topics={home?.weakTopics ?? []} t={t} />
+
+          {/* Quick links */}
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Link href="/classrooms"><Users className="size-3.5 mr-1" /> Class</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Link href="/live-quiz?tab=create"><Gamepad2 className="size-3.5 mr-1" /> Create Quiz</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="rounded-full">
+              <Link href="/discover"><Compass className="size-3.5 mr-1" /> Discover</Link>
+            </Button>
+          </div>
+        </main>
+
+        <aside className="lg:sticky lg:top-6 lg:self-start">
+          <TutorPanel t={t} locale={locale} context={home} />
+        </aside>
+      </div>
+>>>>>>> 3ecf2db (fix v2)
     </div>
   );
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 function HomeAction({
   href,
@@ -194,6 +240,13 @@ function ContinueCard({ item, t, loading }: any) {
   if (!item) return null;
   const pct = Math.round(((item.done || 1) / (item.total || 5)) * 100);
   return (
+=======
+function ContinueCard({ item, t, loading }: any) {
+  if (loading) return <div className="h-40 rounded-2xl bg-muted/40 animate-pulse" />;
+  if (!item) return null;
+  const pct = Math.round(((item.done || 1) / (item.total || 5)) * 100);
+  return (
+>>>>>>> 3ecf2db (fix v2)
     <section className="rounded-2xl border bg-card p-6 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wider text-primary">{item.subject}</p>
       <h2 className="mt-1 text-xl font-semibold">{item.title}</h2>
@@ -210,7 +263,10 @@ function ContinueCard({ item, t, loading }: any) {
         </Button>
       </div>
     </section>
+<<<<<<< HEAD
 >>>>>>> d688e4a (fix 2)
+=======
+>>>>>>> 3ecf2db (fix v2)
   );
 }
 

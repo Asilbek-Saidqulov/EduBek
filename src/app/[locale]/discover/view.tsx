@@ -10,6 +10,7 @@ import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { useQuery } from "@tanstack/react-query";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { BookOpen, Search, Star, User } from "lucide-react";
 
 import { api } from "@/lib/api-client";
@@ -37,10 +38,34 @@ import {
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 >>>>>>> d688e4a (fix 2)
+=======
+import { useTranslations } from "next-intl";
+import {
+  Clock,
+  Star,
+  Search,
+  BookOpen,
+  Star,
+  Store,
+  Sparkles,
+  TrendingUp,
+  Filter,
+  CheckCircle2,
+  FileText,
+  Star,
+  ShieldCheck,
+  Award,
+  BookOpen,
+} from "lucide-react";
+
+import { api } from "@/lib/api-client";
+import { Button } from "@/components/ui/button";
+>>>>>>> 3ecf2db (fix v2)
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+<<<<<<< HEAD
 <<<<<<< HEAD
 
 type Material = {
@@ -268,6 +293,103 @@ export function DiscoverView() {
     staleTime: 60_000,
   });
 
+=======
+import { EmptyState } from "@/components/edubek/empty-state";
+import { useCurrentUser } from "@/hooks/use-current-user";
+
+interface MpListingListItemDto {
+  id: string;
+  title: string;
+  description: string | null;
+  thumbnailUrl: string | null;
+  resourceType: string;
+  price: number;
+  currency: string;
+  featured: boolean;
+  viewCount: number;
+  favoriteCount: number;
+  ratingAverage: number;
+  ratingCount: number;
+  creatorName: string;
+  categories: string[];
+  publishedAt: string | null;
+  createdAt: string;
+}
+
+interface MpCategoryDto {
+  id: string;
+  slug: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  sortOrder: number;
+}
+
+interface ListingListResult {
+  listings?: MpListingListItemDto[];
+  items?: MpListingListItemDto[];
+  total?: number;
+}
+
+interface CategoryResult {
+  categories: MpCategoryDto[];
+}
+
+interface FeaturedResult {
+  listings: MpListingListItemDto[];
+}
+
+const SORTS = ["newest", "popular", "rated", "alphabetical"] as const;
+type SortKey = (typeof SORTS)[number];
+
+export function DiscoverView() {
+  const t = useTranslations("discover");
+  const tCommon = useTranslations("common");
+  const { user } = useCurrentUser();
+
+  const [search, setSearch] = React.useState("");
+  const [debouncedSearch, setDebouncedSearch] = React.useState("");
+  const [sort, setSort] = React.useState<SortKey>("newest");
+  const [categoryId, setCategoryId] = React.useState<string | undefined>(undefined);
+  const [showFree, setShowFree] = React.useState(false);
+  const [showPaid, setShowPaid] = React.useState(false);
+  const [page, setPage] = React.useState(0);
+  const pageSize = 12;
+
+  // Debounce search
+  React.useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(id);
+  }, [search]);
+
+  // Reset page when filters change
+  React.useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, sort, categoryId, showFree, showPaid]);
+
+  const queryParams = new URLSearchParams({
+    sort,
+    limit: String(pageSize),
+    offset: String(page * pageSize),
+  });
+  if (debouncedSearch) queryParams.set("search", debouncedSearch);
+  if (categoryId) queryParams.set("categoryId", categoryId);
+  if (showFree) queryParams.set("free", "true");
+  if (showPaid) queryParams.set("paid", "true");
+
+  const browseQ = useQuery<ListingListResult>({
+    queryKey: ["marketplace", "browse", queryParams.toString()],
+    queryFn: () => api.get<ListingListResult>(`/api/marketplace/listings?${queryParams}`),
+    staleTime: 30_000,
+  });
+
+  const featuredQ = useQuery<FeaturedResult>({
+    queryKey: ["marketplace", "featured"],
+    queryFn: () => api.get<FeaturedResult>("/api/marketplace/featured?limit=6"),
+    staleTime: 60_000,
+  });
+
+>>>>>>> 3ecf2db (fix v2)
   const categoriesQ = useQuery<CategoryResult>({
     queryKey: ["marketplace", "categories"],
     queryFn: () => api.get<CategoryResult>("/api/marketplace/categories"),
@@ -489,7 +611,10 @@ export function DiscoverView() {
                     </Button>
                   </div>
                 </div>
+<<<<<<< HEAD
 >>>>>>> d688e4a (fix 2)
+=======
+>>>>>>> 3ecf2db (fix v2)
               </Card>
             ))}
           </div>
@@ -498,7 +623,10 @@ export function DiscoverView() {
       </div>
 =======
       </section>
+<<<<<<< HEAD
 >>>>>>> d688e4a (fix 2)
+=======
+>>>>>>> 3ecf2db (fix v2)
     </div>
   );
 }
