@@ -19,6 +19,7 @@ import {
   Plus,
   Sparkles,
   Users,
+  UserPlus,
 } from "lucide-react";
 
 import { api } from "@/lib/api-client";
@@ -104,147 +105,48 @@ export function DashboardView({
   const credits = 0;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-8">
-      <header className="space-y-1">
-        <p className="text-sm text-muted-foreground">{greeting()} · {t(`roles.${role}`)}</p>
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-          {t("hello", { name })}
-        </h1>
-        <p className="text-sm text-muted-foreground max-w-lg">
-          {role === "teacher" ? t("teacherSubtitle") : t("studentSubtitle")}
-        </p>
-      </header>
-
-      <section className="grid gap-3 sm:grid-cols-3">
-        <HomeAction href="/classrooms" icon={Users} title={t("actions.openClass")} desc={t("actions.openClassDesc")} />
-        <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title={t("actions.createQuiz")} desc={t("actions.createQuizDesc")} />
-        <HomeAction href="/discover" icon={Compass} title={t("actions.discover")} desc={t("actions.discoverDesc")} />
-      </section>
-
-      <InteractiveDashboard role={role} credits={credits ?? 0} />
-
-      <div className="grid gap-6 lg:grid-cols-3 items-start">
-        <div className="space-y-6 lg:col-span-2">
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center gap-2">
-                <BookOpen className="size-4 text-primary" />
-                {t("continue.title")}
-              </CardTitle>
-              <CardDescription>{t("continue.subtitle")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {historyLoading ? (
-                <Skeleton className="h-20 w-full" />
-              ) : lastLesson ? (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-xl border bg-muted/20 p-4">
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold truncate">
-                      {lastLesson.title || t("continue.untitled")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {t("continue.updated", { when: relativeTime(lastLesson.updatedAt) })}
-                    </p>
-                  </div>
-                  <Button asChild size="sm" className="shrink-0">
-                    <Link href={`/tutor?sessionId=${lastLesson.id}`}>
-                      {t("continue.resume")}
-                      <ArrowRight className="size-3.5" />
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                <div className="rounded-xl border border-dashed p-5 text-center space-y-3">
-                  <p className="text-sm text-muted-foreground">{t("continue.empty")}</p>
-                  <div className="flex flex-wrap items-center justify-center gap-2">
-                    <Button asChild size="sm">
-                      <Link href="/live-quiz?tab=discover&first=1">
-                        <Gamepad2 className="size-3.5" />
-                        {t("continue.firstQuiz")}
-                      </Link>
-                    </Button>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href="/tutor">
-                        <Sparkles className="size-3.5" />
-                        {t("continue.start")}
-                      </Link>
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/80 shadow-xs">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="size-4 text-primary" />
-                  {role === "teacher" ? t("classes.teaching") : t("classes.yours")}
-                </CardTitle>
-                <Button asChild variant="ghost" size="sm" className="text-xs text-muted-foreground">
-                  <Link href="/classrooms">
-                    {t("viewAll")} <ArrowRight className="size-3" />
-                  </Link>
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {classLoading ? (
-                <Skeleton className="h-16 w-full" />
-              ) : classrooms.length === 0 ? (
-                <div className="rounded-xl border border-dashed p-5 text-center space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    {role === "teacher" ? t("classes.emptyTeacher") : t("classes.emptyStudent")}
-                  </p>
-                  <Button asChild size="sm" variant="outline">
-                    <Link href="/classrooms">
-                      <Plus className="size-3.5" />
-                      {role === "teacher" ? t("classes.create") : t("classes.join")}
-                    </Link>
-                  </Button>
-                </div>
-              ) : (
-                classrooms.slice(0, 4).map((c) => (
-                  <Link key={c.id} href="/classrooms" className="block rounded-lg border p-3 hover:bg-muted/40 transition-colors">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{c.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {t("classes.meta", {
-                            students: c.studentCount ?? 0,
-                            assignment: c.assignmentCount ?? 0,
-                            assignments: c.assignmentCount ?? 0,
-                          })}
-                        </p>
-                      </div>
-                      <ArrowRight className="size-4 text-muted-foreground shrink-0" />
-                    </div>
-                  </Link>
-                ))
-              )}
-            </CardContent>
-          </Card>
+    <div className="mx-auto max-w-3xl flex flex-col min-h-[70vh] pt-8">
+      {/* Greeting + quick links — Gemini style */}
+      <div className="text-center space-y-6 mb-10">
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">{greeting()} · {t(`roles.${role}`)}</p>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+            {t("hello", { name })}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {role === "teacher" ? t("teacherSubtitle") : t("studentSubtitle")}
+          </p>
         </div>
 
-        <div className="space-y-4">
-          
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <HomeAction href="/classrooms" icon={Users} title="Open Class" desc="" />
+          <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title="Create Quiz" desc="" />
+          <HomeAction href="/discover" icon={Compass} title="Discover" desc="" />
+          <HomeAction href="/friends" icon={UserPlus} title="Friends" desc="" />
         </div>
       </div>
 
-      {/* Embedded AI Tutor Chat — content & quizzes render inside the transcript */}
-      <Card className="border-border/80 shadow-xs overflow-hidden">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Sparkles className="size-4 text-primary" />
-            AI Tutor
-          </CardTitle>
-          <CardDescription>Continue your last lesson or ask anything. Lessons and questions appear right in the chat.</CardDescription>
-        </CardHeader>
-        <CardContent className="p-0 h-[420px]">
-          <HomeTutorChat />
-        </CardContent>
-      </Card>
+      {/* Last lesson continue — compact */}
+      {lastLesson && (
+        <div className="mb-6 flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm">
+          <div className="min-w-0">
+            <span className="text-muted-foreground">Continue: </span>
+            <span className="font-medium truncate">{lastLesson.title || "Last lesson"}</span>
+          </div>
+          <Button asChild size="sm" variant="ghost">
+            <Link href={`/tutor?sessionId=${lastLesson.id}`}>Resume</Link>
+          </Button>
+        </div>
+      )}
+
+      {/* Main chat — prominent center */}
+      <div className="flex-1 flex flex-col">
+        <Card className="border-border/80 shadow-sm flex-1 flex flex-col overflow-hidden min-h-[380px]">
+          <CardContent className="p-0 flex-1 flex flex-col">
+            <HomeTutorChat />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
@@ -253,32 +155,18 @@ function HomeAction({
   href,
   icon: Icon,
   title,
-  desc,
-  primary,
 }: {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   title: string;
-  desc: string;
-  primary?: boolean;
+  desc?: string;
 }) {
   return (
-    <Link href={href} className="group block">
-      <div
-        className={`flex items-start gap-3 rounded-xl border p-4 h-full transition-colors ${
-          primary
-            ? "border-primary/40 bg-primary/5 hover:bg-primary/10"
-            : "border-border/80 bg-card hover:border-primary/30"
-        }`}
-      >
-        <div className={`flex size-10 items-center justify-center rounded-lg shrink-0 ${primary ? "bg-primary text-primary-foreground" : "bg-muted"}`}>
-          <Icon className="size-5" />
-        </div>
-        <div className="min-w-0">
-          <p className="text-sm font-semibold">{title}</p>
-          <p className="text-xs text-muted-foreground">{desc}</p>
-        </div>
-      </div>
+    <Link href={href}>
+      <Button variant="outline" size="sm" className="gap-1.5 rounded-full">
+        <Icon className="size-3.5" />
+        {title}
+      </Button>
     </Link>
   );
 }

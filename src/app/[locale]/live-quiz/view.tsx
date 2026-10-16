@@ -85,7 +85,7 @@ export function LiveQuizClient() {
   const [activeTab, setActiveTab] = React.useState<QuizTab>(() => {
     const allowed: QuizTab[] = ["create", "join", "discover", "gradebook", "modes", "questionbank"];
     if (tabFromUrl && allowed.includes(tabFromUrl as QuizTab)) return tabFromUrl as QuizTab;
-    return "join";
+    return "create";
   });
 
   React.useEffect(() => {
@@ -754,7 +754,7 @@ export function LiveQuizClient() {
       )}
 
       {/* Center PIN join area */}
-      {activeTab === "join" && (
+      {true && (
         <div className="flex flex-col items-center justify-center py-10 gap-4">
           <div className="text-center space-y-1">
             <h2 className="text-xl font-bold">Join Live Quiz</h2>
@@ -777,7 +777,6 @@ export function LiveQuizClient() {
 
       <div className="flex items-center gap-2 border-b pb-3 overflow-x-auto">
         {[
-          { id: "join" as const, label: "Join", icon: Radio },
           { id: "create" as const, label: "Create", icon: Sparkles },
           { id: "discover" as const, label: t("tabQuizzes", { count: assessments.length }), icon: BookOpen },
           ...(isTeacher ? [
