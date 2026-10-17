@@ -725,6 +725,18 @@ export function ClassroomsClient() {
                 <BarChart3 className="size-4" />
                 Classroom Analytics
               </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab("chat")}
+                className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+                  activeTab === "chat"
+                    ? "border-primary text-primary"
+                    : "border-transparent text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                <MessageCircle className="size-4" />
+                Sinf chati
+              </button>
             </>
           )}
         </div>

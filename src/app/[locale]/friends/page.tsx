@@ -1,4 +1,5 @@
 import { setRequestLocale } from "next-intl/server";
+import { AppShell } from "@/components/edubek/app-shell";
 import { FriendsView } from "./view";
 
 export default async function FriendsPage({
@@ -8,5 +9,9 @@ export default async function FriendsPage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <FriendsView />;
+  return (
+    <AppShell>
+      <FriendsView />
+    </AppShell>
+  );
 }

@@ -33,7 +33,11 @@ export function FriendsView() {
   const handleSearch = async () => {
     if (!search.trim()) return;
     const res = await api.get(`/api/users/search?username=${encodeURIComponent(search.trim())}`);
-    setSearchResults(res.users || []);
+    const users = res.users || [];
+    setSearchResults(users);
+    if (users.length === 0) {
+      alert("Foydalanuvchi topilmadi. Aniq username kiriting.");
+    }
   };
 
   const friends = data?.friends || [];
