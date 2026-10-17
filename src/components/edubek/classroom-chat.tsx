@@ -61,7 +61,9 @@ export function ClassroomChat({ classroomId, classroomName, currentUserId, isTea
   }, [classroomId]);
 
   React.useEffect(() => {
-    const socket = io({
+    const realtimeUrl = process.env.NEXT_PUBLIC_REALTIME_URL || "https://edubek-realtime.onrender.com";
+
+    const socket = io(realtimeUrl, {
       path: "/api/socket/io",
       withCredentials: true,
       transports: ["websocket", "polling"],
