@@ -1758,6 +1758,7 @@ model Classroom {
   teacher      User               @relation("TeacherClassrooms", fields: [teacherId], references: [id], onDelete: Cascade)
   students     ClassroomStudent[]
   liveSessions LiveSession[]      @relation("ClassroomLiveSessions")
+  messages     ClassroomMessage[]
 
   @@index([teacherId])
   @@index([orgId])
