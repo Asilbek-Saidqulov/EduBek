@@ -3,14 +3,12 @@
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
-import { Brain, CheckCircle2, Circle, Compass, Flame, Gamepad2, Play, Send, Sparkles, Users, UserPlus } from "lucide-react";
+import { Brain, CheckCircle2, Circle, Compass, Flame, Gamepad2, Play, Send, Sparkles, Users } from "lucide-react";
 
 import { api } from "@/lib/api-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 
 const T = {
   uz: {
@@ -87,7 +85,6 @@ export function DashboardView({ initialUser }: { initialUser: any }) {
           <TodayPlan items={home?.todayPlan ?? []} t={t} />
           <WeakTopics topics={home?.weakTopics ?? []} t={t} />
 
-          {/* Quick links */}
           <div className="flex flex-wrap gap-2">
             <Button asChild variant="outline" size="sm" className="rounded-full">
               <Link href="/classrooms"><Users className="size-3.5 mr-1" /> Class</Link>
@@ -109,32 +106,12 @@ export function DashboardView({ initialUser }: { initialUser: any }) {
   );
 }
 
-function HomeAction({
-  href,
-  icon: Icon,
-  title,
-}: {
-  href: string;
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  desc?: string;
-}) {
-  return (
-    <Link href={href}>
-      <Button variant="outline" size="sm" className="gap-1.5 rounded-full">
-        <Icon className="size-3.5" />
-        {title}
-      </Button>
-    </Link>
-  );
-}
-
 function ContinueCard({ item, t, loading }: any) {
   if (loading) return <div className="h-32 animate-pulse rounded-2xl bg-muted" />;
   if (!item) return null;
   const done = Number(item.done) || 0;
-  const total = Number(item.total) || 0;
-  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  const total = Number(item.total) || 1;
+  const pct = Math.min(100, Math.round((done / total) * 100));
 
   return (
     <section className="rounded-2xl border bg-card p-6 shadow-sm">
@@ -225,7 +202,7 @@ function TutorPanel({ t, locale, context }: any) {
 
     try {
       const res = await api.post("/api/tutor/chat", { message: msg, locale, context });
-      const reply = res?.reply || res?.text || "I'm here to help! (connect real tutor stream)";
+      const reply = res?.reply || res?.text || "I'm here to help!";
       setMessages((m) => {
         const copy = [...m];
         copy[copy.length - 1] = { role: "assistant", content: reply };
