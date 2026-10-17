@@ -26,6 +26,7 @@ import {
   FileCheck,
   ChevronRight,
   Sparkles,
+  MessageCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -43,6 +44,7 @@ import { useSearchParams } from "next/navigation";
 import { Link } from "@/i18n/navigation";
 import { api } from "@/lib/api-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
+import { ClassroomChat } from "@/components/edubek/classroom-chat";
 
 // -----------------------------------------------------------------------------
 // Types
@@ -105,7 +107,7 @@ export function ClassroomsClient() {
 
   // Navigation & View State
   const [selectedClassroomId, setSelectedClassroomId] = React.useState<string | null>(null);
-  const [activeTab, setActiveTab] = React.useState<"assignments" | "students" | "analytics">("assignments");
+  const [activeTab, setActiveTab] = React.useState<"assignments" | "students" | "analytics" | "chat">("assignments");
   const [filterType, setFilterType] = React.useState<"all" | "teaching" | "enrolled">("all");
 
   // Data State
@@ -727,7 +729,19 @@ export function ClassroomsClient() {
           )}
         </div>
 
-        {/* TAB 1: ASSIGNMENTS */}
+        
+          {activeTab === "chat" && classroomDetail && (
+            <div className="mt-6">
+              <ClassroomChat
+                classroomId={classroomDetail.id}
+                classroomName={classroomDetail.name}
+                currentUserId={user?.id ?? ""}
+                isTeacher={classroomDetail.isTeacher}
+              />
+            </div>
+          )}
+
+          {/* TAB 1: ASSIGNMENTS */}
         {activeTab === "assignments" && (
           <div className="space-y-4">
             {classroomDetail.assignments?.length === 0 ? (

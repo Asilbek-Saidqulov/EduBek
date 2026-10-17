@@ -95,6 +95,9 @@ model User {
   userSubs             UserSubscription[]           @relation("UserUserSubscriptions")
   wallet               Wallet?
   printPacks           PrintPack[]
+  sentFriendRequests   Friendship[] @relation("FriendshipRequester")
+  receivedFriendRequests Friendship[] @relation("FriendshipAddressee")
+  classroomMessages    ClassroomMessage[] @relation("ClassroomMessageAuthor")
 
   @@index([email])
   @@index([username])
@@ -6827,4 +6830,41 @@ model EconomyEntitlement {
   createdAt DateTime @default(now())
 
   @@unique([userId, listingId])
+}
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  BLOCKED
+}
+
+model Friendship {
+  id          String           @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status      FriendshipStatus @default(PENDING)
+  createdAt   DateTime         @default(now())
+
+  requester   User @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee   User @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@index([addresseeId, status])
+  @@index([requesterId, status])
+}
+
+model ClassroomMessage {
+  id          String    @id @default(cuid())
+  classroomId String
+  authorId    String
+  body        String    @db.VarChar(500)
+  createdAt   DateTime  @default(now())
+  deletedAt   DateTime?
+  deletedById String?
+
+  classroom   Classroom @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  author      User      @relation("ClassroomMessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([classroomId, createdAt])
 }

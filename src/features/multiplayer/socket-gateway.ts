@@ -4,6 +4,8 @@ import { RoomManager } from "./room-manager";
 import { checkActionRateLimit } from "./anti-cheat";
 import { PlayerAnswerSubmission } from "./types";
 import { attachClassicLive } from "./classic-live";
+import { verifySessionToken } from "@/lib/session-token";
+import { registerClassroomChat } from "./classroom-chat";
 
 interface AuthenticatedSocket extends Socket {
   data: {
@@ -53,6 +55,7 @@ export class SocketGateway {
     this.setupMiddleware();
     this.setupEventHandlers();
     attachClassicLive(this.io);
+    registerClassroomChat(this.io);
 
     console.log("[SocketGateway] Socket.IO server initialized on path /api/socket/io");
     return this.io;
@@ -86,34 +89,19 @@ export class SocketGateway {
           const match = cookieHeader.match(/edubek_session=([^;]+)/);
           if (match && match[1]) {
             try {
-              const decoded = Buffer.from(decodeURIComponent(match[1]), "base64").toString("utf-8");
-              const parsed = JSON.parse(decoded);
-              if (parsed && parsed.userId) {
-                userId = parsed.userId;
-                email = parsed.email || null;
-                displayName = parsed.name || parsed.email?.split("@")[0] || displayName;
+              const payload = verifySessionToken(decodeURIComponent(match[1]));
+              if (payload?.userId) {
+                userId = payload.userId;
+                email = payload.email ?? null;
+                displayName = payload.name || payload.email?.split("@")[0] || displayName;
                 isGuest = false;
               }
             } catch {
-              // guest
+              // invalid token
             }
           }
         }
-
-        if (!userId && authPayload.token) {
-          try {
-            const decoded = Buffer.from(authPayload.token, "base64").toString("utf-8");
-            const parsed = JSON.parse(decoded);
-            if (parsed && parsed.userId) {
-              userId = parsed.userId;
-              email = parsed.email || null;
-              displayName = parsed.name || parsed.email?.split("@")[0] || displayName;
-              isGuest = false;
-            }
-          } catch {
-            // guest
-          }
-        }
+        // handshake.auth.token is intentionally ignored for security
 
         if (!userId) {
           userId = authPayload.guestId || `guest_${socket.id.substring(0, 8)}`;
