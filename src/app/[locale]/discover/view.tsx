@@ -9,13 +9,10 @@
 import * as React from "react";
 import { Link } from "@/i18n/navigation";
 import { useQuery } from "@tanstack/react-query";
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { BookOpen, Search, Star, User } from "lucide-react";
 
 import { api } from "@/lib/api-client";
 import { Card } from "@/components/ui/card";
-=======
 import { useTranslations } from "next-intl";
 import {
   Clock,
@@ -37,8 +34,7 @@ import {
 
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
->>>>>>> d688e4a (fix 2)
-=======
+
 import { useTranslations } from "next-intl";
 import {
   Clock,
@@ -60,13 +56,10 @@ import {
 
 import { api } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
->>>>>>> 3ecf2db (fix v2)
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-<<<<<<< HEAD
-<<<<<<< HEAD
 
 type Material = {
   id: string;
@@ -197,7 +190,6 @@ export function DiscoverView() {
                     </div>
                   </div>
                 </div>
-=======
 import { EmptyState } from "@/components/edubek/empty-state";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -293,7 +285,6 @@ export function DiscoverView() {
     staleTime: 60_000,
   });
 
-=======
 import { EmptyState } from "@/components/edubek/empty-state";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
@@ -389,7 +380,6 @@ export function DiscoverView() {
     staleTime: 60_000,
   });
 
->>>>>>> 3ecf2db (fix v2)
   const categoriesQ = useQuery<CategoryResult>({
     queryKey: ["marketplace", "categories"],
     queryFn: () => api.get<CategoryResult>("/api/marketplace/categories"),
@@ -611,22 +601,12 @@ export function DiscoverView() {
                     </Button>
                   </div>
                 </div>
-<<<<<<< HEAD
->>>>>>> d688e4a (fix 2)
-=======
->>>>>>> 3ecf2db (fix v2)
               </Card>
             ))}
           </div>
         )}
-<<<<<<< HEAD
       </div>
-=======
       </section>
-<<<<<<< HEAD
->>>>>>> d688e4a (fix 2)
-=======
->>>>>>> 3ecf2db (fix v2)
     </div>
   );
 }

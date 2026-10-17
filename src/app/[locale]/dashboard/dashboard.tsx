@@ -1,31 +1,11 @@
 "use client";
 
 import * as React from "react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useQuery } from "@tanstack/react-query";
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { useTranslations } from "next-intl";
-import {
-  ArrowRight,
-  Bell,
-  BookOpen,
-  Compass,
-  Gamepad2,
-  Loader2,
-  Plus,
-  Sparkles,
-  Users,
-  UserPlus,
-} from "lucide-react";
-=======
-import { useTranslations, useLocale } from "next-intl";
-import { Sparkles, Send, Play, Brain, CheckCircle2, Circle, Flame, Users, Gamepad2, Compass } from "lucide-react";
->>>>>>> d688e4a (fix 2)
-=======
-import { useTranslations, useLocale } from "next-intl";
-import { Sparkles, Send, Play, Brain, CheckCircle2, Circle, Flame, Users, Gamepad2, Compass } from "lucide-react";
->>>>>>> 3ecf2db (fix v2)
+import { useLocale } from "next-intl";
+import { Brain, CheckCircle2, Circle, Compass, Flame, Gamepad2, Play, Send, Sparkles, Users, UserPlus } from "lucide-react";
 
 import { api } from "@/lib/api-client";
 import { useCurrentUser } from "@/hooks/use-current-user";
@@ -76,7 +56,6 @@ const T = {
 
 export function DashboardView({ initialUser }: { initialUser: any }) {
   const { user } = useCurrentUser();
-  const router = useRouter();
   const locale = useLocale() as keyof typeof T;
   const t = T[locale] || T.en;
   const currentUser = user ?? initialUser;
@@ -89,51 +68,6 @@ export function DashboardView({ initialUser }: { initialUser: any }) {
   });
 
   return (
-<<<<<<< HEAD
-<<<<<<< HEAD
-    <div className="mx-auto max-w-3xl flex flex-col min-h-[70vh] pt-8">
-      {/* Greeting + quick links — Gemini style */}
-      <div className="text-center space-y-6 mb-10">
-        <div className="space-y-1">
-          <p className="text-sm text-muted-foreground">{greeting()} · {t(`roles.${role}`)}</p>
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            {t("hello", { name })}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {role === "teacher" ? t("teacherSubtitle") : t("studentSubtitle")}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <HomeAction href="/classrooms" icon={Users} title="Open Class" desc="" />
-          <HomeAction href="/live-quiz?tab=create" icon={Gamepad2} title="Create Quiz" desc="" />
-          <HomeAction href="/discover" icon={Compass} title="Discover" desc="" />
-          <HomeAction href="/friends" icon={UserPlus} title="Friends" desc="" />
-        </div>
-      </div>
-
-      {/* Last lesson continue — compact */}
-      {lastLesson && (
-        <div className="mb-6 flex items-center justify-between rounded-xl border bg-muted/30 px-4 py-3 text-sm">
-          <div className="min-w-0">
-            <span className="text-muted-foreground">Continue: </span>
-            <span className="font-medium truncate">{lastLesson.title || "Last lesson"}</span>
-          </div>
-          <Button asChild size="sm" variant="ghost">
-            <Link href={`/tutor?sessionId=${lastLesson.id}`}>Resume</Link>
-          </Button>
-        </div>
-      )}
-
-      {/* Main chat — prominent center */}
-      <div className="flex-1 flex flex-col">
-        <Card className="border-border/80 shadow-sm flex-1 flex flex-col overflow-hidden min-h-[380px]">
-          <CardContent className="p-0 flex-1 flex flex-col">
-            <HomeTutorChat />
-          </CardContent>
-        </Card>
-      </div>
-=======
     <div className="min-h-[80vh] bg-background text-foreground">
       <header className="px-2 pt-2 pb-4 flex items-start justify-between">
         <div>
@@ -171,52 +105,10 @@ export function DashboardView({ initialUser }: { initialUser: any }) {
           <TutorPanel t={t} locale={locale} context={home} />
         </aside>
       </div>
->>>>>>> d688e4a (fix 2)
-=======
-    <div className="min-h-[80vh] bg-background text-foreground">
-      <header className="px-2 pt-2 pb-4 flex items-start justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t.greet(name)}</h1>
-          <p className="text-muted-foreground mt-1">{t.sub}</p>
-        </div>
-        {home?.streak > 0 && (
-          <div className="flex items-center gap-2 rounded-full bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 text-sm font-medium text-amber-700">
-            <Flame className="size-4" /> {home.streak}
-          </div>
-        )}
-      </header>
-
-      <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-        <main className="space-y-6">
-          <ContinueCard item={home?.continueItem} t={t} loading={isLoading} />
-          <TodayPlan items={home?.todayPlan ?? []} t={t} />
-          <WeakTopics topics={home?.weakTopics ?? []} t={t} />
-
-          {/* Quick links */}
-          <div className="flex flex-wrap gap-2">
-            <Button asChild variant="outline" size="sm" className="rounded-full">
-              <Link href="/classrooms"><Users className="size-3.5 mr-1" /> Class</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="rounded-full">
-              <Link href="/live-quiz?tab=create"><Gamepad2 className="size-3.5 mr-1" /> Create Quiz</Link>
-            </Button>
-            <Button asChild variant="outline" size="sm" className="rounded-full">
-              <Link href="/discover"><Compass className="size-3.5 mr-1" /> Discover</Link>
-            </Button>
-          </div>
-        </main>
-
-        <aside className="lg:sticky lg:top-6 lg:self-start">
-          <TutorPanel t={t} locale={locale} context={home} />
-        </aside>
-      </div>
->>>>>>> 3ecf2db (fix v2)
     </div>
   );
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 function HomeAction({
   href,
   icon: Icon,
@@ -234,26 +126,24 @@ function HomeAction({
         {title}
       </Button>
     </Link>
-=======
+  );
+}
+
 function ContinueCard({ item, t, loading }: any) {
-  if (loading) return <div className="h-40 rounded-2xl bg-muted/40 animate-pulse" />;
+  if (loading) return <div className="h-32 animate-pulse rounded-2xl bg-muted" />;
   if (!item) return null;
-  const pct = Math.round(((item.done || 1) / (item.total || 5)) * 100);
+  const done = Number(item.done) || 0;
+  const total = Number(item.total) || 0;
+  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
+
   return (
-=======
-function ContinueCard({ item, t, loading }: any) {
-  if (loading) return <div className="h-40 rounded-2xl bg-muted/40 animate-pulse" />;
-  if (!item) return null;
-  const pct = Math.round(((item.done || 1) / (item.total || 5)) * 100);
-  return (
->>>>>>> 3ecf2db (fix v2)
     <section className="rounded-2xl border bg-card p-6 shadow-sm">
       <p className="text-xs font-semibold uppercase tracking-wider text-primary">{item.subject}</p>
       <h2 className="mt-1 text-xl font-semibold">{item.title}</h2>
       <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-muted">
         <div className="h-full rounded-full bg-primary transition-all" style={{ width: `${pct}%` }} />
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">{item.done}/{item.total} {t.progress}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{done}/{total} {t.progress}</p>
       <div className="mt-5 flex gap-3">
         <Button asChild>
           <Link href="/tutor"><Play className="size-4" /> {t.resume}</Link>
@@ -263,10 +153,6 @@ function ContinueCard({ item, t, loading }: any) {
         </Button>
       </div>
     </section>
-<<<<<<< HEAD
->>>>>>> d688e4a (fix 2)
-=======
->>>>>>> 3ecf2db (fix v2)
   );
 }
 
